@@ -6,6 +6,7 @@ import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 from videosys import OpenSoraConfig, VideoSysEngine
+import time
 
 TIMEOUT_KEEP_ALIVE = 5  # seconds.
 app = FastAPI()
@@ -27,12 +28,15 @@ async def run_base(request: Request) -> Response:
     # num frames: 2s, 4s, 8s, 16s
     # resolution: 144p, 240p, 360p, 480p, 720p
     # aspect ratio: 9:16, 16:9, 3:4, 4:3, 1:1
+    t1 = time.time()
     video = engine.generate(
         prompt=prompt,
         resolution="480p",
         aspect_ratio="9:16",
         num_frames="2s",
     ).video[0]
+    t2 = time.time()
+    print("execute time ", t2-t1)
     engine.save_video(video, f"./outputs/{prompt}.mp4")
     """Health check."""
     return Response(status_code=200)
@@ -52,10 +56,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", type=str, default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument("--num_gpus", type=int, default=1)
 
     args = parser.parse_args()
     
-    config = OpenSoraConfig(num_sampling_steps=30, cfg_scale=7.0, num_gpus=1)
+    config = OpenSoraConfig(num_sampling_steps=30, cfg_scale=7.0, num_gpus=args.num_gpus)
     engine = VideoSysEngine(config)
 
     uvicorn.run(app,
