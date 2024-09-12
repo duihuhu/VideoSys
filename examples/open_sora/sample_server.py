@@ -28,7 +28,10 @@ async def allocate(request: Request) -> Response:
     request_dict = await request.json()
     print("request_dict ", request_dict) 
     video_shape = request_dict.pop("shape")
+    t1 = time.time()
     samples = torch.empty(video_shape)
+    t2 = time.time()
+    print("allocate time ", t2-t1)
     ret = {"data_ptr": samples.data_ptr()}
     return JSONResponse(ret)
 
