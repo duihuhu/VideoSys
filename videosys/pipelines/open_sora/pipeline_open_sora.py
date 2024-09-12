@@ -614,7 +614,7 @@ class OpenSoraPipeline(VideoSysPipeline):
                 mask=masks,
             )
             samples = self.vae.decode(samples.to(self._dtype), num_frames=num_frames)
-            print("type samples ", type(samples), samples.shape)
+            print("type samples ", type(samples), samples.shape, print(samples.element_size() * samples.nelement()))
             video_clips.append(samples)
 
         for i in range(1, loop):
