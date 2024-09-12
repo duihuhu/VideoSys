@@ -4,13 +4,33 @@ from typing import AsyncGenerator
 
 import uvicorn
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse, Response, StreamingResponse
+from fastapi.responses import JSONResponse, Response
 from videosys import OpenSoraConfig, VideoSysEngine
 import time
-
+import torch
+from comm import CommData, CommEngine, CommonHeader, ReqMeta
 TIMEOUT_KEEP_ALIVE = 5  # seconds.
 app = FastAPI()
 engine = None
+
+
+async def query_hbm_meta(request_id, shape, vae_host, vae_port):
+    vae_entry_point = (vae_host, vae_port)
+    req_meta = ReqMeta(request_id, shape).__json__()
+    data = CommData(
+        headers=CommonHeader(vae_host, vae_port).__json__(),
+        payload=req_meta
+    )
+    return await CommEngine.async_send_to(vae_entry_point, "allocate", data)
+
+@app.post("/allocate")
+async def allocate(request: Request) -> Response:
+    request_dict = await request.json()
+    video_shape = request_dict.pop("video_shape")
+    samples = torch.empty(video_shape)
+    ret = {"data_ptr": samples.data_ptr()}
+    return JSONResponse(ret)
+
 
 @app.post("/generate")
 async def run_base(request: Request) -> Response:
@@ -37,6 +57,9 @@ async def run_base(request: Request) -> Response:
     ).video[0]
     t2 = time.time()
     print("execute time ", t2-t1)
+    
+    response = await query_hbm_meta("111", [1, 3, 51, 480, 848], "127.0.0.1", "8001")
+    print("response ", response)
     engine.save_video(video, f"./outputs/{prompt}.mp4")
     """Health check."""
     return Response(status_code=200)
