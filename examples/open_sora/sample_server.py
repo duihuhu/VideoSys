@@ -26,9 +26,11 @@ async def query_hbm_meta(request_id, shape, vae_host, vae_port):
 @app.post("/allocate")
 async def allocate(request: Request) -> Response:
     request_dict = await request.json()
-    video_shape = request_dict.pop("video_shape")
-    samples = torch.empty(video_shape)
-    ret = {"data_ptr": samples.data_ptr()}
+    print("request_dict ", request_dict) 
+    # video_shape = request_dict.pop("video_shape")
+    # samples = torch.empty(video_shape)
+    # ret = {"data_ptr": samples.data_ptr()}
+    ret = {"data_ptr ": "success "}
     return JSONResponse(ret)
 
 
