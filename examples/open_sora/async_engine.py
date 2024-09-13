@@ -268,9 +268,6 @@ class AsyncEngine:
                     "error that caused the background loop to stop "
                     "(AsyncEngineDeadError).")
 
-        if arrival_time is None:
-            arrival_time = time.time()
-
         stream = await self.add_request(
             request_id = request_id,
             prompt = prompt,
