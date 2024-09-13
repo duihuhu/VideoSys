@@ -187,7 +187,7 @@ class AsyncEngine:
         print("run_engine_loop ")
         while True:
             if (not has_requests_in_progress 
-                # and not self.engine.scheduler.recv_transfering 
+                and not self.engine.scheduler.waiting 
                 # and not self.engine.scheduler.send_transfering
                 ):
                 
@@ -207,9 +207,8 @@ class AsyncEngine:
         print("engine_step ")
         
         for new_request in new_requests:
-            print("new request ", new_request)
-        #     await self.engine.add_request_async(**new_request)
-    
+            self.engine.add_request(**new_request)
+        time.sleep(5)
         # request_outputs, request_with_layer_outputs = await self.engine.step_async(self._request_tracker)
 
     @property

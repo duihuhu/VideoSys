@@ -7,7 +7,8 @@ import torch
 import videosys
 
 from .mp_utils import ProcessWorkerWrapper, ResultHandler, WorkerMonitor, get_distributed_init_method, get_open_port
-
+from sequence import SequenceGroup
+from scheduler import Scheduler
 
 class VideoSysEngine:
     """
@@ -17,6 +18,7 @@ class VideoSysEngine:
     def __init__(self, config):
         self.config = config
         self.parallel_worker_tasks = None
+        self.scheduler = Scheduler()
         self._init_worker(config.pipeline_cls)
 
     def _init_worker(self, pipeline_cls):
@@ -128,3 +130,7 @@ class VideoSysEngine:
 
     def __del__(self):
         self.shutdown()
+
+    def add_request(self, request_id, prompt, resolution, aspect_ratio, num_frames):
+        seq_group = SequenceGroup(request_id, prompt, resolution, aspect_ratio, num_frames)
+        self.scheduler.add_seq_group(seq_group)
