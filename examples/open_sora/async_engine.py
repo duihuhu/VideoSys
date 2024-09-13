@@ -253,6 +253,7 @@ class AsyncEngine:
         aspect_ratio: Optional[str],
         num_frames: Optional[str],
     ) -> AsyncStream:
+        print(self.is_running, self.start_engine_loop)
         if not self.is_running:
             if self.start_engine_loop:
                 self.start_engine_time = time.time()
