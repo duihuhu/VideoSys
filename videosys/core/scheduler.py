@@ -11,3 +11,10 @@ class Scheduler:
     def add_seq_group(self, seq_group: SequenceGroup) -> None:
         # Add sequence groups to the waiting queue.
         self.waiting.append(seq_group)
+
+    def schedule(self) -> SequenceGroup:
+        if self.waiting:
+            seq_group = self.waiting[0]
+            self.waiting.popleft()
+            return seq_group
+        return None

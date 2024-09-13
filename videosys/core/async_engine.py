@@ -176,7 +176,7 @@ class AsyncEngine:
                  start_engine_loop: bool = True,):
         self.config = config
         self.parallel_worker_tasks = None
-        self.engine = VideoSysEngine(config=self.config)
+        self.video_engine = VideoSysEngine(config=self.config)
         self.start_engine_loop = start_engine_loop
         
         self.background_loop = None
@@ -187,7 +187,7 @@ class AsyncEngine:
         print("run_engine_loop ")
         while True:
             if (not has_requests_in_progress 
-                and not self.engine.scheduler.waiting 
+                and not self.video_engine.scheduler.waiting 
                 # and not self.engine.scheduler.send_transfering
                 ):
                 
@@ -201,16 +201,29 @@ class AsyncEngine:
                 raise
             await asyncio.sleep(0)
     
+    async def step_async(self):
+        seq_group = self.video_engine.scheduler.schedule()
+        if seq_group:
+            video = self.video_engine.generate(prompt=seq_group.prompt,
+                resolution=seq_group.resolution,
+                aspect_ratio=seq_group.aspect_ratio,
+                num_frames=seq_group.num_frames,
+            ).video[0]
+            self.video_engine.save_video(video, f"./outputs/{seq_group.prompt}.mp4")
+            return seq_group.request_id
+        return None
     async def engine_step(self) -> bool:
         new_requests, finished_requests = (
             self._request_tracker.get_new_and_finished_requests())
         print("engine_step ")
         
         for new_request in new_requests:
-            self.engine.add_request(**new_request)
-        time.sleep(5)
-        # request_outputs, request_with_layer_outputs = await self.engine.step_async(self._request_tracker)
-
+            self.video_engine.add_request(**new_request)
+            
+        request_outputs = await self.step_async()
+        
+        return request_outputs!=None
+    
     @property
     def is_running(self) -> bool:
         return (self.background_loop is not None
@@ -257,7 +270,6 @@ class AsyncEngine:
         aspect_ratio: Optional[str],
         num_frames: Optional[str],
     ) -> AsyncStream:
-        print("add_request ", self.is_running)
         if not self.is_running:
             if self.start_engine_loop:
                 self.start_engine_time = time.time()
