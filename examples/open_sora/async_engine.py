@@ -180,6 +180,7 @@ class AsyncEngine:
         self.start_engine_loop = start_engine_loop
         
         self.background_loop = None
+        self._errored_with: Optional[BaseException] = None
 
     async def run_engine_loop(self):
         has_requests_in_progress = False
