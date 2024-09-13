@@ -120,7 +120,6 @@ class RequestTracker:
         if request_id in self._request_streams:
             raise KeyError(f"Request {request_id} already exists.")
         stream = AsyncStream(request_id)
-        print("add_request ", **engine_add_request_kwargs)
         self._new_requests.put_nowait((stream, {
             "request_id": request_id,
             **engine_add_request_kwargs
