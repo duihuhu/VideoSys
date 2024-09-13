@@ -39,7 +39,7 @@ async def allocate(request: Request) -> Response:
 
 @app.post("/generate")
 async def generate(request: Request) -> Response:
-    request_dict = await request.json()
+    # request_dict = await request.json()
     # request_id = request_dict.pop("request_id")
     # prompt = request_dict.pop("prompt")
     # resolution = request_dict.pop("resolution")
