@@ -210,7 +210,7 @@ class AsyncEngine:
                 num_frames=seq_group.num_frames,
             ).video[0]
             self.video_engine.save_video(video, f"./outputs/{seq_group.prompt}.mp4")
-            return seq_group.request_id
+            return RequestOutput(seq_group.request_id, seq_group.prompt, True)
         return None
     
     async def engine_step(self) -> bool:
@@ -223,6 +223,8 @@ class AsyncEngine:
             self.video_engine.add_request(**new_request)
             
         request_outputs = await self.step_async()
+        if request_outputs:
+            self._request_tracker.process_request_output(request_outputs)
         
         return request_outputs!=None
     
