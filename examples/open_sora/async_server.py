@@ -50,12 +50,14 @@ async def generate(request: Request) -> Response:
     resolution="480p",
     aspect_ratio="9:16",
     num_frames="2s",
+    print("aaaaa")
     results_generator = engine.generate(request_id=request_id, prompt=prompt, resolution=resolution, \
         aspect_ratio=aspect_ratio, num_frames=num_frames)
-    
+    print("bbb")
     async def stream_results() -> AsyncGenerator[bytes, None]:
         async for request_output in results_generator:
             ret = {"text": "sucess "}
+            print("bbb")
             yield (json.dumps(ret) + "\0").encode("utf-8")
 
 
