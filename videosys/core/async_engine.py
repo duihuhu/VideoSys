@@ -120,6 +120,7 @@ class RequestTracker:
         if request_id in self._request_streams:
             raise KeyError(f"Request {request_id} already exists.")
         stream = AsyncStream(request_id)
+        print("add_request ", **engine_add_request_kwargs)
         self._new_requests.put_nowait((stream, {
             "request_id": request_id,
             **engine_add_request_kwargs
@@ -212,6 +213,7 @@ class AsyncEngine:
             self.video_engine.save_video(video, f"./outputs/{seq_group.prompt}.mp4")
             return seq_group.request_id
         return None
+    
     async def engine_step(self) -> bool:
         new_requests, finished_requests = (
             self._request_tracker.get_new_and_finished_requests())

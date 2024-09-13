@@ -47,9 +47,9 @@ async def generate(request: Request) -> Response:
     # num_frames = request_dict.pop("num_frames")
     request_id = "111"
     prompt = "Sunset over the sea."
-    resolution="480p",
-    aspect_ratio="9:16",
-    num_frames="2s",
+    resolution = "480p",
+    aspect_ratio = "9:16",
+    num_frames = "2s",
     print("aaaaa")
     results_generator = engine.generate(request_id=request_id, prompt=prompt, resolution=resolution, \
         aspect_ratio=aspect_ratio, num_frames=num_frames)
