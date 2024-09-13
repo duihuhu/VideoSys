@@ -98,7 +98,7 @@ class RequestTracker:
         """Process a request output from the engine."""
         request_id = request_output.request_id
         self._request_streams[request_id].put(request_output)
-        if verbose:
+        if request_output.finished:
             logger.info(f"Finished request {request_id}.")
             self.abort_request(request_id)
     
@@ -212,7 +212,8 @@ class AsyncEngine:
             self.video_engine.save_video(video, f"./outputs/{seq_group.prompt}.mp4")
             return RequestOutput(seq_group.request_id, seq_group.prompt, True)
         return None
-    
+
+
     async def engine_step(self) -> bool:
         new_requests, finished_requests = (
             self._request_tracker.get_new_and_finished_requests())
@@ -222,9 +223,13 @@ class AsyncEngine:
             print("new_request ", new_request)
             self.video_engine.add_request(**new_request)
             
+        if finished_requests:
+            await self._engine_abort(finished_requests)
+            
         request_outputs = await self.step_async()
         if request_outputs:
             self._request_tracker.process_request_output(request_outputs)
+        
         
         return request_outputs!=None
     
