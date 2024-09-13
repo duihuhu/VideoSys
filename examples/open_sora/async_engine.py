@@ -245,7 +245,7 @@ class AsyncEngine:
                     error_callback=self._error_callback))
         self.background_loop = asyncio.shield(self._background_loop_unshielded)
         
-    async def add_request(
+    async def generate(
         self,
         request_id: str,
         prompt: Optional[str],
@@ -253,7 +253,7 @@ class AsyncEngine:
         aspect_ratio: Optional[str],
         num_frames: Optional[str],
     ) -> AsyncStream:
-        print(self.is_running, self.start_engine_loop)
+        print("add_request ", self.is_running, self.start_engine_loop)
         if not self.is_running:
             if self.start_engine_loop:
                 self.start_engine_time = time.time()
@@ -268,6 +268,24 @@ class AsyncEngine:
         if arrival_time is None:
             arrival_time = time.time()
 
+        stream = await self.add_request(
+            request_id = request_id,
+            prompt = prompt,
+            resolution = resolution,
+            aspect_ratio = aspect_ratio,
+            num_frames = num_frames
+        )
+
+        async for request_output in stream:
+            yield request_output
+
+    async def add_request(self, 
+        request_id: str,
+        prompt: Optional[str],
+        resolution: Optional[str],
+        aspect_ratio: Optional[str],
+        num_frames: Optional[str]):
+        
         stream = self._request_tracker.add_request(
             request_id = request_id,
             prompt = prompt,
@@ -275,6 +293,5 @@ class AsyncEngine:
             aspect_ratio = aspect_ratio,
             num_frames = num_frames
         )
-        async for request_output in stream:
-            yield request_output    
+        return stream
     

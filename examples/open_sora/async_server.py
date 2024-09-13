@@ -50,7 +50,7 @@ async def generate(request: Request) -> Response:
     resolution="480p",
     aspect_ratio="9:16",
     num_frames="2s",
-    results_generator = engine.add_request(request_id=request_id, prompt=prompt, resolution=resolution, \
+    results_generator = engine.generate(request_id=request_id, prompt=prompt, resolution=resolution, \
         aspect_ratio=aspect_ratio, num_frames=num_frames)
     
     async def stream_results() -> AsyncGenerator[bytes, None]:
