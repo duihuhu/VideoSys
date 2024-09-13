@@ -5,8 +5,8 @@ from typing import AsyncGenerator
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, Response, StreamingResponse
-from videosys import OpenSoraConfig, VideoSysEngine
-from async_engine import AsyncEngine
+from videosys import OpenSoraConfig
+from videosys.core.async_engine import AsyncEngine
 import time
 import torch
 from comm import CommData, CommEngine, CommonHeader, ReqMeta

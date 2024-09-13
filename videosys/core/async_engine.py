@@ -5,7 +5,7 @@ from typing import (Callable, Dict, List, Optional, Set, Tuple, Union)
 from functools import partial
 import time
 from videosys.utils.logging import logger
-from outputs import RequestOutput
+from videosys.core.outputs import RequestOutput
 
 ENGINE_ITERATION_TIMEOUT_S = int(
     os.environ.get("VLLM_ENGINE_ITERATION_TIMEOUT_S", "60"))

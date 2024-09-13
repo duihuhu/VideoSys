@@ -7,8 +7,8 @@ import torch
 import videosys
 
 from .mp_utils import ProcessWorkerWrapper, ResultHandler, WorkerMonitor, get_distributed_init_method, get_open_port
-from sequence import SequenceGroup
-from scheduler import Scheduler
+from videosys.core.sequence import SequenceGroup
+from videosys.core.scheduler import Scheduler
 
 class VideoSysEngine:
     """

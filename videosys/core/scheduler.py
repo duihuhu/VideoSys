@@ -1,6 +1,6 @@
 from typing import Deque
 from collections import deque
-from sequence import SequenceGroup
+from videosys.core.sequence import SequenceGroup
 class Scheduler:
     def __init__(
             self,
