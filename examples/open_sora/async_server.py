@@ -4,7 +4,7 @@ from typing import AsyncGenerator
 
 import uvicorn
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import JSONResponse, Response, StreamingResponse
 from videosys import OpenSoraConfig, VideoSysEngine
 from async_engine import AsyncEngine
 import time
@@ -57,10 +57,9 @@ async def generate(request: Request) -> Response:
     async def stream_results() -> AsyncGenerator[bytes, None]:
         async for request_output in results_generator:
             ret = {"text": "sucess "}
-            print("bbb")
             yield (json.dumps(ret) + "\0").encode("utf-8")
-
-
+        print("ccc")
+        return StreamingResponse(stream_results())
 # @app.post("/generate")
 # async def run_base(request: Request) -> Response:
     
