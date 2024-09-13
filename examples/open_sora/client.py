@@ -17,10 +17,7 @@ def clear_line(n: int = 1) -> None:
         print(LINE_UP, end=LINE_CLEAR, flush=True)
 
 
-def post_http_request(prompt: str,
-                      api_url: str,
-                      n: int = 1,
-                      stream: bool = False) -> requests.Response:
+def post_http_request(api_url: str,) -> requests.Response:
     headers = {"User-Agent": "Test Client"}
     
     pload = {
@@ -49,17 +46,16 @@ def get_response(response: requests.Response) -> List[str]:
     output = data["text"]
     return output
 
-def post_request_and_get_response(args, prompt):
-    rsp = post_http_request(prompt, G_URL, args.n, args.stream)
-    if args.stream:
-        for h in get_streaming_response(rsp):
-            # if h['finished'] == True:
-            #     print("res", h)
-            #     return h["prefilled_token_id"]
-            print("response ", h )
-                
-def main(args, prompts):
-    post_request_and_get_response(args, prompts)
+def post_request_and_get_response():
+    rsp = post_http_request(G_URL)
+    for h in get_streaming_response(rsp):
+        # if h['finished'] == True:
+        #     print("res", h)
+        #     return h["prefilled_token_id"]
+        print("response ", h )
+            
+def main():
+    post_request_and_get_response()
 
 
 if __name__ == "__main__":
