@@ -39,17 +39,17 @@ async def allocate(request: Request) -> Response:
 
 @app.post("/generate")
 async def generate(request: Request) -> Response:
-    # request_dict = await request.json()
-    # request_id = request_dict.pop("request_id")
-    # prompt = request_dict.pop("prompt")
-    # resolution = request_dict.pop("resolution")
-    # aspect_ratio = request_dict.pop("aspect_ratio")
-    # num_frames = request_dict.pop("num_frames")
-    request_id = "111"
-    prompt = "Sunset over the sea."
-    resolution = "480p"
-    aspect_ratio = "9:16"
-    num_frames = "2s"
+    request_dict = await request.json()
+    request_id = request_dict.pop("request_id")
+    prompt = request_dict.pop("prompt")
+    resolution = request_dict.pop("resolution")
+    aspect_ratio = request_dict.pop("aspect_ratio")
+    num_frames = request_dict.pop("num_frames")
+    # request_id = "111"
+    # prompt = "Sunset over the sea."
+    # resolution = "480p"
+    # aspect_ratio = "9:16"
+    # num_frames = "2s"
     results_generator = engine.generate(request_id=request_id, prompt=prompt, resolution=resolution, \
         aspect_ratio=aspect_ratio, num_frames=num_frames)
     async def stream_results() -> AsyncGenerator[bytes, None]:

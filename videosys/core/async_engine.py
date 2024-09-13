@@ -223,9 +223,6 @@ class AsyncEngine:
             print("new_request ", new_request)
             self.video_engine.add_request(**new_request)
             
-        # if finished_requests:
-        #     await self._engine_abort(finished_requests)
-            
         request_outputs = await self.step_async()
         if request_outputs:
             self._request_tracker.process_request_output(request_outputs)
