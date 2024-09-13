@@ -218,6 +218,7 @@ class AsyncEngine:
         print("engine_step ")
         
         for new_request in new_requests:
+            print("new_request ", new_request)
             self.video_engine.add_request(**new_request)
             
         request_outputs = await self.step_async()
@@ -294,10 +295,10 @@ class AsyncEngine:
 
     async def add_request(self, 
         request_id: str,
-        prompt: Optional[str],
-        resolution: Optional[str],
-        aspect_ratio: Optional[str],
-        num_frames: Optional[str]):
+        prompt: str,
+        resolution: str,
+        aspect_ratio: str,
+        num_frames: str):
         
         stream = self._request_tracker.add_request(
             request_id = request_id,
