@@ -59,7 +59,7 @@ async def generate(request: Request) -> Response:
             ret = {"text": "sucess "}
             yield (json.dumps(ret) + "\0").encode("utf-8")
         print("ccc")
-        return StreamingResponse(stream_results())
+    return StreamingResponse(stream_results())
 # @app.post("/generate")
 # async def run_base(request: Request) -> Response:
     
