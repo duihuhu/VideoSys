@@ -186,9 +186,10 @@ class AsyncEngine:
         has_requests_in_progress = False
         print("run_engine_loop ")
         while True:
-            if (not has_requests_in_progress and
-                not self.engine.scheduler.recv_transfering and
-                not self.engine.scheduler.send_transfering):
+            if (not has_requests_in_progress 
+                # and not self.engine.scheduler.recv_transfering 
+                # and not self.engine.scheduler.send_transfering
+                ):
                 
                 await self._request_tracker.wait_for_new_requests()
             # Abort if iteration takes too long due to unrecoverable errors
