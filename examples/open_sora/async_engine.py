@@ -206,7 +206,8 @@ class AsyncEngine:
             self._request_tracker.get_new_and_finished_requests())
         print("engine_step ")
         
-        # for new_request in new_requests:
+        for new_request in new_requests:
+            print("new request ", new_request)
         #     await self.engine.add_request_async(**new_request)
     
         # request_outputs, request_with_layer_outputs = await self.engine.step_async(self._request_tracker)
