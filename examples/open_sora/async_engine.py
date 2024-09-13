@@ -178,6 +178,8 @@ class AsyncEngine:
         self.parallel_worker_tasks = None
         self.engine = VideoSysEngine(config=self.config)
         self.start_engine_loop = start_engine_loop
+        
+        self.background_loop = None
 
     async def run_engine_loop(self):
         has_requests_in_progress = False
