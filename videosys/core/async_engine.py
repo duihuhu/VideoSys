@@ -209,16 +209,16 @@ class AsyncEngine:
             #     aspect_ratio=seq_group.aspect_ratio,
             #     num_frames=seq_group.num_frames,
             # ).video[0]
-            t1 = time()
+            t1 = time.time()
             video = self.video_engine.generate_dit(request_id=seq_group.request_id, 
                                                    prompt=seq_group.prompt,
                                                    resolution=seq_group.resolution,
                                                    aspect_ratio=seq_group.aspect_ratio,
                                                    num_frames=seq_group.num_frames,
                                                    )
-            t2 = time()
+            t2 = time.time()
             self.video_engine.transfer_dit(request_id=seq_group.request_id)
-            t3 = time()
+            t3 = time.time()
             print("step async ", t3-t2, t2-t1)
             # print("step_async ", type(video), video.shape, video.device)
             # self.video_engine.save_video(video, f"./outputs/{seq_group.prompt}.mp4")
