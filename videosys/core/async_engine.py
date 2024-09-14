@@ -216,6 +216,7 @@ class AsyncEngine:
                                                    num_frames=seq_group.num_frames,
                                                    )
             print("video ", video)
+            self.video_engine.transfer_dit(request_id=seq_group.request_id)
             # print("step_async ", type(video), video.shape, video.device)
             # self.video_engine.save_video(video, f"./outputs/{seq_group.prompt}.mp4")
             return RequestOutput(seq_group.request_id, seq_group.prompt, True)
