@@ -2,7 +2,6 @@ from typing import List
 
 from setuptools import find_packages, setup
 
-
 def fetch_requirements(path) -> List[str]:
     """
     This function reads the requirements file.
@@ -26,7 +25,6 @@ def fetch_readme() -> str:
     """
     with open("README.md", encoding="utf-8") as f:
         return f.read()
-
 
 setup(
     name="videosys",

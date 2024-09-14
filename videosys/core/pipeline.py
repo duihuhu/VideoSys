@@ -50,8 +50,3 @@ class VideoSysPipeline(DiffusionPipeline):
 @dataclass
 class VideoSysPipelineOutput(BaseOutput):
     video: torch.Tensor
-
-
-@dataclass
-class VideoSysDiTPipelineOutput(BaseOutput):
-    samples: torch.Tensor

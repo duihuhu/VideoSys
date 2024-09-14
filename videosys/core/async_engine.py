@@ -326,3 +326,10 @@ class AsyncEngine:
         )
         return stream
     
+
+    async def get_nccl_id(self):
+        nccl_id = await self.video_engine.get_nccl_id("get_nccl_id")
+        res = await self.video_engine.create_comm("create_comm", nccl_id=nccl_id)
+        return nccl_id
+        
+        

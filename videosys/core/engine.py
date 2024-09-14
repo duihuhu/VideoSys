@@ -110,6 +110,9 @@ class VideoSysEngine:
     def transfer_dit(self, *args, **kwargs):
         return self.driver_worker.transfer_dit(*args, **kwargs)
     
+    def get_nccl_id(self, *args, **kwargs):
+        return self.driver_worker.get_nccl_id(*args, **kwargs)
+
     def stop_remote_worker_execution_loop(self) -> None:
         if self.parallel_worker_tasks is None:
             return

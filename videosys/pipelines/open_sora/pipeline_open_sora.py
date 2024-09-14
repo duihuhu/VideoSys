@@ -240,6 +240,8 @@ class OpenSoraPipeline(VideoSysPipeline):
         )
         
         self.record_data = {}
+        #self.trans_manager = xxx
+        #self.trans_manager = trans_ops.TransManager()
         
     def get_text_embeddings(self, texts):
         text_tokens_and_mask = self.tokenizer(
