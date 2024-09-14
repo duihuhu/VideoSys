@@ -25,7 +25,7 @@ public:
 
     ~TransManager();
     std::vector<char> get_nccl_id(const std::string& dst_channel, const std::string& worker_type);
-    // void create_comm(std::vector<char>& nccl_id ,const std::string& dst_channel, const std::string& worker_type);
+    void create_comm(std::vector<char>& nccl_id ,const std::string& dst_channel, const std::string& worker_type);
     void dist_worker();
 
 private:
