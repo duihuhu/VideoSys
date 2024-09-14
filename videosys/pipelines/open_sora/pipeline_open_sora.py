@@ -18,6 +18,8 @@ from videosys.utils.utils import save_video
 
 from .data_process import get_image_size, get_num_frames, prepare_multi_resolution_info, read_from_path
 
+from video_ops import trans_ops
+
 os.environ["TOKENIZERS_PARALLELISM"] = "true"
 
 
