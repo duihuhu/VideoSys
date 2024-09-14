@@ -238,7 +238,9 @@ class OpenSoraPipeline(VideoSysPipeline):
         self.register_modules(
             text_encoder=text_encoder, vae=vae, transformer=transformer, scheduler=scheduler, tokenizer=tokenizer
         )
-
+        
+        self.record_data = {}
+        
     def get_text_embeddings(self, texts):
         text_tokens_and_mask = self.tokenizer(
             texts,
@@ -637,6 +639,7 @@ class OpenSoraPipeline(VideoSysPipeline):
     @torch.no_grad()
     def generate_dit(
         self,
+        request_id: str,
         prompt: str,
         resolution="480p",
         aspect_ratio="9:16",
@@ -847,8 +850,8 @@ class OpenSoraPipeline(VideoSysPipeline):
                 progress=verbose,
                 mask=masks,
             )
-
-        return VideoSysPipelineOutput(samples=samples)
+            self.record_data[request_id] = samples
+        return request_id
 
     def save_video(self, video, output_path):
         save_video(video, output_path, fps=24)

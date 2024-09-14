@@ -204,13 +204,19 @@ class AsyncEngine:
     async def step_async(self):
         seq_group = self.video_engine.scheduler.schedule()
         if seq_group:
-            video = self.video_engine.generate(prompt=seq_group.prompt,
+            # video = self.video_engine.generate(prompt=seq_group.prompt,
+            #     resolution=seq_group.resolution,
+            #     aspect_ratio=seq_group.aspect_ratio,
+            #     num_frames=seq_group.num_frames,
+            # ).video[0]
+            video = self.video_engine.generate_dit(prompt=seq_group.prompt,
                 resolution=seq_group.resolution,
                 aspect_ratio=seq_group.aspect_ratio,
                 num_frames=seq_group.num_frames,
-            ).video[0]
-            print("step_async ", type(video), video.shape, video.device)
-            self.video_engine.save_video(video, f"./outputs/{seq_group.prompt}.mp4")
+            )
+            print("video ", video)
+            # print("step_async ", type(video), video.shape, video.device)
+            # self.video_engine.save_video(video, f"./outputs/{seq_group.prompt}.mp4")
             return RequestOutput(seq_group.request_id, seq_group.prompt, True)
         return None
 
