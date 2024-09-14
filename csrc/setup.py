@@ -61,7 +61,7 @@ python_include_dir = sysconfig.get_path('include')
 # 包含 CUDA 和 C++ 源文件的扩展模块
 ext_modules = [
     CUDAExtension(
-        name="trans_ops",
+        name="video_ops",
         sources=["pybind.cpp", "trans_manager.cu"],  # 包含 C++ 和 CUDA 文件
         include_dirs=[numpy.get_include(), python_include_dir] + torch_include_dirs,  # 添加 numpy 和 PyTorch 的头文件路径
         library_dirs=torch_library_dirs,  # 添加 PyTorch 的库文件路径
@@ -75,7 +75,7 @@ ext_modules = [
 
 # setup 函数
 setup(
-    name="trans_ops",
+    name="video_ops",
     version="0.1",
     ext_modules=ext_modules,
     cmdclass={'build_ext': BuildExt},

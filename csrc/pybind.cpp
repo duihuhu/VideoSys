@@ -2,7 +2,7 @@
 #include <torch/extension.h>
 
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
-  pybind11::module trans_ops = m.def_submodule("trans_ops", "vLLM gpu nccl utils");
+  pybind11::module trans_ops = m.def_submodule("trans_ops", "video gpu nccl utils");
 
   py::class_<TransManager>(trans_ops, "TransManager")
       .def(py::init<int, std::vector<std::pair<at::Tensor, at::Tensor>>&, int, int , int, int, int, int, std::vector<uint64_t>& >())
