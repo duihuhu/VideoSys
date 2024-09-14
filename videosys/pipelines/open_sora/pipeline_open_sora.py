@@ -856,7 +856,7 @@ class OpenSoraPipeline(VideoSysPipeline):
 
     def transfer_dit(self, request_id):
         samples = self.record_data[request_id]
-        print("transfer_dit ", type(samples), samples.shape, samples.shape)
+        print("transfer_dit ", type(samples), samples.shape, samples.device)
         
     def save_video(self, video, output_path):
         save_video(video, output_path, fps=24)
