@@ -5,6 +5,7 @@ import os
 import numpy
 import torch
 from torch.utils.cpp_extension import include_paths, library_paths
+import sysconfig
 
 # 自定义 CUDAExtension 类
 class CUDAExtension(Extension):
@@ -55,13 +56,14 @@ class BuildExt(build_ext):
 # 添加 PyTorch 的 include 和 library 目录
 torch_include_dirs = include_paths()  # 获取 PyTorch 头文件路径
 torch_library_dirs = library_paths()  # 获取 PyTorch 库路径
+python_include_dir = sysconfig.get_path('include')
 
 # 包含 CUDA 和 C++ 源文件的扩展模块
 ext_modules = [
     CUDAExtension(
         name="trans_ops",
         sources=["pybind.cpp", "trans_manager.cu"],  # 包含 C++ 和 CUDA 文件
-        include_dirs=[numpy.get_include()] + torch_include_dirs,  # 添加 numpy 和 PyTorch 的头文件路径
+        include_dirs=[numpy.get_include(), python_include_dir] + torch_include_dirs,  # 添加 numpy 和 PyTorch 的头文件路径
         library_dirs=torch_library_dirs,  # 添加 PyTorch 的库文件路径
         libraries=['c10', 'torch', 'torch_cpu', 'torch_cuda'],  # 链接 PyTorch 所需的库
         extra_compile_args={
