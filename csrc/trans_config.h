@@ -11,7 +11,7 @@
 #include <utility>
 #include <c10/cuda/CUDAStream.h>
 #include <ATen/cuda/CUDAEvent.h>
-#include "nccl.h"
+#include <nccl.h>
 #include <nlohmann/json.hpp>  // Include the JSON library
 #include <iostream>
 #include <cuda_runtime.h>
