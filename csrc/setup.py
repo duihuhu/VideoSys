@@ -65,10 +65,10 @@ ext_modules = [
         sources=["pybind.cpp", "trans_manager.cu"],  # 包含 C++ 和 CUDA 文件
         include_dirs=[numpy.get_include(), python_include_dir] + torch_include_dirs,  # 添加 numpy 和 PyTorch 的头文件路径
         library_dirs=torch_library_dirs,  # 添加 PyTorch 的库文件路径
-        libraries=['c10', 'torch', 'torch_cpu', 'torch_cuda'],  # 链接 PyTorch 所需的库
+        libraries=['c10', 'torch', 'torch_cpu', 'torch_cuda', 'nccl'],  # 链接 PyTorch 所需的库
         extra_compile_args={
             'cxx': ['-O3'],        # C++ 编译器选项
-            'nvcc': ['-O3']        # CUDA 编译器选项
+            'nvcc': ['-O3', "-lnccl"]        # CUDA 编译器选项
         }
     )
 ]
