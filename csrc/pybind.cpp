@@ -1,7 +1,7 @@
 #include "trans_config.h"
 #include <torch/extension.h>
 
-PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
+PYBIND11_MODULE(video_ops, m) {
   pybind11::module trans_ops = m.def_submodule("trans_ops", "video gpu nccl utils");
 
   py::class_<TransManager>(trans_ops, "TransManager")
