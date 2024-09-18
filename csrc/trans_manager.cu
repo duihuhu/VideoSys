@@ -2,6 +2,7 @@
 
 TransManager::TransManager(int rank, int local_rank, int nccl_local_rank): rank(rank), local_rank(local_rank), nccl_local_rank(nccl_local_rank){
     execute = std::thread(&TransManager::dist_worker, this);
+    std::cout<<"TransManager " <<std::endl;
 }
 
 TransManager::~TransManager() {
