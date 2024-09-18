@@ -36,7 +36,7 @@ class BuildExt(build_ext):
 
                 # nvcc 编译命令
                 nvcc_cmd = [
-                    'nvcc', '-std=c++14', '-shared', '-Xcompiler', '-fPIC',
+                    'nvcc', '-std=c++17', '-shared', '-Xcompiler', '-fPIC',
                     '-o', output_file,
                     source
                 ]
