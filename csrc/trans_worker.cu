@@ -3,9 +3,9 @@
 TransWorker::TransWorker(int rank, int local_rank, const std::string& dst_channel, const std::string& worker_type):rank(rank), local_rank(local_rank), dst_channel(dst_channel), worker_type(worker_type) {
     trans_engine = TransEngine();
     if(worker_type=="vae"){
-        comm_rank = 0;
-    } else {
         comm_rank = 1;
+    } else {
+        comm_rank = 0;
     }
     use_comm = 0;
     execute = std::thread(&TransWorker::worker, this);
