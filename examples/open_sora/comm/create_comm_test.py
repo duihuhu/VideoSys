@@ -18,7 +18,7 @@ def create_comm(dit_port, dit_rank, vae_port, vae_rank, worker_type):
     payload = {}
     payload['nccl_id'] = resp.json()
     payload['dst_channel'] = src_channel
-    payload['worker_type'] = worker_type
+    payload['worker_type'] = "vae"
     print("payload ", payload)
     resp = post_request(creat_comm_api_url, payload)
     return resp
