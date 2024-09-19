@@ -331,7 +331,7 @@ class AsyncEngine:
 
     async def get_nccl_id(self, dst_channel, worker_type):
         nccl_id = await self.video_engine.get_nccl_id(dst_channel, worker_type)
-        res = await self.video_engine.create_comm("create_comm", nccl_id=nccl_id)
+        res = await self.video_engine.create_comm(nccl_id=nccl_id, dst_channel=dst_channel, worker_type=worker_type)
         return nccl_id
         
         

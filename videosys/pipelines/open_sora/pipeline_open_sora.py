@@ -251,7 +251,7 @@ class OpenSoraPipeline(VideoSysPipeline):
         self.record_data = {}
         if config.enable_separate:
             print("trans manager ", config.rank, config.worker_type)
-            self.trans_manager = trans_ops.TransManager(config.rank, config.worker_type)
+            self.trans_manager = trans_ops.TransManager(config.rank, config.local_rank, config.worker_type)
             
     def get_text_embeddings(self, texts):
         text_tokens_and_mask = self.tokenizer(

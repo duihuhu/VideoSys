@@ -21,7 +21,7 @@ using json = nlohmann::json;
 
 class TransManager {
 public:
-    TransManager(int rank, std::string& worker_type);
+    TransManager(int rank, int local_rank, std::string& worker_type);
 
     ~TransManager();
     std::vector<char> get_nccl_id(const std::string& dst_channel, const std::string& worker_type);
@@ -35,6 +35,7 @@ private:
     std::thread execute;
 
     int rank;
+    int local_rank;
     std::string worker_type;
 };
 
@@ -46,7 +47,7 @@ enum class TaskType {
 
 class TransWorker {
 public:
-    TransWorker(int rank, int local_rank, int nccl_local_rank, const std::string& dst_channel);
+    TransWorker(int rank, int local_rank, const std::string& dst_channel, std::string& worker_type);
     ~TransWorker();
 
     void add_tasks(TransferTask& task);
@@ -65,12 +66,12 @@ private:
     std::thread execute;
     int rank;
     int local_rank;
-    int nccl_local_rank;
     std::string dst_channel;
+    std::string worker_type;
+
     std::vector<int> dst_ranks;
     int comm_rank;
     int dst_rank;
-    int tp;
     std::vector<ncclComm_t> comms;
     std::vector<c10::cuda::CUDAStream> streams;
     int use_comm;

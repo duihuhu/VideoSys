@@ -1,19 +1,12 @@
 #include "trans_config.h"
 
-TransWorker::TransWorker(int rank, int local_rank, int nccl_local_rank, const std::string& dst_channel):rank(rank), local_rank(local_rank), nccl_local_rank(nccl_local_rank), dst_channel(dst_channel) {
+TransWorker::TransWorker(int rank, int local_rank, const std::string& dst_channel, std::string& worker_type):rank(rank), local_rank(local_rank), dst_channel(dst_channel), worker_type(worker_type) {
     trans_engine = TransEngine();
-    std::stringstream ss(dst_channel);
-    std::string token;
-    // while (std::getline(ss, token, '_')) {
-    //     dst_ranks.push_back(std::stoi(token));
-    // }
-    // if (nccl_local_rank >= dst_ranks[0]){
-    //     comm_rank = nccl_local_rank % tp + tp;
-    //     dst_rank = comm_rank - tp;
-    // } else{
-    //     comm_rank = nccl_local_rank % tp;
-    //     dst_rank = comm_rank + tp;
-    // }
+    if(worker_type=="vae"){
+        comm_rank = 0;
+    } else {
+        comm_rank = 1;
+    }
     use_comm = 0;
     execute = std::thread(&TransWorker::worker, this);
 }
@@ -65,7 +58,7 @@ void TransWorker::worker() {
             ncclUniqueId uniqueId;
             std::memcpy(uniqueId.internal, nccl_id.data(), sizeof(uniqueId.internal));
             ncclComm_t comm = nullptr;
-            if (trans_engine.create_nccl_comm(comm_rank, comm, uniqueId, tp * 2)!=0) {
+            if (trans_engine.create_nccl_comm(comm_rank, comm, uniqueId, 2)!=0) {
                 throw std::runtime_error("CreateNcclFromRankTable error");
             }
             comms.push_back(comm);

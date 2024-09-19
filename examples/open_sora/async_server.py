@@ -68,13 +68,7 @@ async def generate(request: Request) -> Response:
             yield (json.dumps(ret) + "\0").encode("utf-8")
     return StreamingResponse(stream_results())
 
-@app.post("/get_nccl_id")
-async def get_nccl_id(request: Request) -> Response:
-    payload = await request.json()
-    dst_channel = payload.pop("dst_channel")
-    worker_type = payload.pop("worker_type")
-    nccl_ids = await engine.get_nccl_id(dst_channel, worker_type)
-    return nccl_ids
+
 
 # @app.post("/generate")
 # async def run_base(request: Request) -> Response:
