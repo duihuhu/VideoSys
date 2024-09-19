@@ -140,7 +140,7 @@ private:
 
 class TransWorker {
 public:
-    TransWorker(int rank, int local_rank, const std::string& dst_channel, std::string& worker_type);
+    TransWorker(int rank, int local_rank, const std::string& dst_channel, const std::string& worker_type);
     ~TransWorker();
 
     void add_tasks(TransferTask& task);

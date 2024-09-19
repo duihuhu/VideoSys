@@ -1,6 +1,6 @@
 #include "trans_config.h"
 
-TransWorker::TransWorker(int rank, int local_rank, const std::string& dst_channel, std::string& worker_type):rank(rank), local_rank(local_rank), dst_channel(dst_channel), worker_type(worker_type) {
+TransWorker::TransWorker(int rank, int local_rank, const std::string& dst_channel, const std::string& worker_type):rank(rank), local_rank(local_rank), dst_channel(dst_channel), worker_type(worker_type) {
     trans_engine = TransEngine();
     if(worker_type=="vae"){
         comm_rank = 0;
