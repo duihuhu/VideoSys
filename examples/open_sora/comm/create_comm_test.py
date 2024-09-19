@@ -23,4 +23,4 @@ def create_comm(dit_port, dit_rank, vae_port, vae_rank, worker_type):
     resp = post_request(creat_comm_api_url, payload)
     return resp
 
-resp = create_comm(8001,[0],8002,[2], "dit")
+resp = create_comm(8000,[0],8001,[2], "dit")
