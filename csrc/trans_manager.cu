@@ -36,22 +36,22 @@ void TransManager::dist_worker() {
 std::vector<char> TransManager::get_nccl_id(const std::string& dst_channel, const std::string& worker_type){
     ncclUniqueId uniqueId; 
     ncclGetUniqueId(&uniqueId);
-    // if(worker_type=="dit"){
-    //     if(send_trans_workers.find(dst_channel) == send_trans_workers.end()){
-    //         TransWorker* task_worker = new TransWorker(rank, local_rank, nccl_local_rank, dst_channel);
-    //         send_trans_workers[dst_channel] = task_worker;
-    //     }
-    // } else{
-    //     if(recv_trans_workers.find(dst_channel) == recv_trans_workers.end()){
-    //         TransWorker* task_worker = new TransWorker(rank, local_rank, nccl_local_rank, dst_channel);
-    //         recv_trans_workers[dst_channel] = task_worker;
-    //     }
-    // }
+    if(worker_type=="dit"){
+        if(send_trans_workers.find(dst_channel) == send_trans_workers.end()){
+            TransWorker* task_worker = new TransWorker(rank, local_rank, nccl_local_rank, dst_channel);
+            send_trans_workers[dst_channel] = task_worker;
+        }
+    } else{
+        if(recv_trans_workers.find(dst_channel) == recv_trans_workers.end()){
+            TransWorker* task_worker = new TransWorker(rank, local_rank, nccl_local_rank, dst_channel);
+            recv_trans_workers[dst_channel] = task_worker;
+        }
+    }
     return std::vector<char>(uniqueId.internal, uniqueId.internal + sizeof(uniqueId.internal));
 }
 
 void TransManager::create_comm(std::vector<char>& nccl_id ,const std::string& dst_channel, const std::string& worker_type){
-    // if(worker_type=="sender"){
+    // if(worker_type=="dit"){
     //     if(send_trans_workers.find(dst_channel) == send_trans_workers.end()){
     //         TransWorker* task_worker = new TransWorker(cache_size_per_block, gpu_cache, rank, local_rank, nccl_local_rank, dst_channel, tp, num_layer, cache_block_size, blocks_gpu_cache);
     //         send_trans_workers[dst_channel] = task_worker;

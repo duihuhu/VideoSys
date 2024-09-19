@@ -173,8 +173,10 @@ class RequestTracker:
 
 class AsyncEngine:
     def __init__(self, config,
+                 deploy_config,
                  start_engine_loop: bool = True,):
         self.config = config
+        self.deploy_config = deploy_config
         self.parallel_worker_tasks = None
         self.video_engine = VideoSysEngine(config=self.config)
         self.start_engine_loop = start_engine_loop
@@ -327,8 +329,8 @@ class AsyncEngine:
         return stream
     
 
-    async def get_nccl_id(self):
-        nccl_id = await self.video_engine.get_nccl_id("get_nccl_id")
+    async def get_nccl_id(self, dst_channel, worker_type):
+        nccl_id = await self.video_engine.get_nccl_id(dst_channel, worker_type)
         res = await self.video_engine.create_comm("create_comm", nccl_id=nccl_id)
         return nccl_id
         

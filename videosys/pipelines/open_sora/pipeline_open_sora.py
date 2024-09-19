@@ -18,7 +18,7 @@ from videosys.utils.utils import save_video
 
 from .data_process import get_image_size, get_num_frames, prepare_multi_resolution_info, read_from_path
 
-from .video_ops import trans_ops
+from video_ops import trans_ops
 
 os.environ["TOKENIZERS_PARALLELISM"] = "true"
 
@@ -242,8 +242,7 @@ class OpenSoraPipeline(VideoSysPipeline):
         )
         
         self.record_data = {}
-        #self.trans_manager = xxx
-        #self.trans_manager = trans_ops.TransManager()
+        self.trans_manager = trans_ops.TransManager("1", "1", "1")
         
     def get_text_embeddings(self, texts):
         text_tokens_and_mask = self.tokenizer(
@@ -857,6 +856,13 @@ class OpenSoraPipeline(VideoSysPipeline):
             self.record_data[request_id] = samples
         return request_id
 
+
+    def get_nccl_id(self, dst_channel, worker_type):
+        nccl_id = self.trans_manager.get_nccl_id(dst_channel, worker_type)
+        return nccl_id
+    
+    def create_comm(self, nccl_id, dst_channel, worker_type):
+        self.trans_manager.create_comm(nccl_id, dst_channel, worker_type)
 
     def transfer_dit(self, request_id):
         samples = self.record_data[request_id]

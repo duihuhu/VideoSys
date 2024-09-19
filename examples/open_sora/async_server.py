@@ -10,6 +10,7 @@ from videosys.core.async_engine import AsyncEngine
 import time
 import torch
 from comm import CommData, CommEngine, CommonHeader, ReqMeta
+from videosys.utils.config import DeployConfig
 TIMEOUT_KEEP_ALIVE = 5  # seconds.
 app = FastAPI()
 engine = None
@@ -36,6 +37,14 @@ async def allocate(request: Request) -> Response:
     ret = {"data_ptr": samples.data_ptr()}
     return JSONResponse(ret)
 
+    
+@app.post("/get_nccl_id")
+async def get_nccl_id(request: Request) -> Response:
+    payload = await request.json()
+    dst_channel = payload.pop("dst_channel")
+    worker_type = payload.pop("worker_type")
+    nccl_ids = await engine.get_nccl_id(dst_channel, worker_type)
+    return nccl_ids
 
 @app.post("/generate")
 async def generate(request: Request) -> Response:
@@ -115,12 +124,15 @@ if __name__ == "__main__":
     parser.add_argument("--host", type=str, default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--num_gpus", type=int, default=1)
-
+    parser.add_argument("--num_gpus", type=int, default=1)
+    parser.add_argument('--enable-separate', action="store_true", help=('separate or not '))
+    parser.add_argument('--role', type=str, choices=['dit', 'vae'], default=None, help=('instance '))
     args = parser.parse_args()
     
     config = OpenSoraConfig(num_sampling_steps=30, cfg_scale=7.0, num_gpus=args.num_gpus)
+    deploy_config = DeployConfig()
     # engine = VideoSysEngine(config)
-    engine = AsyncEngine(config)
+    engine = AsyncEngine(config, deploy_config)
     uvicorn.run(app,
                 host=args.host,
                 port=args.port,

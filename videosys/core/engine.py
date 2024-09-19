@@ -15,8 +15,9 @@ class VideoSysEngine:
     this is partly inspired by vllm
     """
 
-    def __init__(self, config):
+    def __init__(self, config, deploy_config):
         self.config = config
+        self.deploy_config = deploy_config
         self.parallel_worker_tasks = None
         self.scheduler = Scheduler()
         self._init_worker(config.pipeline_cls)
@@ -71,7 +72,9 @@ class VideoSysEngine:
     # TODO: add more options here for pipeline, or wrap all options into config
     def _create_pipeline(self, pipeline_cls, rank=0, local_rank=0, distributed_init_method=None):
         videosys.initialize(rank=rank, world_size=self.config.num_gpus, init_method=distributed_init_method, seed=42)
-
+        self.rank = rank
+        self.local_rank = rank
+        print("worker's pid, rank, local_rank ", os.getpid(), rank, local_rank)
         pipeline = pipeline_cls(self.config)
         return pipeline
 
@@ -112,6 +115,9 @@ class VideoSysEngine:
     
     def get_nccl_id(self, *args, **kwargs):
         return self.driver_worker.get_nccl_id(*args, **kwargs)
+
+    def create_comm(self, *args, **kwargs):
+        return self.driver_worker.create_comm(*args, **kwargs)
 
     def stop_remote_worker_execution_loop(self) -> None:
         if self.parallel_worker_tasks is None:
