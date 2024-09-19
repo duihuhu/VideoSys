@@ -19,8 +19,11 @@ TransWorker::~TransWorker() {
 }
 
 void TransWorker::init_device() {
+    std::cout<<"before init device "<< local_rank<<std::endl;
     torch::Device device(torch::kCUDA, local_rank);
     c10::cuda::set_device(device.index());
+    std::cout<<"after init device "<<std::endl;
+
 }
 
 void TransWorker::worker() {
