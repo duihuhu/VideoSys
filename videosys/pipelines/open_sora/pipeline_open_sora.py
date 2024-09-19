@@ -141,6 +141,9 @@ class OpenSoraConfig:
         # ======== pab ========
         enable_pab: bool = False,
         pab_config: PABConfig = OpenSoraPABConfig(),
+        # ==role===
+        worker_type: str="dit",
+        enable_separate: bool = False
     ):
         self.pipeline_cls = OpenSoraPipeline
         self.transformer = transformer
@@ -159,7 +162,10 @@ class OpenSoraConfig:
         self.enable_pab = enable_pab
         self.pab_config = pab_config
 
-
+        self.rank = None
+        self.worker_type = worker_type
+        self.enable_separate = enable_separate
+        
 class OpenSoraPipeline(VideoSysPipeline):
     r"""
     Pipeline for text-to-image generation using PixArt-Alpha.
@@ -242,8 +248,10 @@ class OpenSoraPipeline(VideoSysPipeline):
         )
         
         self.record_data = {}
-        self.trans_manager = trans_ops.TransManager("1", "1", "1")
-        
+        if config.enable_separate:
+            print("trans manager ", config.rank, config.worker_type)
+            self.trans_manager = trans_ops.TransManager(config.rank, config.worker_type)
+            
     def get_text_embeddings(self, texts):
         text_tokens_and_mask = self.tokenizer(
             texts,

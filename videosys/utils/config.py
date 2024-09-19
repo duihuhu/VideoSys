@@ -9,12 +9,12 @@ class DeployConfig:
     def __init__(
         self,
         enable_separate: bool=False,
-        role: str=None,
+        worker_type: str=None,
         deploy_host: str = None,
         deploy_port: str = None,
         ) -> None: 
             self.enable_separate = enable_separate
-            self.role = role
+            self.worker_type = worker_type
             self.global_ranks = None
             
             self.deploy_host = deploy_host
@@ -22,7 +22,7 @@ class DeployConfig:
             self._verify_args()
     
     def _verify_args(self) -> None:
-        if self.enable_separate and self.role not in ['DIT', 'VAE']:
+        if self.enable_separate and self.worker_type not in ['dit', 'vae']:
             raise ValueError(f"role of DiT Engine Instance must be prompt or decoder in separate mode")
 
     def set_global_ranks(self, global_ranks: List[int]) -> None:

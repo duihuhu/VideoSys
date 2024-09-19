@@ -21,7 +21,7 @@ using json = nlohmann::json;
 
 class TransManager {
 public:
-    TransManager(int rank, int local_rank, int nccl_local_rank);
+    TransManager(int rank, std::string& worker_type);
 
     ~TransManager();
     std::vector<char> get_nccl_id(const std::string& dst_channel, const std::string& worker_type);
@@ -35,8 +35,7 @@ private:
     std::thread execute;
 
     int rank;
-    int local_rank;
-    int nccl_local_rank;
+    std::string worker_type;
 };
 
 // 定义TaskType枚举类型，用于区分不同的任务类型

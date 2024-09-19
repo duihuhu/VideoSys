@@ -1,6 +1,6 @@
 #include "trans_config.h"
 
-TransManager::TransManager(int rank, int local_rank, int nccl_local_rank): rank(rank), local_rank(local_rank), nccl_local_rank(nccl_local_rank){
+TransManager::TransManager(int rank, std::string& worker_type): rank(rank), worker_type(worker_type){
     execute = std::thread(&TransManager::dist_worker, this);
     std::cout<<"TransManager " <<std::endl;
 }
@@ -38,12 +38,12 @@ std::vector<char> TransManager::get_nccl_id(const std::string& dst_channel, cons
     ncclGetUniqueId(&uniqueId);
     if(worker_type=="dit"){
         if(send_trans_workers.find(dst_channel) == send_trans_workers.end()){
-            TransWorker* task_worker = new TransWorker(rank, local_rank, nccl_local_rank, dst_channel);
+            TransWorker* task_worker = new TransWorker(rank, dst_channel);
             send_trans_workers[dst_channel] = task_worker;
         }
     } else{
         if(recv_trans_workers.find(dst_channel) == recv_trans_workers.end()){
-            TransWorker* task_worker = new TransWorker(rank, local_rank, nccl_local_rank, dst_channel);
+            TransWorker* task_worker = new TransWorker(rank, dst_channel);
             recv_trans_workers[dst_channel] = task_worker;
         }
     }

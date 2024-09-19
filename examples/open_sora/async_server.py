@@ -123,13 +123,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", type=str, default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8000)
-    parser.add_argument("--num_gpus", type=int, default=1)
+    parser.add_argument("--num-gpus", type=int, default=1)
     parser.add_argument('--enable-separate', action="store_true", help=('separate or not '))
-    parser.add_argument('--role', type=str, choices=['dit', 'vae'], default=None, help=('instance '))
+    parser.add_argument('--worker-type', type=str, choices=['dit', 'vae'], default=None, help=('instance '))
     args = parser.parse_args()
     
-    config = OpenSoraConfig(num_sampling_steps=30, cfg_scale=7.0, num_gpus=args.num_gpus)
     deploy_config = DeployConfig()
+    config = OpenSoraConfig(num_sampling_steps=30, cfg_scale=7.0, num_gpus=args.num_gpus, worker_type=args.worker_type, enable_separate=args.enable_separate)
     # engine = VideoSysEngine(config)
     engine = AsyncEngine(config, deploy_config)
     uvicorn.run(app,
