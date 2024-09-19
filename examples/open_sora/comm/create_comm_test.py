@@ -8,7 +8,7 @@ def post_request(api_url, request_dict: Optional[Dict] = {}):
     return resp
 
 
-def create_comm(dit_port, dit_rank, vae_port, vae_rank, worker_type):
+def create_comm( vae_port, vae_rank, dit_port, dit_rank, worker_type):
     uniqe_id_api_url = cfg.comm_uniqe_id_url % (cfg.dit_host, dit_port)
     dst_channel = "_".join([str(rank) for rank in vae_rank])
     resp = post_request(uniqe_id_api_url, {"dst_channel": dst_channel, "worker_type":worker_type})
@@ -23,4 +23,4 @@ def create_comm(dit_port, dit_rank, vae_port, vae_rank, worker_type):
     resp = post_request(creat_comm_api_url, payload)
     return resp
 
-resp = create_comm(8000,[0],8001,[2], "dit")
+resp = create_comm(8000,[0],8001,[2], "vae")
