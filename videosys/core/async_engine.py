@@ -334,4 +334,10 @@ class AsyncEngine:
         res = self.video_engine.create_comm(nccl_id=nccl_id, dst_channel=dst_channel, worker_type=worker_type)
         return nccl_id
         
-        
+    
+    async def create_comm(self, nccl_id, dst_channel, worker_type) -> None:
+        if worker_type == "vae":
+            res = self.video_engine.create_comm(nccl_id=nccl_id, dst_channel=dst_channel, worker_type="vae")
+        else:
+            res = self.video_engine.create_comm(nccl_id=nccl_id, dst_channel=dst_channel, worker_type="dit")
+    
