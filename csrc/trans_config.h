@@ -16,6 +16,7 @@
 #include <iostream>
 #include <cuda_runtime.h>
 #include <tuple>
+#include "trans_queue.h"
 
 using json = nlohmann::json;
 
@@ -109,6 +110,34 @@ public:
     }
 };
 
+// TransEngine类，负责管理KV缓存并执行发送和接收操作
+class TransEngine {
+public:
+    void recv_blocks(const std::string& channel, const std::string& request_id, const std::vector<uint32_t>& src_blocks, int opposite_rank, ncclComm_t& comm, c10::cuda::CUDAStream& stream);
+    
+    void send_blocks(const std::string& channel, const std::string& request_id,const std::vector<uint32_t>& dst_blocks, int opposite_rank, ncclComm_t& comm, c10::cuda::CUDAStream& stream);
+
+    int create_nccl_comm(int32_t rank, ncclComm_t& comm, ncclUniqueId& uniqueId , int32_t NumDevice);
+
+    std::vector<std::string> check_send_finished_events();
+    std::vector<std::string> check_recv_finished_events();
+
+    void SendBlocks(std::vector<std::pair<at::Tensor, at::Tensor>>& srcCaches, \
+        const std::vector<uint32_t>& srcBlocks, uint32_t cacheSize, uint32_t destRank, ncclComm_t& comm);
+    void RecvBlocks(std::vector<std::pair<at::Tensor, at::Tensor>>& dstCaches, \
+        const std::vector<uint32_t>& dstBlocks, uint32_t cacheSize, uint32_t srcRank, ncclComm_t& comm);
+
+    void checkNcclError(ncclResult_t result, const char* file, int line);
+    // void throwError(const std::string& request_id, int blockIdx,  void* dstBlockPtr, int srcRank, size_t cacheSize);
+
+private:
+
+    // std::unordered_map<std::string, c10::cuda::CUDAStream*> send_streams;
+    std::unordered_map<std::string, std::vector<std::pair<std::string, at::cuda::CUDAEvent*>>> send_events;
+    // std::unordered_map<std::string, c10::cuda::CUDAStream*> recv_streams;
+    std::unordered_map<std::string, std::vector<std::pair<std::string, at::cuda::CUDAEvent*>>> recv_events;
+};
+
 class TransWorker {
 public:
     TransWorker(int rank, int local_rank, const std::string& dst_channel, std::string& worker_type);
@@ -159,35 +188,6 @@ private:
     int rank;
     int local_rank;
     std::string worker_type;
-};
-
-
-// TransEngine类，负责管理KV缓存并执行发送和接收操作
-class TransEngine {
-public:
-    void recv_blocks(const std::string& channel, const std::string& request_id, const std::vector<uint32_t>& src_blocks, int opposite_rank, ncclComm_t& comm, c10::cuda::CUDAStream& stream);
-    
-    void send_blocks(const std::string& channel, const std::string& request_id,const std::vector<uint32_t>& dst_blocks, int opposite_rank, ncclComm_t& comm, c10::cuda::CUDAStream& stream);
-
-    int create_nccl_comm(int32_t rank, ncclComm_t& comm, ncclUniqueId& uniqueId , int32_t NumDevice);
-
-    std::vector<std::string> check_send_finished_events();
-    std::vector<std::string> check_recv_finished_events();
-
-    void SendBlocks(std::vector<std::pair<at::Tensor, at::Tensor>>& srcCaches, \
-        const std::vector<uint32_t>& srcBlocks, uint32_t cacheSize, uint32_t destRank, ncclComm_t& comm);
-    void RecvBlocks(std::vector<std::pair<at::Tensor, at::Tensor>>& dstCaches, \
-        const std::vector<uint32_t>& dstBlocks, uint32_t cacheSize, uint32_t srcRank, ncclComm_t& comm);
-
-    void checkNcclError(ncclResult_t result, const char* file, int line);
-    // void throwError(const std::string& request_id, int blockIdx,  void* dstBlockPtr, int srcRank, size_t cacheSize);
-
-private:
-
-    // std::unordered_map<std::string, c10::cuda::CUDAStream*> send_streams;
-    std::unordered_map<std::string, std::vector<std::pair<std::string, at::cuda::CUDAEvent*>>> send_events;
-    // std::unordered_map<std::string, c10::cuda::CUDAStream*> recv_streams;
-    std::unordered_map<std::string, std::vector<std::pair<std::string, at::cuda::CUDAEvent*>>> recv_events;
 };
 
 #endif // TRANS_CONFIG_H
