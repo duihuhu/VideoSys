@@ -4,8 +4,8 @@ dit_port =  8001
 vae_host =  "127.0.0.1"
 vae_port =  8002
 
-dit_label = "DIT"
-vae_label = "VAE"
+dit_label = "dit"
+vae_label = "vae"
 
 
 forward_generate_url = "http://%s:%s/generate"

@@ -13,7 +13,7 @@ python_include_dir = sysconfig.get_path('include')
 ext_modules = [
     CUDAExtension(
         name="video_ops",
-        sources=["pybind.cpp", "trans_manager.cu"],  # 包含 C++ 和 CUDA 文件
+        sources=["pybind.cpp", "trans_manager.cu", "trans_engine.cu", "trans_worker.cu","trans_config.h","trans_queue.h"],  # 包含 C++ 和 CUDA 文件
         include_dirs=[numpy.get_include(), python_include_dir] + torch_include_dirs,  # 添加 numpy 和 PyTorch 的头文件路径
         library_dirs=torch_library_dirs,  # 添加 PyTorch 的库文件路径
         libraries=['c10', 'torch', 'torch_cpu', 'torch_cuda', 'nccl'],  # 链接 PyTorch 所需的库
