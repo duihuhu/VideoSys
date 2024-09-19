@@ -172,7 +172,7 @@ private:
 
 class TransManager {
 public:
-    TransManager(int rank, int local_rank, std::string& worker_type);
+    TransManager(int rank, int local_rank, std::string worker_type);
 
     ~TransManager();
     std::vector<char> get_nccl_id(const std::string& dst_channel, const std::string& worker_type);

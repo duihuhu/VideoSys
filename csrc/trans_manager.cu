@@ -1,6 +1,6 @@
 #include "trans_config.h"
 
-TransManager::TransManager(int rank, int local_rank, std::string& worker_type): rank(rank), local_rank(local_rank),worker_type(worker_type){
+TransManager::TransManager(int rank, int local_rank, std::string worker_type): rank(rank), local_rank(local_rank),worker_type(worker_type){
     execute = std::thread(&TransManager::dist_worker, this);
     std::cout<<"TransManager " <<std::endl;
 }
