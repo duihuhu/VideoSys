@@ -162,9 +162,10 @@ class OpenSoraConfig:
         self.enable_pab = enable_pab
         self.pab_config = pab_config
 
-        self.rank = None
         self.worker_type = worker_type
         self.enable_separate = enable_separate
+        self.rank = None
+        self.local_rank = None
         
 class OpenSoraPipeline(VideoSysPipeline):
     r"""

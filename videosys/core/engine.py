@@ -69,14 +69,22 @@ class VideoSysEngine:
             pipeline_cls=pipeline_cls, distributed_init_method=distributed_init_method
         )
 
+    def get_physical_device_id(self, rank):
+        cuda_visible_devices = os.environ.get("CUDA_VISIBLE_DEVICES")
+        if cuda_visible_devices is None:
+            # 如果 CUDA_VISIBLE_DEVICES 未设置，逻辑设备即为物理设备
+            return rank
+        # CUDA_VISIBLE_DEVICES 是一个以逗号分隔的字符串
+        devices = cuda_visible_devices.split(',')
+        return int(devices[rank])
+
     # TODO: add more options here for pipeline, or wrap all options into config
     def _create_pipeline(self, pipeline_cls, rank=0, local_rank=0, distributed_init_method=None):
         videosys.initialize(rank=rank, world_size=self.config.num_gpus, init_method=distributed_init_method, seed=42)
         
-        current_device = torch.cuda.current_device()
-        device_name = torch.cuda.get_device_name(current_device)
-        
-        print("worker ", os.getpid(), current_device, device_name)
+        self.config.rank = rank
+        self.config.local_rank =  self.get_physical_device_id(rank)
+        print("worker ", os.getpid(), self.config.rank , self.config.local_rank)
         pipeline = pipeline_cls(self.config)
         return pipeline
 
