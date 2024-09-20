@@ -1,6 +1,5 @@
 import os
 from functools import partial
-from typing import Any, Optional
 
 import torch
 
@@ -10,7 +9,7 @@ from .mp_utils import ProcessWorkerWrapper, ResultHandler, WorkerMonitor, get_di
 from videosys.core.sequence import SequenceGroup
 from videosys.core.scheduler import Scheduler
 
-from typing import (Any, Awaitable, Callable, TypeVar)
+from typing import (Any, Awaitable, Callable, TypeVar, Optional)
 import asyncio
 T = TypeVar("T")
 
