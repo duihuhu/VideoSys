@@ -10,6 +10,9 @@ from .mp_utils import ProcessWorkerWrapper, ResultHandler, WorkerMonitor, get_di
 from videosys.core.sequence import SequenceGroup
 from videosys.core.scheduler import Scheduler
 
+from typing import (Any, Awaitable, Callable)
+import asyncio
+
 class VideoSysEngine:
     """
     this is partly inspired by vllm
@@ -111,6 +114,7 @@ class VideoSysEngine:
         # Get the results of the workers.
         return [driver_worker_output] + [output.get() for output in worker_outputs]
 
+
     def _driver_execute_model(self, *args, **kwargs):
         return self.driver_worker.generate(*args, **kwargs)
 
@@ -122,13 +126,16 @@ class VideoSysEngine:
     
     def transfer_dit(self, *args, **kwargs):
         return self.driver_worker.transfer_dit(*args, **kwargs)
+
+    def generate_vae(self, *args, **kwargs):
+        return self._run_workers("generate_vae", *args, **kwargs)[0]
     
     def get_nccl_id(self, *args, **kwargs):
         return self.driver_worker.get_nccl_id(*args, **kwargs)
 
     def create_comm(self, *args, **kwargs):
         return self.driver_worker.create_comm(*args, **kwargs)
-
+    
     def stop_remote_worker_execution_loop(self) -> None:
         if self.parallel_worker_tasks is None:
             return
@@ -159,3 +166,18 @@ class VideoSysEngine:
     def add_request(self, request_id, prompt, resolution, aspect_ratio, num_frames):
         seq_group = SequenceGroup(request_id, prompt, resolution, aspect_ratio, num_frames)
         self.scheduler.add_seq_group(seq_group)
+
+    def make_async(func: Callable[..., T]) -> Callable[..., Awaitable[T]]:
+        """Take a blocking function, and run it on in an executor thread.
+
+        This function prevents the blocking function from blocking the
+        asyncio event loop.
+        The code in this function needs to be thread safe.
+        """
+
+        def _async_wrapper(*args, **kwargs) -> asyncio.Future:
+            loop = asyncio.get_event_loop()
+            p_func = partial(func, *args, **kwargs)
+            return loop.run_in_executor(executor=None, func=p_func)
+
+        return _async_wrapper

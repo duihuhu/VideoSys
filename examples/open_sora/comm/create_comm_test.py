@@ -1,4 +1,4 @@
-import server_config as cfg
+import videosys.entrypoints.server_config as cfg
 from typing import Dict, Set, List, Optional
 import requests
 import time

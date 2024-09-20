@@ -1,7 +1,7 @@
 import argparse
 import json
 from typing import AsyncGenerator
-
+import aiohttp
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, Response, StreamingResponse
@@ -11,10 +11,37 @@ import time
 import torch
 from comm import CommData, CommEngine, CommonHeader, ReqMeta
 from videosys.utils.config import DeployConfig
+import videosys.entrypoints.server_config as cfg
+
+AIOHTTP_TIMEOUT = aiohttp.ClientTimeout(total=6 * 60 * 60)
 TIMEOUT_KEEP_ALIVE = 5  # seconds.
 app = FastAPI()
 engine = None
 
+
+async def asyc_forward_request(request_dict, api_url):
+    headers = {"User-Agent": "Test Client"}
+    try:
+        async with aiohttp.ClientSession(timeout=AIOHTTP_TIMEOUT) as session:
+            async with session.post(url=api_url, json=request_dict,
+                                    headers=headers) as response:
+                if response.status == 200:
+                    delimiter=b"\0"
+                    buffer = b''  # 用于缓存数据块中的部分消息
+                    async for chunk in response.content.iter_any():
+                        buffer += chunk  # 将新的数据块添加到缓冲区中
+                        while delimiter in buffer:
+                            index = buffer.index(delimiter)  # 查找分隔符在缓冲区中的位置
+                            message = buffer[:index]  # 提取从缓冲区起始位置到分隔符位置的消息
+                            yield message.strip()  # 返回提取的消息
+                            buffer = buffer[index + len(delimiter):]  # 从缓冲区中移除已提取的消息和分隔符
+                else:
+                    print(f"Failed response for request {response.status}")
+    except aiohttp.ClientError as e:
+         print(f"Request {request_dict['request_id']} failed: {e}")
+    except Exception as e:
+         print(f"Unexpected error for request {request_dict['request_id']}: {e}")
+        
 
 async def query_hbm_meta(request_id, shape, vae_host, vae_port):
     vae_entry_point = (vae_host, vae_port)
@@ -23,10 +50,10 @@ async def query_hbm_meta(request_id, shape, vae_host, vae_port):
         headers=CommonHeader(vae_host, vae_port).__json__(),
         payload=req_meta
     )
-    return await CommEngine.async_send_to(vae_entry_point, "allocate", data)
+    return await CommEngine.async_send_to(vae_entry_point, "kv_allocate", data)
 
-@app.post("/allocate")
-async def allocate(request: Request) -> Response:
+@app.post("/kv_allocate")
+async def kv_allocate(request: Request) -> Response:
     request_dict = await request.json()
     print("request_dict ", request_dict) 
     video_shape = request_dict.pop("shape")
@@ -73,6 +100,11 @@ async def generate(request: Request) -> Response:
         async for request_output in results_generator:
             print("request_output ", request_output)
             ret = {"text": "sucess "}
+            dit_kv_resp = asyc_forward_request(request_output.__json__(), cfg.forward_kv_url % 
+                                                    (cfg.vae_host, cfg.vae_port))
+            async for resp in dit_kv_resp:
+                resp = resp.decode('utf-8')
+                payload = json.loads(resp)
             yield (json.dumps(ret) + "\0").encode("utf-8")
     return StreamingResponse(stream_results())
 

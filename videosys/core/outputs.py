@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List, Dict
 
 class RequestOutput:
     """The output data of a request to the LLM.
@@ -13,13 +13,18 @@ class RequestOutput:
         self,
         request_id: str,
         prompt: Optional[str],
+        shape: Optional[List],
         finished: Optional[bool],
     ) -> None:
         self.request_id = request_id
         self.prompt = prompt
+        self.shape = shape
         self.finished = finished
-
-    def __repr__(self) -> str:
-        return (f"RequestOutput(request_id={self.request_id}, "
-                f"prompt={self.prompt!r}, "
-                f"finished={self.finished}")
+        
+    def __json__(self) -> Dict:
+        return {
+            "request_id": self.request_id,
+            "prompt": self.prompt,
+            "shape": self.shape,
+            "finished": self.finished
+        }

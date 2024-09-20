@@ -6,6 +6,8 @@ from functools import partial
 import time
 from videosys.utils.logging import logger
 from videosys.core.outputs import RequestOutput
+from videosys import OpenSoraConfig
+from videosys.utils.config import DeployConfig
 
 ENGINE_ITERATION_TIMEOUT_S = int(
     os.environ.get("VLLM_ENGINE_ITERATION_TIMEOUT_S", "60"))
@@ -172,8 +174,9 @@ class RequestTracker:
         return not self._new_requests.empty()
 
 class AsyncEngine:
-    def __init__(self, config,
-                 deploy_config,
+    def __init__(self, 
+                 config: OpenSoraConfig,
+                 deploy_config: DeployConfig,
                  start_engine_loop: bool = True,):
         self.config = config
         self.deploy_config = deploy_config
@@ -206,28 +209,51 @@ class AsyncEngine:
     async def step_async(self):
         seq_group = self.video_engine.scheduler.schedule()
         if seq_group:
-            # video = self.video_engine.generate(prompt=seq_group.prompt,
-            #     resolution=seq_group.resolution,
-            #     aspect_ratio=seq_group.aspect_ratio,
-            #     num_frames=seq_group.num_frames,
-            # ).video[0]
-            t1 = time.time()
-            video = self.video_engine.generate_dit(request_id=seq_group.request_id, 
-                                                   prompt=seq_group.prompt,
-                                                   resolution=seq_group.resolution,
-                                                   aspect_ratio=seq_group.aspect_ratio,
-                                                   num_frames=seq_group.num_frames,
-                                                   )
-            t2 = time.time()
-            self.video_engine.transfer_dit(request_id=seq_group.request_id)
-            t3 = time.time()
-            print("step async ", t3-t2, t2-t1)
+            if not self.config.enable_separate:
+                video = self.video_engine.generate(prompt=seq_group.prompt,
+                    resolution=seq_group.resolution,
+                    aspect_ratio=seq_group.aspect_ratio,
+                    num_frames=seq_group.num_frames,
+                ).video[0]
+            else:
+                if self.config.worker_type == "dit":
+                    t1 = time.time()
+                    video = self.video_engine.generate_dit(request_id=seq_group.request_id, 
+                                                        prompt=seq_group.prompt,
+                                                        resolution=seq_group.resolution,
+                                                        aspect_ratio=seq_group.aspect_ratio,
+                                                        num_frames=seq_group.num_frames,
+                                                        )
+                    
+                    self.video_engine.scheduler.add_send_transfering(seq_group)
+                    
+                    t2 = time.time()
+                    self.video_engine.transfer_dit(request_id=seq_group.request_id)
+                    t3 = time.time()
+                    print("step async ", t3-t2, t2-t1)
+                else:
+                    video = self.video_engine.generate_vae(request_id=seq_group.request_id)
+                    
             # print("step_async ", type(video), video.shape, video.device)
             # self.video_engine.save_video(video, f"./outputs/{seq_group.prompt}.mp4")
             return RequestOutput(seq_group.request_id, seq_group.prompt, True)
         return None
 
+    async def trans_kv_step_aysnc(self):
+        if not self.config.enable_separate:
+            return
+        if not self.video_engine.scheduler.send_transfering and not self.video_engine.scheduler.recv_transfering:
+            return 
 
+        send_tasks = self.send_kv_trans_scheduler.schedule()
+        recv_tasks = self.recv_kv_trans_scheduler.schedule()
+        
+        if send_tasks or recv_tasks:
+            await self.video_engine.trans_blocks(
+                send_tasks = send_tasks,
+                recv_tasks = recv_tasks,
+            )
+            
     async def engine_step(self) -> bool:
         new_requests, finished_requests = (
             self._request_tracker.get_new_and_finished_requests())
@@ -238,10 +264,12 @@ class AsyncEngine:
             self.video_engine.add_request(**new_request)
             
         request_outputs = await self.step_async()
+
         if request_outputs:
             self._request_tracker.process_request_output(request_outputs)
         
-        
+        await self.trans_kv_step_aysnc()
+
         return request_outputs!=None
     
     @property
