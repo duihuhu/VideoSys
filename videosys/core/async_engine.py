@@ -236,7 +236,7 @@ class AsyncEngine:
                     
             # print("step_async ", type(video), video.shape, video.device)
             # self.video_engine.save_video(video, f"./outputs/{seq_group.prompt}.mp4")
-            return RequestOutput(seq_group.request_id, seq_group.prompt, True)
+            return RequestOutput(seq_group.request_id, seq_group.prompt, shape, True)
         return None
 
     async def trans_kv_step_aysnc(self):
