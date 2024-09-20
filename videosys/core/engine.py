@@ -10,8 +10,9 @@ from .mp_utils import ProcessWorkerWrapper, ResultHandler, WorkerMonitor, get_di
 from videosys.core.sequence import SequenceGroup
 from videosys.core.scheduler import Scheduler
 
-from typing import (Any, Awaitable, Callable)
+from typing import (Any, Awaitable, Callable, TypeVar)
 import asyncio
+T = TypeVar("T")
 
 class VideoSysEngine:
     """
