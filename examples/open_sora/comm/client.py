@@ -4,7 +4,7 @@ from typing import Iterable, List
 import requests
 import uuid
 
-G_URL = "http://127.0.0.1:8001/generate"  #GS服务器的地址 P
+G_URL = "http://127.0.0.1:8000/generate"  #GS服务器的地址 P
 
 
 def random_uuid() -> str:
