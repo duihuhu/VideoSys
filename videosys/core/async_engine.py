@@ -218,13 +218,13 @@ class AsyncEngine:
             else:
                 if self.config.worker_type == "dit":
                     t1 = time.time()
-                    video = self.video_engine.generate_dit(request_id=seq_group.request_id, 
+                    request_id, shape = self.video_engine.generate_dit(request_id=seq_group.request_id, 
                                                         prompt=seq_group.prompt,
                                                         resolution=seq_group.resolution,
                                                         aspect_ratio=seq_group.aspect_ratio,
                                                         num_frames=seq_group.num_frames,
                                                         )
-                    
+                    print("request_id, shape ", request_id, shape)
                     self.video_engine.scheduler.add_send_transfering(seq_group)
                     
                     t2 = time.time()

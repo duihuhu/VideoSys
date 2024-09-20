@@ -863,7 +863,7 @@ class OpenSoraPipeline(VideoSysPipeline):
                 mask=masks,
             )
             self.record_data[request_id] = samples
-        return request_id
+        return request_id, samples.shape
 
 
     def get_nccl_id(self, dst_channel, worker_type):
