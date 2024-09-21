@@ -77,11 +77,7 @@ public:
     static TransferTask deserialize(const std::string& serialized_data) {
         json task = json::parse(serialized_data);
         TransferTaskMeta meta = TransferTaskMeta::from_json(task.at("meta"));
-        if (dst_blocks.empty()) {
-            return TransferTask(meta);
-        } else {
-            return TransferTask(meta);
-        }
+        return TransferTask(meta);
     }
 };
 
