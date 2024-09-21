@@ -187,9 +187,10 @@ class AsyncEngine:
         self.background_loop = None
         self._errored_with: Optional[BaseException] = None
 
-        self.send_kv_trans_scheduler = SendKvTransferScheduler(1, config.worker_type)
-
-        self.recv_kv_trans_scheduler = RecvKvTransScheduler(1, config.worker_type)
+        if config.worker_type=="dit":
+            self.send_kv_trans_scheduler = SendKvTransferScheduler(1, config.worker_type)
+        else:
+            self.recv_kv_trans_scheduler = RecvKvTransScheduler(1, config.worker_type)
 
     async def run_engine_loop(self):
         has_requests_in_progress = False

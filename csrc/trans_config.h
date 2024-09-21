@@ -62,30 +62,14 @@ public:
 
 class TransferTask {
 public:
-    TransferTask(const TransferTaskMeta& meta, const std::vector<uint32_t>& blocks, TaskType type, int layer = 1, bool is_last_layer=false)
-        : meta(meta), blocks(blocks), type(type), layer(layer), is_last_layer(is_last_layer) {}
-
-    TransferTask(const TransferTaskMeta& meta, const std::vector<uint32_t>& blocks, const std::vector<uint32_t>& dst_blocks, TaskType type, int layer = 1, bool is_last_layer=false)
-        : meta(meta), blocks(blocks), dst_blocks(dst_blocks), type(type), layer(layer), is_last_layer(is_last_layer) {}
-    
+    TransferTask(const TransferTaskMeta& meta)
+        : meta(meta){}
     TransferTaskMeta meta;
-    std::vector<uint32_t> blocks;
-    std::vector<uint32_t> dst_blocks;
-    TaskType type;
-    int layer;
-    bool is_last_layer;
 
     // Serialize the TransferTask to a string (JSON format)
     std::string serialize() const {
         json task;
         task["meta"] = meta.to_json();
-        task["blocks"] = blocks;
-        if (!dst_blocks.empty()) {
-            task["dst_blocks"] = dst_blocks;
-        }
-        task["type"] = static_cast<int>(type);  // Store TaskType as an integer
-        task["layer"] = layer;  // Store TaskType as an integer
-        task["is_last_layer"] = is_last_layer;  // Store TaskType as an integer
         return task.dump();
     }
 
@@ -93,19 +77,10 @@ public:
     static TransferTask deserialize(const std::string& serialized_data) {
         json task = json::parse(serialized_data);
         TransferTaskMeta meta = TransferTaskMeta::from_json(task.at("meta"));
-        std::vector<uint32_t> blocks = task.at("blocks").get<std::vector<uint32_t>>();
-        std::vector<uint32_t> dst_blocks;
-        if (task.contains("dst_blocks")) {
-            dst_blocks = task.at("dst_blocks").get<std::vector<uint32_t>>();
-        }
-        TaskType type = static_cast<TaskType>(task.at("type").get<int>());
-        int layer = task.at("layer").get<int>();
-        bool is_last_layer = task.at("is_last_layer").get<bool>();
-
         if (dst_blocks.empty()) {
-            return TransferTask(meta, blocks, type, layer, is_last_layer);
+            return TransferTask(meta);
         } else {
-            return TransferTask(meta, blocks, dst_blocks, type, layer, is_last_layer);
+            return TransferTask(meta);
         }
     }
 };
