@@ -17,7 +17,7 @@ PYBIND11_MODULE(video_ops, m) {
       .def_readwrite("channel", &TransferTaskMeta::channel)
       .def_readwrite("request_id", &TransferTaskMeta::request_id)
       .def("serialize", &TransferTaskMeta::serialize)
-      .def("deserialize", &TransferTaskMeta::deserialize);;
+      .def("deserialize", &TransferTaskMeta::deserialize);
 
   py::class_<TransferTask>(trans_ops, "TransferTask")
       .def(py::init<const TransferTaskMeta&, 
