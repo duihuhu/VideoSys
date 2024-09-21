@@ -21,8 +21,15 @@ PYBIND11_MODULE(video_ops, m) {
 
   py::class_<TransferTask>(trans_ops, "TransferTask")
       .def(py::init<const TransferTaskMeta&, 
-                    const std::vector<uint32_t>&>())
+                    TaskType>(),
+            py::arg("meta"),
+            py::arg("type"))
+      .def(py::init<const TransferTaskMeta&, 
+                    TaskType>(),
+            py::arg("meta"),
+            py::arg("type"))
       .def_readwrite("meta", &TransferTask::meta)
+      .def_readwrite("type", &TransferTask::type)
       .def("serialize", &TransferTask::serialize)
       .def_static("deserialize", &TransferTask::deserialize);
 }
