@@ -101,7 +101,7 @@ class SendKvTransferScheduler:
                     request: PriorityRequest = heapq.heappop(priority_request)
                     request_id = request[1]
                     
-                    scheduled_transfer_tasks.append(trans_ops.TransferTask(trans_ops.TransferTaskMeta(channel, request_id),self.block_ids[request_id], trans_ops.TaskType.TRANSFER_SEND_BLOCKS).serialize())
+                    scheduled_transfer_tasks.append(trans_ops.TransferTask(trans_ops.TransferTaskMeta(channel, request_id)).serialize())
                     self.channel_transfer_tag[channel] += 1
                 else:
                     break
@@ -167,7 +167,7 @@ class RecvKvTransScheduler:
         for channel, request_ids in self.channel_request_ids.items():
             while request_ids:
                 request_id = request_ids.pop(0)
-                scheduled_transfer_tasks.append(trans_ops.TransferTask(trans_ops.TransferTaskMeta(channel, request_id), self.block_ids[request_id], trans_ops.TaskType.TRANSFER_RECV_BLOCKS).serialize())
+                scheduled_transfer_tasks.append(trans_ops.TransferTask(trans_ops.TransferTaskMeta(channel, request_id)).serialize())
                 
         return scheduled_transfer_tasks 
 
