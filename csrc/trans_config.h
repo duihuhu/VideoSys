@@ -62,7 +62,7 @@ public:
 
 class TransferTask {
 public:
-    TransferTask(const TransferTaskMeta& meta, TaskType type,)
+    TransferTask(const TransferTaskMeta& meta, TaskType type)
         : meta(meta), type(type){}
     TransferTaskMeta meta;
     TaskType type;
