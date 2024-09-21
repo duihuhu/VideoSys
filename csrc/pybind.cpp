@@ -23,7 +23,6 @@ PYBIND11_MODULE(video_ops, m) {
       .def(py::init<const TransferTaskMeta&, 
                     const std::vector<uint32_t>&>())
       .def_readwrite("meta", &TransferTask::meta)
-      .def_readwrite("blocks", &TransferTask::blocks)
       .def("serialize", &TransferTask::serialize)
       .def_static("deserialize", &TransferTask::deserialize);
 }
