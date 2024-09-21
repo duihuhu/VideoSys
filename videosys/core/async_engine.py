@@ -8,7 +8,7 @@ from videosys.utils.logging import logger
 from videosys.core.outputs import RequestOutput
 from videosys import OpenSoraConfig
 from videosys.utils.config import DeployConfig
-
+from videosys.core.kv_trans_scheduler import SendKvTransferScheduler, RecvKvTransScheduler
 ENGINE_ITERATION_TIMEOUT_S = int(
     os.environ.get("VLLM_ENGINE_ITERATION_TIMEOUT_S", "60"))
 
@@ -186,6 +186,10 @@ class AsyncEngine:
         
         self.background_loop = None
         self._errored_with: Optional[BaseException] = None
+
+        self.send_kv_trans_scheduler = SendKvTransferScheduler(1, config.worker_type)
+
+        self.recv_kv_trans_scheduler = RecvKvTransScheduler(1, config.worker_type)
 
     async def run_engine_loop(self):
         has_requests_in_progress = False

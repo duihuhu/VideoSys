@@ -1,8 +1,8 @@
 dit_host =  "127.0.0.1"
-dit_port =  8001
+dit_port =  8000
 
 vae_host =  "127.0.0.1"
-vae_port =  8002
+vae_port =  8001
 
 dit_label = "dit"
 vae_label = "vae"
