@@ -333,7 +333,7 @@ class AsyncEngine:
         resolution: Optional[str],
         aspect_ratio: Optional[str],
         num_frames: Optional[str],
-        shape: Optional[List]
+        shape: Optional[List]=None
     ) -> AsyncStream:
         if not self.is_running:
             if self.start_engine_loop:
