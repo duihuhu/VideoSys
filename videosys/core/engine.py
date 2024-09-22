@@ -194,7 +194,7 @@ class VideoSysEngine:
             seq_group = self.scheduler.vae_waiting[0][0]
             global_ranks = self.scheduler.vae_waiting[0][1]
             
-            can_allocate, video_addr = self.driver_worker.allocate_kv(seq_group)
+            can_allocate, video_addr = self.allocate_kv(request_id=seq_group.request_id, prompt=seq_group.prompt, shape=seq_group.shape)
             if can_allocate:
                 self.scheduler.add_recv_transfering(seq_group)
                 transfer_tag = self.recv_kv_trans_scheduler.add_kv_request(seq_group.request_id, global_ranks, video_addr)
