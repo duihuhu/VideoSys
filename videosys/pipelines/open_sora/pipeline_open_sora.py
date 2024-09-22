@@ -882,9 +882,9 @@ class OpenSoraPipeline(VideoSysPipeline):
     
     def allocate_kv(self, request_id, prompt, shape):
         free_mem = torch.cuda.mem_get_info()[0] 
-        required_mem = torch.tensor(shape, dtype=torch.float32).numel() * 4
+        required_mem = torch.tensor(shape, dtype=torch.bfloat16).numel() * 4
         if free_mem >= required_mem:
-            allocated_video = torch.tensor(shape, dtype=torch.float32).numel() * 4
+            allocated_video = torch.empty(shape, dtype=torch.bfloat16)
             self.vae_record_data[request_id] = allocated_video
             return True, allocated_video.data_ptr()
         return False, None
