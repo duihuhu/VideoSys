@@ -9,12 +9,11 @@ class SequenceGroup:
     def __init__(
         self,
         request_id: str,
-        prompt: str,
-        resolution: Optional[str],
-        aspect_ratio: Optional[str],
-        num_frames: Optional[str],
-        shape: Optional[List],
-        global_ranks: Optional[List]
+        prompt: Optional[str] = None,
+        resolution: Optional[str] = None,
+        aspect_ratio: Optional[str] = None,
+        num_frames: Optional[str] = None,
+        shape: Optional[List] = None,
     ) -> None:
         self.request_id = request_id
         self.prompt = prompt
@@ -22,4 +21,3 @@ class SequenceGroup:
         self.aspect_ratio = aspect_ratio
         self.num_frames = num_frames
         self.shape = shape
-        self.global_ranks = global_ranks
