@@ -10,7 +10,7 @@ from videosys.core.sequence import SequenceGroup
 from videosys.core.scheduler import Scheduler
 from videosys.core.kv_trans_scheduler import SendKvTransferScheduler, RecvKvTransScheduler
 from videosys.core.outputs import KvPreparedResponse
-from typing import (Any, Awaitable, Callable, TypeVar, Optional)
+from typing import (Any, Awaitable, Callable, TypeVar, Optional, List)
 import asyncio
 T = TypeVar("T")
 
@@ -172,7 +172,13 @@ class VideoSysEngine:
     def __del__(self):
         self.shutdown()
 
-    def add_request(self, request_id, prompt, resolution, aspect_ratio, num_frames, shape):
+    def add_request(self, 
+                    request_id,
+                    prompt: Optional[str] = None,
+                    resolution: Optional[str] = None,
+                    aspect_ratio: Optional[str] = None,
+                    num_frames: Optional[str] = None,
+                    shape: Optional[List] = None):
         if self.config.worker_type == "dit":
             seq_group = SequenceGroup(request_id=request_id, prompt=prompt, resolution=resolution,\
                 aspect_ratio=aspect_ratio, num_frames=num_frames)

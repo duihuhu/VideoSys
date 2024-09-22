@@ -359,10 +359,11 @@ class AsyncEngine:
 
     async def add_request(self, 
         request_id: str,
-        prompt: str,
-        resolution: str,
-        aspect_ratio: str,
-        num_frames: str):
+        prompt: Optional[str] = None,
+        resolution: Optional[str] = None,
+        aspect_ratio: Optional[str] = None,
+        num_frames: Optional[str] = None,
+        shape: Optional[List] = None):
         
         stream = self._request_tracker.add_request(
             request_id = request_id,
