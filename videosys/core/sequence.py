@@ -13,7 +13,8 @@ class SequenceGroup:
         resolution: Optional[str],
         aspect_ratio: Optional[str],
         num_frames: Optional[str],
-        shape: Optional[List]
+        shape: Optional[List],
+        global_ranks: Optional[List]
     ) -> None:
         self.request_id = request_id
         self.prompt = prompt
@@ -21,3 +22,4 @@ class SequenceGroup:
         self.aspect_ratio = aspect_ratio
         self.num_frames = num_frames
         self.shape = shape
+        self.global_ranks = global_ranks

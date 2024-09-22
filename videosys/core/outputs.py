@@ -28,3 +28,29 @@ class RequestOutput:
             "shape": self.shape,
             "finished": self.finished
         }
+
+
+class KvPreparedResponse:
+    def __init__(
+        self,
+        request_id: str,
+        error: int,
+        error_msg: str,
+        computed_blocks: int,
+        transfer_tag: str,
+        dst_cpu_blocks: Optional[List[int]] = None,
+        has_dram: Optional[bool] = False
+    ) -> None:
+        self.request_id = request_id
+        self.error = error
+        self.error_msg = error_msg
+        self.global_ranks = None
+        self.transfer_tag = transfer_tag
+    def __json__(self) -> Dict:
+        return {
+            "request_id": self.request_id,
+            "global_ranks": self.global_ranks,
+            "error": self.error,
+            "error_msg": self.error_msg,
+            "transfer_tag": self.transfer_tag,
+        }

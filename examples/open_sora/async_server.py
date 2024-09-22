@@ -88,7 +88,11 @@ async def generate_vae(request: Request) -> Response:
     prompt = request_dict.pop("prompt")
     shape = request_dict.pop("shape")
     results_generator = engine.generate(request_id=request_id, prompt=prompt, shape=shape)
-    
+    async def stream_results() -> AsyncGenerator[bytes, None]:
+        async for kv_response in results_generator:
+            yield (json.dumps(kv_response.__json()) + "\0").encode("utf-8")
+    return StreamingResponse(stream_results()) 
+   
 @app.post("/generate_dit")
 async def generate_dit(request: Request) -> Response:
     request_dict = await request.json()

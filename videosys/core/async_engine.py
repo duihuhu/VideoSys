@@ -5,7 +5,7 @@ from typing import (Callable, Dict, List, Optional, Set, Tuple, Union)
 from functools import partial
 import time
 from videosys.utils.logging import logger
-from videosys.core.outputs import RequestOutput
+from videosys.core.outputs import RequestOutput, KvPreparedResponse
 from videosys import OpenSoraConfig
 from videosys.utils.config import DeployConfig
 ENGINE_ITERATION_TIMEOUT_S = int(
@@ -101,6 +101,16 @@ class RequestTracker:
         self._request_streams[request_id].put(request_output)
         if request_output.finished:
             logger.info(f"Finished request {request_id}.")
+            self.abort_request(request_id)
+    
+    def process_kv_response(self,
+                            global_ranks: List[int],
+                            kv_response: KvPreparedResponse) -> None:
+        """Process a request output from the engine"""
+        request_id = kv_response.request_id
+        kv_response.global_ranks = global_ranks
+        self._request_streams.get(request_id).put(kv_response)
+        if kv_response.error !=0:
             self.abort_request(request_id)
     
     def process_exception(self,
@@ -266,8 +276,15 @@ class AsyncEngine:
 
         if request_outputs:
             self._request_tracker.process_request_output(request_outputs)
-        
+
+        #kv_responses out, receiver process allocate kv cache req from sender, and return allocat kv num
+        kv_responses = self.video_engine.schedule_vae_waiting()
+        for kv_response in kv_responses:
+            self._request_tracker.process_kv_response(
+                self.video_engine.get_global_ranks(), kv_response)
+             
         await self.trans_kv_step_aysnc()
+
 
         return request_outputs!=None
     

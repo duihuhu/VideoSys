@@ -10,7 +10,7 @@ from videosys.core.sequence import SequenceGroup
 from videosys.core.scheduler import Scheduler
 from videosys import OpenSoraConfig
 from videosys.core.kv_trans_scheduler import SendKvTransferScheduler, RecvKvTransScheduler
-
+from videosys.core.outputs import KvPreparedResponse
 from typing import (Any, Awaitable, Callable, TypeVar, Optional)
 import asyncio
 T = TypeVar("T")
@@ -190,15 +190,16 @@ class VideoSysEngine:
             can_allocate, data_ptr = self.driver_worker.allocate_kv(seq_group)
             if can_allocate:
                 self.scheduler.add_recv_transfering(seq_group)
-                transfer_tag = self.recv_kv_trans_scheduler.add_kv_request(seq_group.request_id,
-                                                            prefill_request_output.global_ranks, blocks)
-                kv_responses.append(KvPreparedResponse(seq_group.request_id, 0, None, len(computed_blocks), transfer_tag))
+                transfer_tag = self.recv_kv_trans_scheduler.add_kv_request(seq_group.request_id, )
+                kv_responses.append(KvPreparedResponse(seq_group.request_id, 0, None, data_ptr, transfer_tag))
                 
             self.scheduler.vae_waiting.popleft()
 
         return kv_responses
  
-
+    def get_global_ranks(self):
+        return self.config.get_global_ranks()
+    
     def make_async(func: Callable[..., T]) -> Callable[..., Awaitable[T]]:
         """Take a blocking function, and run it on in an executor thread.
 

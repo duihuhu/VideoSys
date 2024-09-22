@@ -166,7 +166,10 @@ class OpenSoraConfig:
         self.enable_separate = enable_separate
         self.rank = None
         self.local_rank = None
-        
+    
+    def get_global_ranks(self):
+        return [self.local_rank]
+
 class OpenSoraPipeline(VideoSysPipeline):
     r"""
     Pipeline for text-to-image generation using PixArt-Alpha.
