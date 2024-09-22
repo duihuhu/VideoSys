@@ -4,7 +4,7 @@ from typing import Iterable, List
 import requests
 import uuid
 
-G_URL = "http://127.0.0.1:8000/generate"  #DiT服务器的地址
+G_URL = "http://127.0.0.1:8000/generate_dit"  #DiT服务器的地址
 
 
 def random_uuid() -> str:
