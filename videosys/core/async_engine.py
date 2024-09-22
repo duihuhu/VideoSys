@@ -329,11 +329,11 @@ class AsyncEngine:
     async def generate(
         self,
         request_id: str,
-        prompt: Optional[str],
-        resolution: Optional[str],
-        aspect_ratio: Optional[str],
-        num_frames: Optional[str],
-        shape: Optional[List]=None
+        prompt: Optional[str] = None,
+        resolution: Optional[str] = None,
+        aspect_ratio: Optional[str] = None,
+        num_frames: Optional[str] = None,
+        shape: Optional[List] = None
     ) -> AsyncStream:
         if not self.is_running:
             if self.start_engine_loop:
