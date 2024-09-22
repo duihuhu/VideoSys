@@ -8,6 +8,8 @@ import videosys
 from .mp_utils import ProcessWorkerWrapper, ResultHandler, WorkerMonitor, get_distributed_init_method, get_open_port
 from videosys.core.sequence import SequenceGroup
 from videosys.core.scheduler import Scheduler
+from videosys import OpenSoraConfig
+from videosys.core.kv_trans_scheduler import SendKvTransferScheduler, RecvKvTransScheduler
 
 from typing import (Any, Awaitable, Callable, TypeVar, Optional)
 import asyncio
@@ -18,11 +20,16 @@ class VideoSysEngine:
     this is partly inspired by vllm
     """
 
-    def __init__(self, config, deploy_config):
+    def __init__(self, config: OpenSoraConfig, deploy_config):
         self.config = config
         self.deploy_config = deploy_config
         self.parallel_worker_tasks = None
         self.scheduler = Scheduler()
+        if config.worker_type=="dit":
+            self.send_kv_trans_scheduler = SendKvTransferScheduler(1, config.worker_type)
+        else:
+            self.recv_kv_trans_scheduler = RecvKvTransScheduler(1, config.worker_type)
+
         self._init_worker(config.pipeline_cls)
 
     def _init_worker(self, pipeline_cls):
@@ -136,6 +143,9 @@ class VideoSysEngine:
     def create_comm(self, *args, **kwargs):
         return self.driver_worker.create_comm(*args, **kwargs)
     
+    def allocate_kv(self, *args, **kwargs):
+        return self.driver_worker.allocate_kv(*args, **kwargs)
+    
     def stop_remote_worker_execution_loop(self) -> None:
         if self.parallel_worker_tasks is None:
             return
@@ -163,9 +173,31 @@ class VideoSysEngine:
     def __del__(self):
         self.shutdown()
 
-    def add_request(self, request_id, prompt, resolution, aspect_ratio, num_frames):
-        seq_group = SequenceGroup(request_id, prompt, resolution, aspect_ratio, num_frames)
-        self.scheduler.add_seq_group(seq_group)
+    def add_request(self, request_id, prompt, resolution, aspect_ratio, num_frames, shape):
+        if self.config.worker_type == "dit":
+            seq_group = SequenceGroup(request_id=request_id, prompt=prompt, resolution=resolution,\
+                aspect_ratio=aspect_ratio, num_frames=num_frames)
+            self.scheduler.add_seq_group(seq_group)
+        else:
+            seq_group = SequenceGroup(request_id=request_id, prompt=prompt, shape=shape)
+            self.scheduler.add_vae_seq_group(seq_group)
+
+    def schedule_vae_waiting(self):
+        kv_responses = [] 
+        while self.scheduler.vae_waiting:
+            seq_group = self.scheduler.vae_waiting[0]
+            
+            can_allocate, data_ptr = self.driver_worker.allocate_kv(seq_group)
+            if can_allocate:
+                self.scheduler.add_recv_transfering(seq_group)
+                transfer_tag = self.recv_kv_trans_scheduler.add_kv_request(seq_group.request_id,
+                                                            prefill_request_output.global_ranks, blocks)
+                kv_responses.append(KvPreparedResponse(seq_group.request_id, 0, None, len(computed_blocks), transfer_tag))
+                
+            self.scheduler.vae_waiting.popleft()
+
+        return kv_responses
+ 
 
     def make_async(func: Callable[..., T]) -> Callable[..., Awaitable[T]]:
         """Take a blocking function, and run it on in an executor thread.

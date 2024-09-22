@@ -10,11 +10,16 @@ class Scheduler:
             
             self.send_transfering: Dict[str, SequenceGroup] = {}
             self.recv_transfering: Dict[str, SequenceGroup] = {}
-
+                
+            self.vae_waiting: Deque[SequenceGroup] = deque()
+            
 
     def add_seq_group(self, seq_group: SequenceGroup) -> None:
         # Add sequence groups to the waiting queue.
         self.waiting.append(seq_group)
+
+    def add_vae_seq_group(self, seq_group: SequenceGroup) -> None:
+        self.vae_waiting.append(seq_group)
 
     def add_send_transfering(self, seq_group: SequenceGroup) -> None:
         self.send_transfering[seq_group.request_id] = seq_group

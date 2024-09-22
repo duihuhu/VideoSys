@@ -8,7 +8,6 @@ from videosys.utils.logging import logger
 from videosys.core.outputs import RequestOutput
 from videosys import OpenSoraConfig
 from videosys.utils.config import DeployConfig
-from videosys.core.kv_trans_scheduler import SendKvTransferScheduler, RecvKvTransScheduler
 ENGINE_ITERATION_TIMEOUT_S = int(
     os.environ.get("VLLM_ENGINE_ITERATION_TIMEOUT_S", "60"))
 
@@ -187,11 +186,6 @@ class AsyncEngine:
         self.background_loop = None
         self._errored_with: Optional[BaseException] = None
 
-        if config.worker_type=="dit":
-            self.send_kv_trans_scheduler = SendKvTransferScheduler(1, config.worker_type)
-        else:
-            self.recv_kv_trans_scheduler = RecvKvTransScheduler(1, config.worker_type)
-
     async def run_engine_loop(self):
         has_requests_in_progress = False
         print("run_engine_loop ")
@@ -250,14 +244,14 @@ class AsyncEngine:
         if not self.video_engine.scheduler.send_transfering and not self.video_engine.scheduler.recv_transfering:
             return 
 
-        send_tasks = self.send_kv_trans_scheduler.schedule()
-        recv_tasks = self.recv_kv_trans_scheduler.schedule()
+        # send_tasks = self.video_engine.send_kv_trans_scheduler.schedule()
+        # recv_tasks = self.video_engine.recv_kv_trans_scheduler.schedule()
         
-        if send_tasks or recv_tasks:
-            await self.video_engine.trans_blocks(
-                send_tasks = send_tasks,
-                recv_tasks = recv_tasks,
-            )
+        # if send_tasks or recv_tasks:
+        #     await self.video_engine.trans_blocks(
+        #         send_tasks = send_tasks,
+        #         recv_tasks = recv_tasks,
+        #     )
             
     async def engine_step(self) -> bool:
         new_requests, finished_requests = (
@@ -322,6 +316,7 @@ class AsyncEngine:
         resolution: Optional[str],
         aspect_ratio: Optional[str],
         num_frames: Optional[str],
+        shape: Optional[List]
     ) -> AsyncStream:
         if not self.is_running:
             if self.start_engine_loop:

@@ -81,8 +81,16 @@ async def create_comm(request: Request) -> Response:
     worker_type = payload.pop("worker_type")
     await engine.create_comm(nccl_id, dst_channel, worker_type)
 
-@app.post("/generate")
-async def generate(request: Request) -> Response:
+@app.post("/generate_vae")
+async def generate_vae(request: Request) -> Response:
+    request_dict = await request.json()
+    request_id = request_dict.pop("request_id")
+    prompt = request_dict.pop("prompt")
+    shape = request_dict.pop("shape")
+    results_generator = engine.generate(request_id=request_id, prompt=prompt, shape=shape)
+    
+@app.post("/generate_dit")
+async def generate_dit(request: Request) -> Response:
     request_dict = await request.json()
     request_id = request_dict.pop("request_id")
     prompt = request_dict.pop("prompt")

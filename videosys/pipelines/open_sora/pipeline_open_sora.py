@@ -248,11 +248,11 @@ class OpenSoraPipeline(VideoSysPipeline):
             text_encoder=text_encoder, vae=vae, transformer=transformer, scheduler=scheduler, tokenizer=tokenizer
         )
         
-        self.record_data = {}
         if config.enable_separate:
+            self.dit_record_data = {}
             print("trans manager ", config.rank, config.worker_type)
             self.trans_manager = trans_ops.TransManager(config.rank, config.local_rank, config.worker_type)
-            
+            self.vae_record_data = {}
     def get_text_embeddings(self, texts):
         text_tokens_and_mask = self.tokenizer(
             texts,
@@ -862,7 +862,7 @@ class OpenSoraPipeline(VideoSysPipeline):
                 progress=verbose,
                 mask=masks,
             )
-            self.record_data[request_id] = samples
+            self.dit_record_data[request_id] = samples
         return request_id, samples.shape
 
 
@@ -874,9 +874,18 @@ class OpenSoraPipeline(VideoSysPipeline):
         self.trans_manager.create_comm(nccl_id, dst_channel, worker_type)
 
     def transfer_dit(self, request_id):
-        samples = self.record_data[request_id]
+        samples = self.dit_record_data[request_id]
         print("transfer_dit ", type(samples), samples.shape, samples.device)
-        
+    
+    def allocate_kv(self, request_id, shape):
+        free_mem = torch.cuda.mem_get_info()[0] 
+        required_mem = torch.tensor(shape, dtype=torch.float32).numel() * 4
+        if free_mem >= required_mem:
+            allocated_video = torch.tensor(shape, dtype=torch.float32).numel() * 4
+            self.vae_record_data[request_id] = allocated_video
+            return True, allocated_video.data_ptr()
+        return False, None
+    
     def save_video(self, video, output_path):
         save_video(video, output_path, fps=24)
 
