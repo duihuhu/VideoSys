@@ -880,7 +880,7 @@ class OpenSoraPipeline(VideoSysPipeline):
         samples = self.dit_record_data[request_id]
         print("transfer_dit ", type(samples), samples.shape, samples.device)
     
-    def allocate_kv(self, request_id, shape):
+    def allocate_kv(self, request_id, prompt, shape):
         free_mem = torch.cuda.mem_get_info()[0] 
         required_mem = torch.tensor(shape, dtype=torch.float32).numel() * 4
         if free_mem >= required_mem:

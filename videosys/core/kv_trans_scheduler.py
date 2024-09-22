@@ -69,7 +69,7 @@ class SendKvTransferScheduler:
         self.channel_request_ids: Dict[str, List[PriorityRequest]] = {}
         
         self.finished_worker_count: Dict[str, int]  = {}
-        self.block_ids: Dict[str, List[int]] = {}
+        self.video_addrs: Dict[str, List[int]] = {}
         self.num_workers = num_workers
         
         self.role = role
@@ -84,7 +84,7 @@ class SendKvTransferScheduler:
         transfer_tag: int
     ) -> None:
         channel = "_".join([str(rank) for rank in global_ranks])
-        self.block_ids[request_id] = blocks
+        self.video_addrs[request_id] = blocks
         self.finished_worker_count[request_id] = self.num_workers
         if channel not in self.channel_request_ids:
             self.channel_request_ids[channel] = []
@@ -119,7 +119,7 @@ class SendKvTransferScheduler:
         for task_meta in send_finished_taks:
             self.finished_worker_count[task_meta.request_id] -=1
             if self.finished_worker_count[task_meta.request_id] == 0:
-                del self.block_ids[task_meta.request_id]
+                del self.video_addrs[task_meta.request_id]
                 del self.finished_worker_count[task_meta.request_id]
                 real_finished_req_ids.append(task_meta.request_id)
                 
@@ -136,7 +136,7 @@ class RecvKvTransScheduler:
         self.channel_request_ids: Dict[str, List[str]] = {}
         
         self.finished_worker_count: Dict[str, int]  = {}
-        self.block_ids: Dict[str, List[int]] = {}
+        self.video_addrs: Dict[str, List[int]] = {}
         self.num_workers = num_workers
         
         # self.opposite_ranks = list(range(0, num_workers * 2))
@@ -149,10 +149,10 @@ class RecvKvTransScheduler:
         self,
         request_id: str,
         global_ranks: List[int],
-        blocks: List[int],
+        video_addr: int,
     ) -> None:
         channel = "_".join([str(rank) for rank in global_ranks])
-        self.block_ids[request_id] = blocks
+        self.video_addrs[request_id] = video_addr
         self.finished_worker_count[request_id] = self.num_workers
         if channel not in self.channel_request_ids:
             self.channel_request_ids[channel] = []
@@ -182,7 +182,7 @@ class RecvKvTransScheduler:
         for task_meta in recv_finished_tasks:
             self.finished_worker_count[task_meta.request_id] -=1
             if self.finished_worker_count[task_meta.request_id] == 0:
-                del self.block_ids[task_meta.request_id]
+                del self.video_addrs[task_meta.request_id]
                 del self.finished_worker_count[task_meta.request_id]
                 real_finished_req_ids.append(task_meta.request_id)
                 

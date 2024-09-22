@@ -27,6 +27,7 @@ class RequestOutput:
             "request_id": self.request_id,
             "prompt": self.prompt,
             "shape": self.shape,
+            "global_ranks": self.global_ranks,
             "finished": self.finished
         }
 
@@ -37,19 +38,19 @@ class KvPreparedResponse:
         request_id: str,
         error: int,
         error_msg: str,
-        computed_blocks: int,
+        video_addr: int,
         transfer_tag: str,
-        dst_cpu_blocks: Optional[List[int]] = None,
-        has_dram: Optional[bool] = False
     ) -> None:
         self.request_id = request_id
         self.error = error
         self.error_msg = error_msg
+        self.video_addr = video_addr
         self.global_ranks = None
         self.transfer_tag = transfer_tag
     def __json__(self) -> Dict:
         return {
             "request_id": self.request_id,
+            "video_addr": self.video_addr,
             "global_ranks": self.global_ranks,
             "error": self.error,
             "error_msg": self.error_msg,

@@ -87,7 +87,9 @@ async def generate_vae(request: Request) -> Response:
     request_id = request_dict.pop("request_id")
     prompt = request_dict.pop("prompt")
     shape = request_dict.pop("shape")
-    results_generator = engine.generate(request_id=request_id, prompt=prompt, shape=shape)
+    global_ranks = request_dict.pop("global_ranks")
+    results_generator = engine.generate(request_id=request_id, prompt=prompt, shape=shape,\
+        global_ranks=global_ranks)
     async def stream_results() -> AsyncGenerator[bytes, None]:
         async for kv_response in results_generator:
             yield (json.dumps(kv_response.__json()) + "\0").encode("utf-8")

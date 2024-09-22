@@ -1,4 +1,4 @@
-from typing import Deque, Dict
+from typing import Deque, Dict, Tuple, List
 from collections import deque
 from videosys.core.sequence import SequenceGroup
 class Scheduler:
@@ -11,7 +11,7 @@ class Scheduler:
             self.send_transfering: Dict[str, SequenceGroup] = {}
             self.recv_transfering: Dict[str, SequenceGroup] = {}
                 
-            self.vae_waiting: Deque[SequenceGroup] = deque()
+            self.vae_waiting: Deque[Tuple[SequenceGroup, List]] = deque(tuple())
             
 
     def add_seq_group(self, seq_group: SequenceGroup) -> None:

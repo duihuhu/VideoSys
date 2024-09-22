@@ -178,25 +178,27 @@ class VideoSysEngine:
                     resolution: Optional[str] = None,
                     aspect_ratio: Optional[str] = None,
                     num_frames: Optional[str] = None,
-                    shape: Optional[List] = None):
+                    shape: Optional[List] = None,
+                    global_ranks: Optional[List] = None):
         if self.config.worker_type == "dit":
             seq_group = SequenceGroup(request_id=request_id, prompt=prompt, resolution=resolution,\
                 aspect_ratio=aspect_ratio, num_frames=num_frames)
             self.scheduler.add_seq_group(seq_group)
         else:
             seq_group = SequenceGroup(request_id=request_id, prompt=prompt, shape=shape)
-            self.scheduler.add_vae_seq_group(seq_group)
+            self.scheduler.add_vae_seq_group((seq_group, global_ranks))
 
     def schedule_vae_waiting(self):
         kv_responses = [] 
         while self.scheduler.vae_waiting:
-            seq_group = self.scheduler.vae_waiting[0]
+            seq_group = self.scheduler.vae_waiting[0][0]
+            global_ranks = self.scheduler.vae_waiting[0][1]
             
-            can_allocate, data_ptr = self.driver_worker.allocate_kv(seq_group)
+            can_allocate, video_addr = self.driver_worker.allocate_kv(seq_group)
             if can_allocate:
                 self.scheduler.add_recv_transfering(seq_group)
-                transfer_tag = self.recv_kv_trans_scheduler.add_kv_request(seq_group.request_id, )
-                kv_responses.append(KvPreparedResponse(seq_group.request_id, 0, None, data_ptr, transfer_tag))
+                transfer_tag = self.recv_kv_trans_scheduler.add_kv_request(seq_group.request_id, global_ranks, video_addr)
+                kv_responses.append(KvPreparedResponse(seq_group.request_id, 0, None, video_addr, transfer_tag))
                 
             self.scheduler.vae_waiting.popleft()
 

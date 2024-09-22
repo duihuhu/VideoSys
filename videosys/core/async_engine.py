@@ -335,7 +335,8 @@ class AsyncEngine:
         resolution: Optional[str] = None,
         aspect_ratio: Optional[str] = None,
         num_frames: Optional[str] = None,
-        shape: Optional[List] = None
+        shape: Optional[List] = None,
+        global_ranks: Optional[List] = None
     ) -> AsyncStream:
         if not self.is_running:
             if self.start_engine_loop:
@@ -353,7 +354,9 @@ class AsyncEngine:
             prompt = prompt,
             resolution = resolution,
             aspect_ratio = aspect_ratio,
-            num_frames = num_frames
+            num_frames = num_frames,
+            shape = shape,
+            global_ranks = global_ranks,
         )
 
         async for request_output in stream:
@@ -365,14 +368,17 @@ class AsyncEngine:
         resolution: Optional[str] = None,
         aspect_ratio: Optional[str] = None,
         num_frames: Optional[str] = None,
-        shape: Optional[List] = None):
+        shape: Optional[List] = None,
+        global_ranks: Optional[List] = None):
         
         stream = self._request_tracker.add_request(
             request_id = request_id,
             prompt = prompt,
             resolution = resolution,
             aspect_ratio = aspect_ratio,
-            num_frames = num_frames
+            num_frames = num_frames,
+            shape = shape,
+            global_ranks = global_ranks
         )
         return stream
     

@@ -48,9 +48,7 @@ def get_response(response: requests.Response) -> List[str]:
 def post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames):
     rsp = post_http_request(prompt, resolution, aspect_ratio, num_frames, G_URL)
     for h in get_streaming_response(rsp):
-        if h['finished'] == True:
-            print("res", h)
-            return h["prefilled_token_id"]
+        print("res", h)
             
 def main(prompt, resolution, aspect_ratio, num_frames):
     post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
