@@ -12,14 +12,15 @@ class RequestOutput:
     def __init__(
         self,
         request_id: str,
-        prompt: Optional[str],
-        shape: Optional[List],
-        finished: Optional[bool],
+        prompt: Optional[str] = None,
+        shape: Optional[List] = None,
+        finished: Optional[bool] = None,
     ) -> None:
         self.request_id = request_id
         self.prompt = prompt
         self.shape = shape
         self.finished = finished
+        self.global_ranks: List[int] = None
         
     def __json__(self) -> Dict:
         return {

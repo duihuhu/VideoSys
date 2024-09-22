@@ -17,3 +17,5 @@ create_comm_url="http://%s:%s/create_comm"
 
 
 forward_kv_url = "http://%s:%s/prepare_kv_cache"
+
+forward_vae_url = "http://%s:%s/generate_vae"

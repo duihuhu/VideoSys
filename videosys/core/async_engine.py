@@ -93,11 +93,13 @@ class RequestTracker:
                 self.abort_request(rid)
 
     def process_request_output(self,
+                                global_ranks: List[int],
                                request_output: RequestOutput,
                                *,
                                verbose: bool = False) -> None:
         """Process a request output from the engine."""
         request_id = request_output.request_id
+        request_output.global_ranks = global_ranks
         self._request_streams[request_id].put(request_output)
         if request_output.finished:
             logger.info(f"Finished request {request_id}.")
@@ -275,7 +277,7 @@ class AsyncEngine:
         request_outputs = await self.step_async()
 
         if request_outputs:
-            self._request_tracker.process_request_output(request_outputs)
+            self._request_tracker.process_request_output(self.video_engine.get_global_ranks(), request_outputs)
 
         #kv_responses out, receiver process allocate kv cache req from sender, and return allocat kv num
         kv_responses = self.video_engine.schedule_vae_waiting()
