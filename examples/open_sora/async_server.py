@@ -92,7 +92,7 @@ async def generate_vae(request: Request) -> Response:
         global_ranks=global_ranks)
     async def stream_results() -> AsyncGenerator[bytes, None]:
         async for kv_response in results_generator:
-            yield (json.dumps(kv_response.__json()) + "\0").encode("utf-8")
+            yield (json.dumps(kv_response.__json__()) + "\0").encode("utf-8")
     return StreamingResponse(stream_results()) 
    
 @app.post("/generate_dit")
