@@ -8,7 +8,6 @@ import videosys
 from .mp_utils import ProcessWorkerWrapper, ResultHandler, WorkerMonitor, get_distributed_init_method, get_open_port
 from videosys.core.sequence import SequenceGroup
 from videosys.core.scheduler import Scheduler
-from videosys import OpenSoraConfig
 from videosys.core.kv_trans_scheduler import SendKvTransferScheduler, RecvKvTransScheduler
 from videosys.core.outputs import KvPreparedResponse
 from typing import (Any, Awaitable, Callable, TypeVar, Optional)
@@ -20,7 +19,7 @@ class VideoSysEngine:
     this is partly inspired by vllm
     """
 
-    def __init__(self, config: OpenSoraConfig, deploy_config):
+    def __init__(self, config, deploy_config):
         self.config = config
         self.deploy_config = deploy_config
         self.parallel_worker_tasks = None
