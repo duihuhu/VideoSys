@@ -908,8 +908,8 @@ class OpenSoraPipeline(VideoSysPipeline):
         samples = self.dit_video_data[request_id]
         print("transfer_dit ", type(samples), samples.shape, samples.device)
     
-    def remove_dit(self, finished_reqs):
-        for request_id in finished_reqs:
+    def remove_dit(self, send_finished_reqs):
+        for request_id in send_finished_reqs:
             del self.dit_video_data[request_id]
             
     def allocate_kv(self, request_id, prompt, shape):
