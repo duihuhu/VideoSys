@@ -3,7 +3,7 @@ import json
 from typing import Iterable, List
 import requests
 import uuid
-
+import time
 G_URL = "http://127.0.0.1:8000/generate_dit"  #GS服务器的地址 P
 
 
@@ -48,7 +48,7 @@ def get_response(response: requests.Response) -> List[str]:
 def post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames):
     rsp = post_http_request(prompt, resolution, aspect_ratio, num_frames, G_URL)
     for h in get_streaming_response(rsp):
-        print("res", h)
+        print("res", time.time(), h)
             
 def main(prompt, resolution, aspect_ratio, num_frames):
     post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
