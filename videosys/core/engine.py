@@ -24,10 +24,10 @@ class VideoSysEngine:
         self.deploy_config = deploy_config
         self.parallel_worker_tasks = None
         self.scheduler = Scheduler()
-        if config.worker_type=="dit":
-            self.send_kv_trans_scheduler = SendKvTransferScheduler(1, config.worker_type)
-        else:
-            self.recv_kv_trans_scheduler = RecvKvTransScheduler(1, config.worker_type)
+        # if config.worker_type=="dit":
+        self.send_kv_trans_scheduler = SendKvTransferScheduler(1, config.worker_type)
+        # else:
+        self.recv_kv_trans_scheduler = RecvKvTransScheduler(1, config.worker_type)
 
         self._init_worker(config.pipeline_cls)
 
@@ -150,6 +150,9 @@ class VideoSysEngine:
     
     def fetch_video_addr(self, *args, **kwargs):
         return self.driver_worker.fetch_video_addr(*args, **kwargs)
+
+    def trans_blocks(self, *args, **kwargs):
+        return self.driver_worker.trans_blocks(*args, **kwargs)
 
     def stop_remote_worker_execution_loop(self) -> None:
         if self.parallel_worker_tasks is None:

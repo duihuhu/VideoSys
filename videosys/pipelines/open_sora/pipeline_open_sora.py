@@ -2,7 +2,7 @@ import html
 import json
 import os
 import re
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple, Union, List
 
 import ftfy
 import torch
@@ -896,7 +896,14 @@ class OpenSoraPipeline(VideoSysPipeline):
     def fetch_video_addr(self, request_id):
         if request_id in self.dit_video_data:
             return self.dit_video_data[request_id].data_ptr()
-        
+    def trans_blocks(self,         
+                     send_tasks: List[trans_ops.TransferTask],
+                     recv_tasks: List[trans_ops.TransferTask]):
+        if send_tasks:
+            self.trans_manager.add_tasks(send_tasks)
+        if recv_tasks:
+            self.trans_manager.add_tasks(recv_tasks)  
+         
     def save_video(self, video, output_path):
         save_video(video, output_path, fps=24)
 

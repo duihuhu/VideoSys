@@ -11,25 +11,25 @@ TransManager::~TransManager() {
     }
 }
 void TransManager::dist_worker() {
-    // while (true) {
-    //     if(!worker_task_queue.empty()) {
-    //         auto worker_task = worker_task_queue.pop_front();
-    //         TaskType task_type = worker_task.type;
-    //         TransWorker* task_worker = nullptr;
-    //         switch (task_type) {
-    //             case TaskType::TRANSFER_SEND:
-    //                 task_worker = send_trans_workers[worker_task.meta.channel];
-    //                 task_worker->add_tasks(worker_task);
-    //                 break;
-    //             case TaskType::TRANSFER_RECV:
-    //                 task_worker = recv_trans_workers[worker_task.meta.channel];
-    //                 task_worker->add_tasks(worker_task);
-    //                 break;
-    //             default:
-    //                 throw std::runtime_error("invalid task_type.");
-    //         }
-    //     }
-    // }
+    while (true) {
+        if(!worker_task_queue.empty()) {
+            auto worker_task = worker_task_queue.pop_front();
+            TaskType task_type = worker_task.type;
+            TransWorker* task_worker = nullptr;
+            switch (task_type) {
+                case TaskType::TRANSFER_SEND:
+                    task_worker = send_trans_workers[worker_task.meta.channel];
+                    task_worker->add_tasks(worker_task);
+                    break;
+                case TaskType::TRANSFER_RECV:
+                    task_worker = recv_trans_workers[worker_task.meta.channel];
+                    task_worker->add_tasks(worker_task);
+                    break;
+                default:
+                    throw std::runtime_error("invalid task_type.");
+            }
+        }
+    }
     return;
 }
 
@@ -67,4 +67,11 @@ void TransManager::create_comm(std::vector<char>& nccl_id ,const std::string& ds
         task_worker->add_comm_task(nccl_id);
     }
     return;
+}
+
+void TransManager::add_tasks(const std::vector<std::string>& tasks) {
+    for (const auto& task : tasks) {
+        auto trans_task = TransferTask::deserialize(task);
+        worker_task_queue.push_back(trans_task);
+    }
 }

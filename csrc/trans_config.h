@@ -153,6 +153,8 @@ public:
 
     ~TransManager();
     std::vector<char> get_nccl_id(const std::string& dst_channel, const std::string& worker_type);
+    void add_tasks(const std::vector<std::string>& tasks);
+    
     void create_comm(std::vector<char>& nccl_id ,const std::string& dst_channel, const std::string& worker_type);
     void dist_worker();
 
@@ -160,6 +162,7 @@ private:
     std::unordered_map<std::string, TransWorker*> send_trans_workers;
     std::unordered_map<std::string, TransWorker*> recv_trans_workers;
 
+    TransQueue<TransferTask> worker_task_queue;
     std::thread execute;
 
     int rank;
