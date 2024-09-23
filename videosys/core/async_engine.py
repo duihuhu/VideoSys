@@ -237,9 +237,10 @@ class AsyncEngine:
             await asyncio.sleep(0)
     
     async def step_async(self):
-        send_finished_reqs = self.video_engine.scheduler._check_tranfer_finished_req()
-        if send_finished_reqs:
-            self.video_engine.remove_dit(send_finished_reqs=send_finished_reqs)
+        if self.config.enable_separate:
+            send_finished_reqs = self.video_engine.scheduler._check_tranfer_finished_req()
+            if send_finished_reqs:
+                self.video_engine.remove_dit(send_finished_reqs=send_finished_reqs)
         seq_group = self.video_engine.scheduler.schedule()
         if seq_group:
             if not self.config.enable_separate:
@@ -248,6 +249,8 @@ class AsyncEngine:
                     aspect_ratio=seq_group.aspect_ratio,
                     num_frames=seq_group.num_frames,
                 ).video[0]
+                print("video info ", type(video), video.shape)
+                self.video_engine.save_video(video, f"./outputs/{seq_group.prompt}.mp4")
             else:
                 if self.config.worker_type == "dit":
                     t1 = time.time()
