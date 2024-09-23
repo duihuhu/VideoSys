@@ -8,7 +8,8 @@ PYBIND11_MODULE(video_ops, m) {
   py::class_<TransManager>(trans_ops, "TransManager")
       .def(py::init<int , int, std::string>())
       .def("get_nccl_id", &TransManager::get_nccl_id, "A function that returns NCCL unique ID as a list of characters")
-      .def("create_comm", &TransManager::create_comm, "A function create comm");
+      .def("create_comm", &TransManager::create_comm, "A function create comm")
+      .def("add_tasks", &TransManager::add_tasks, "add_tasks");
 
 
   py::class_<TransferTaskMeta>(trans_ops, "TransferTaskMeta")
