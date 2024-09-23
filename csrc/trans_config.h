@@ -167,7 +167,7 @@ public:
     
     void create_comm(std::vector<char>& nccl_id ,const std::string& dst_channel, const std::string& worker_type);
     void dist_worker();
-    std::vector<std::pair<std::vector<std::string>, std::vector<std::string>>> get_finished_transfer_tasks();
+    std::vector<std::vector<std::pair<std::vector<std::string>, std::vector<std::string>>>> get_finished_transfer_tasks();
 private:
     std::unordered_map<std::string, TransWorker*> send_trans_workers;
     std::unordered_map<std::string, TransWorker*> recv_trans_workers;
