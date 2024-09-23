@@ -884,9 +884,9 @@ class OpenSoraPipeline(VideoSysPipeline):
         free_mem = torch.cuda.mem_get_info()[0] 
         required_mem = torch.tensor(shape, dtype=self._dtype).numel() * 4
         if free_mem >= required_mem:
-            allocated_video = torch.empty(shape, dtype=self._dtype)
+            allocated_video = torch.empty(shape, device=self._device, dtype=self._dtype)
             self.vae_record_data[request_id] = allocated_video
-            print("allocated_video addr ", allocated_video.data_ptr())
+            print("allocated_video addr ",allocated_video.data_ptr())
             return True, allocated_video.data_ptr(), allocated_video.numel() * allocated_video.element_size()
         return False, None, None
     
