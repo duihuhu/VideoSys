@@ -886,7 +886,7 @@ class OpenSoraPipeline(VideoSysPipeline):
         if free_mem >= required_mem:
             allocated_video = torch.empty(shape, dtype=torch.bfloat16)
             self.vae_record_data[request_id] = allocated_video
-            return True, allocated_video.data_ptr(), allocated_video.numel() * allocated_video.element_size
+            return True, allocated_video.data_ptr(), allocated_video.numel() * allocated_video.element_size()
         return False, None, None
     
     def del_dit_req(self, request_id):
