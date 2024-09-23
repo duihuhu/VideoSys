@@ -220,7 +220,8 @@ class AsyncEngine:
         while True:
             if (not has_requests_in_progress 
                 and not self.video_engine.scheduler.waiting 
-                # and not self.engine.scheduler.send_transfering
+                and not self.video_engine.scheduler.send_transfering
+                and not self.video_engine.scheduler.recv_transfering
                 ):
                 
                 await self._request_tracker.wait_for_new_requests()
@@ -271,7 +272,8 @@ class AsyncEngine:
             return
         if not self.video_engine.scheduler.send_transfering and not self.video_engine.scheduler.recv_transfering:
             return 
-
+        print("trans_kv_step_aysnc ", len(self.video_engine.scheduler.send_transfering), len(self.video_engine.scheduler.recv_transfering))
+        time.sleep(2)
         # send_tasks = self.video_engine.send_kv_trans_scheduler.schedule()
         # recv_tasks = self.video_engine.recv_kv_trans_scheduler.schedule()
         
