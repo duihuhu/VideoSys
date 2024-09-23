@@ -116,16 +116,17 @@ async def generate_dit(request: Request) -> Response:
         async for request_output in results_generator:
             print("request_output ", request_output)
             ret = {"text": "sucess "}
-            dit_kv_resp = asyc_forward_request(request_output.__json__(), cfg.forward_vae_url % 
-                                                    (cfg.vae_host, cfg.vae_port))
-            async for resp in dit_kv_resp:
-                resp = resp.decode('utf-8')
-                payload = json.loads(resp)
-                global_ranks = payload.pop("global_ranks")
-                kv_response = KvPreparedResponse(**payload)
-                # print("response_kv_result ", kv_response.computed_blocks)
-                kv_response.global_ranks = global_ranks
-                await engine.add_kv_response(kv_response)
+            if args.enable_separate:
+                dit_kv_resp = asyc_forward_request(request_output.__json__(), cfg.forward_vae_url % 
+                                                        (cfg.vae_host, cfg.vae_port))
+                async for resp in dit_kv_resp:
+                    resp = resp.decode('utf-8')
+                    payload = json.loads(resp)
+                    global_ranks = payload.pop("global_ranks")
+                    kv_response = KvPreparedResponse(**payload)
+                    # print("response_kv_result ", kv_response.computed_blocks)
+                    kv_response.global_ranks = global_ranks
+                    await engine.add_kv_response(kv_response)
             yield (json.dumps(ret) + "\0").encode("utf-8")
     return StreamingResponse(stream_results())
 

@@ -875,6 +875,7 @@ class OpenSoraPipeline(VideoSysPipeline):
                      loop: int = 1,
                      condition_frame_length: int = 5,
                      return_dict: bool = True):
+
         print("generate_vae start ")
         video_clips = []
         samples = self.vae_record_data[request_id]
