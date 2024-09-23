@@ -195,7 +195,7 @@ class VideoSysEngine:
                     num_frames: Optional[str] = None,
                     shape: Optional[List] = None,
                     global_ranks: Optional[List] = None):
-        if self.config.worker_type == "dit":
+        if self.config.worker_type != "vae":
             seq_group = SequenceGroup(request_id=request_id, prompt=prompt, resolution=resolution,\
                 aspect_ratio=aspect_ratio, num_frames=num_frames)
             self.scheduler.add_seq_group(seq_group)
