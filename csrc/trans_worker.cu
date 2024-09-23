@@ -36,12 +36,12 @@ void TransWorker::worker() {
             auto task_meta = task.meta;
             switch (task_type) {
                 case TaskType::TRANSFER_SEND:
-                    cout<<"worker " << "TRANSFER_SEND " << std::endl;
+                    std::cout<<"worker " << "TRANSFER_SEND " << std::endl;
                     // trans_engine.send_blocks(task_meta.channel, task_meta.request_id, task.blocks, dst_rank, comms[use_comm], streams[use_comm]);
                     // use_comm = (use_comm + 1) % comms.size();
                     break;
                 case TaskType::TRANSFER_RECV:
-                    cout<<"worker " << "TRANSFER_RECV " << std::endl;
+                    std::cout<<"worker " << "TRANSFER_RECV " << std::endl;
                     // trans_engine.recv_blocks(task_meta.channel, task_meta.request_id, task.blocks, dst_rank, comms[use_comm], streams[use_comm]);
                     // use_comm = (use_comm + 1) % comms.size();
                     break;
