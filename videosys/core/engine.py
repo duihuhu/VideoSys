@@ -19,7 +19,7 @@ class VideoSysEngine:
     this is partly inspired by vllm
     """
 
-    def __init__(self, config, deploy_config):
+    def __init__(self, config, deploy_config = None):
         self.config = config
         self.deploy_config = deploy_config
         self.parallel_worker_tasks = None
