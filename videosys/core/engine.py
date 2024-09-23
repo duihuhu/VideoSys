@@ -134,7 +134,7 @@ class VideoSysEngine:
         return self.driver_worker.transfer_dit(*args, **kwargs)
 
     def remove_dit(self, *args, **kwargs):
-        return self.driver_worker.remove_dit("remove_dit", *args, **kwargs)[0]
+        return self._run_workers("remove_dit", *args, **kwargs)[0]
 
     def generate_vae(self, *args, **kwargs):
         return self.driver_worker.generate_vae(*args, **kwargs)
