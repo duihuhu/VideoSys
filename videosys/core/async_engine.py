@@ -258,6 +258,7 @@ class AsyncEngine:
                                                         num_frames=seq_group.num_frames,
                                                         )
                     print("dit request_id, shape ", request_id, shape)
+                    seq_group.shape = shape
                     self.video_engine.scheduler.add_send_transfering(seq_group)
                     
                     t2 = time.time()
@@ -271,7 +272,7 @@ class AsyncEngine:
                     t3 = time.time()
                     print("step async ", t3-t2, t2-t1)
                     self.video_engine.save_video(video, f"./outputs/{seq_group.prompt}.mp4")
-            return RequestOutput(seq_group.request_id, seq_group.prompt, seq_group.shape, True)
+            return RequestOutput(seq_group.request_id, seq_group.prompt, shape, True)
         return None
 
     async def trans_kv_step_aysnc(self):
