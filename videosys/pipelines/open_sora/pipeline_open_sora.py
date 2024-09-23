@@ -868,7 +868,35 @@ class OpenSoraPipeline(VideoSysPipeline):
             self.dit_video_data[request_id] = samples
         return request_id, samples.shape
 
+    @torch.no_grad()
+    def generate_vae(self, 
+                     request_id,
+                     num_frames: int = 51,
+                     loop: int = 1,
+                     condition_frame_length: int = 5,
+                     return_dict: bool = True):
+        print("generate_vae start ")
+        video_clips = []
+        samples = self.vae_record_data[request_id]
+        samples = self.vae.decode(samples.to(self._dtype), num_frames=num_frames)
+        video_clips.append(samples)
+        for i in range(1, loop):
+            video_clips[i] = video_clips[i][:, dframe_to_frame(condition_frame_length) :]
+        video = torch.cat(video_clips, dim=1)
 
+        low, high = -1, 1
+        video.clamp_(min=low, max=high)
+        video.sub_(low).div_(max(high - low, 1e-5))
+        video = video.mul(255).add_(0.5).clamp_(0, 255).permute(0, 2, 3, 4, 1).to("cpu", torch.uint8)
+
+        # Offload all models
+        self.maybe_free_model_hooks()
+
+        if not return_dict:
+            return (video,)
+        
+        return VideoSysPipelineOutput(video=video)
+    
     def get_nccl_id(self, dst_channel, worker_type):
         nccl_id = self.trans_manager.get_nccl_id(dst_channel, worker_type)
         return nccl_id
@@ -880,6 +908,10 @@ class OpenSoraPipeline(VideoSysPipeline):
         samples = self.dit_video_data[request_id]
         print("transfer_dit ", type(samples), samples.shape, samples.device)
     
+    def remove_dit(self, finished_reqs):
+        for request_id in finished_reqs:
+            del self.dit_video_data[request_id]
+            
     def allocate_kv(self, request_id, prompt, shape):
         free_mem = torch.cuda.mem_get_info()[0] 
         required_mem = torch.tensor(shape, dtype=self._dtype).numel() * 4

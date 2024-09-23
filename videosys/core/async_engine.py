@@ -237,6 +237,9 @@ class AsyncEngine:
             await asyncio.sleep(0)
     
     async def step_async(self):
+        send_finished_reqs = self.video_engine.scheduler._check_tranfer_finished_req()
+        if send_finished_reqs:
+            self.video_engine.remove_dit(send_finished_reqs=send_finished_reqs)
         seq_group = self.video_engine.scheduler.schedule()
         if seq_group:
             if not self.config.enable_separate:
@@ -278,22 +281,19 @@ class AsyncEngine:
         finished_work_tasks = self.video_engine.get_finished_transfer_tasks()
         for finished_tasks in finished_work_tasks:
             print("finished_work_tasks ", finished_work_tasks)
-        #     for worker_finished_tasks in finished_tasks:
-        #         if worker_finished_tasks:
-        #             for worker_finished_task in worker_finished_tasks:
-        #                 send_finished_tasks = []
-        #                 recv_finished_tasks = []
-        #                 for finished_task in worker_finished_task[0]:
-        #                     send_finished_tasks.append(trans_ops.TransferTaskMeta.deserialize(finished_task))
-        #                 for finished_task in worker_finished_task[1]:
-        #                     recv_finished_tasks.append(trans_ops.TransferTaskMeta.deserialize(finished_task))
-        #                 # print("send_finished_tasks, recv_finished_tasks ", send_finished_tasks, recv_finished_tasks)
-        #                 real_send_finished_req_ids = self.send_kv_trans_scheduler.add_finished_tasks(send_finished_tasks)
-        #                 real_recv_finished_req_ids = self.recv_kv_trans_scheduler.add_finished_tasks(recv_finished_tasks)
-        #                 if real_send_finished_req_ids:
-        #                     self.scheduler.add_send_finished(real_send_finished_req_ids)
-        #                 if real_recv_finished_req_ids:
-        #                     self.scheduler.add_recv_finished(real_recv_finished_req_ids)
+            for worker_finished_task in finished_tasks:
+                send_finished_tasks = []
+                recv_finished_tasks = []
+                for finished_task in worker_finished_task[0]:
+                    send_finished_tasks.append(trans_ops.TransferTaskMeta.deserialize(finished_task))
+                for finished_task in worker_finished_task[1]:
+                    recv_finished_tasks.append(trans_ops.TransferTaskMeta.deserialize(finished_task))
+                real_send_finished_req_ids = self.video_engine.send_kv_trans_scheduler.add_finished_tasks(send_finished_tasks)
+                real_recv_finished_req_ids = self.video_engine.recv_kv_trans_scheduler.add_finished_tasks(recv_finished_tasks)
+                if real_send_finished_req_ids:
+                    self.video_engine.scheduler.add_send_finished(real_send_finished_req_ids)
+                if real_recv_finished_req_ids:
+                    self.video_engine.scheduler.add_recv_finished(real_recv_finished_req_ids)
 
         send_tasks = self.video_engine.send_kv_trans_scheduler.schedule()
         recv_tasks = self.video_engine.recv_kv_trans_scheduler.schedule()
