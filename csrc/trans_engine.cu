@@ -108,6 +108,7 @@ void TransEngine::Recv(long long video_addr, int video_size, uint32_t srcRank, n
     NCCLCHECK(ncclGroupStart());
 
     void *dstAddrPtr = (void*) video_addr;
+    std::cout<<"Recv video size " << video_size << std::endl; 
     if (ncclSuccess != ncclRecv(dstAddrPtr, video_size, ncclInt8, srcRank,\
         comm, cudaStream)) {
         std::cout << "[ERROR]  ncclRecv error!!" << std::endl;
@@ -122,6 +123,8 @@ void TransEngine::Send(long long video_addr, int video_size, uint32_t destRank, 
     auto cudaStream = gpuStream.stream();
     NCCLCHECK(ncclGroupStart());
     void *srcAddrPtr = (void*) video_addr;
+    std::cout<<"Send video size " << video_size << std::endl; 
+
     if (ncclSuccess != ncclSend(srcAddrPtr, video_size, ncclInt8, destRank,\
         comm, cudaStream)) {
         std::cout << "[ERROR]  ncclSend error!!" << std::endl;
