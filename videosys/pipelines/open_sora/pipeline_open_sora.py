@@ -907,7 +907,10 @@ class OpenSoraPipeline(VideoSysPipeline):
             self.trans_manager.add_tasks(send_tasks)
         if recv_tasks:
             self.trans_manager.add_tasks(recv_tasks)  
-         
+        
+    def get_finished_transfer_tasks(self):
+        return self.trans_manager.get_finished_transfer_tasks()
+    
     def save_video(self, video, output_path):
         save_video(video, output_path, fps=24)
 

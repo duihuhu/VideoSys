@@ -154,6 +154,9 @@ class VideoSysEngine:
     def trans_blocks(self, *args, **kwargs):
         return self.driver_worker.trans_blocks(*args, **kwargs)
 
+    def get_finished_transfer_tasks(self, *args, **kwargs):
+        return self.driver_worker.get_finished_transfer_tasks()
+    
     def stop_remote_worker_execution_loop(self) -> None:
         if self.parallel_worker_tasks is None:
             return
