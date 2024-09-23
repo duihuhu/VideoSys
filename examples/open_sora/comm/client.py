@@ -51,9 +51,12 @@ def post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames):
         print("res", time.time(), h)
             
 def main(prompt, resolution, aspect_ratio, num_frames):
-    post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
-
-
+    t1 = time.time()
+    for i in range(10):
+        post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
+    t2 = time.time()
+    print(t2-t1)
+    
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--prompt", type=str, default="Sunset over the sea.")
