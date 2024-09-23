@@ -77,3 +77,24 @@ void TransManager::add_tasks(const std::vector<std::string>& tasks) {
         worker_task_queue.push_back(trans_task);
     }
 }
+
+ std::vector<std::pair<std::vector<std::string>, std::vector<std::string>>>TransManager::get_finished_transfer_tasks() {
+     std::vector<std::pair<std::vector<std::string>, std::vector<std::string>>> finished_work_tasks;
+    for (const auto& pair : send_trans_workers) {
+        // const std::string& key = pair.first;
+        TransWorker* worker = pair.second;
+        auto finished_work_task = worker->get_finished_transfer_tasks();
+        if(!finished_work_task.empty()) {
+            finished_work_tasks.emplace_back(finished_work_task);
+        }
+    }
+    for (const auto& pair : recv_trans_workers) {
+        // const std::string& key = pair.first;
+        TransWorker* worker = pair.second;
+        auto finished_work_task = worker->get_finished_transfer_tasks();
+        if(!finished_work_task.empty()) {
+            finished_work_tasks.emplace_back(finished_work_task);
+        }
+    }
+    return finished_work_tasks;
+}
