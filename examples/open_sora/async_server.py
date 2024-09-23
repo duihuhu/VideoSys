@@ -128,6 +128,7 @@ async def generate_dit(request: Request) -> Response:
                     # print("response_kv_result ", kv_response.computed_blocks)
                     kv_response.global_ranks = global_ranks
                     await engine.add_kv_response(kv_response)
+                    break
             yield (json.dumps(ret) + "\0").encode("utf-8")
     return StreamingResponse(stream_results())
 
