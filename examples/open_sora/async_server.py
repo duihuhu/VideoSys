@@ -121,6 +121,7 @@ async def generate_dit(request: Request) -> Response:
                                                         (cfg.vae_host, cfg.vae_port))
                 async for resp in dit_kv_resp:
                     resp = resp.decode('utf-8')
+                    print("generate_dit resp ", resp)
                     payload = json.loads(resp)
                     global_ranks = payload.pop("global_ranks")
                     kv_response = KvPreparedResponse(**payload)
