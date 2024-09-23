@@ -250,6 +250,7 @@ class AsyncEngine:
                     num_frames=seq_group.num_frames,
                 ).video[0]
                 print("video info ", type(video), video.shape)
+                shape = None
                 self.video_engine.save_video(video, f"./outputs/{seq_group.prompt}.mp4")
             else:
                 if self.config.worker_type == "dit":
