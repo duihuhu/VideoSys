@@ -69,7 +69,7 @@ class SendKvTransferScheduler:
         self.channel_request_ids: Dict[str, List[PriorityRequest]] = {}
         
         self.finished_worker_count: Dict[str, int]  = {}
-        self.video_addrs: Dict[str, List[int]] = {}
+        self.video_addrs: Dict[str, int] = {}
         self.num_workers = num_workers
         
         self.role = role
@@ -135,7 +135,7 @@ class RecvKvTransScheduler:
         self.channel_request_ids: Dict[str, List[str]] = {}
         
         self.finished_worker_count: Dict[str, int]  = {}
-        self.video_addrs: Dict[str, List[int]] = {}
+        self.video_addrs: Dict[str, int] = {}
         self.num_workers = num_workers
         
         # self.opposite_ranks = list(range(0, num_workers * 2))

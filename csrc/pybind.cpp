@@ -21,7 +21,7 @@ PYBIND11_MODULE(video_ops, m) {
 
   py::class_<TransferTask>(trans_ops, "TransferTask")
       .def(py::init<const TransferTaskMeta&, 
-                    int,
+                    long long,
                     TaskType>(),
             py::arg("meta"),
             py::arg("video_addr"),
