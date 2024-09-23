@@ -318,19 +318,20 @@ class AsyncEngine:
         for new_request in new_requests:
             print("new_request ", new_request)
             self.video_engine.add_request(**new_request)
-            
-        kv_responses = self._request_tracker.get_kv_responses()
-        for kv_response in kv_responses:
-            # Add the response
-            self.video_engine.add_kv_response(**kv_response)
+        
+        if self.config.enable_separate:
+            kv_responses = self._request_tracker.get_kv_responses()
+            for kv_response in kv_responses:
+                # Add the response
+                self.video_engine.add_kv_response(**kv_response)
+                    
+            #kv_responses out, receiver process allocate kv cache req from sender, and return allocat kv num
+            kv_responses = self.video_engine.schedule_vae_waiting()
+            for kv_response in kv_responses:
+                self._request_tracker.process_kv_response(
+                    self.video_engine.get_global_ranks(), kv_response)
                 
-        #kv_responses out, receiver process allocate kv cache req from sender, and return allocat kv num
-        kv_responses = self.video_engine.schedule_vae_waiting()
-        for kv_response in kv_responses:
-            self._request_tracker.process_kv_response(
-                self.video_engine.get_global_ranks(), kv_response)
-             
-        await self.trans_kv_step_aysnc()
+            await self.trans_kv_step_aysnc()
 
         request_outputs = await self.step_async()
 
