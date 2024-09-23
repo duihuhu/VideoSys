@@ -272,16 +272,15 @@ class AsyncEngine:
             return
         if not self.video_engine.scheduler.send_transfering and not self.video_engine.scheduler.recv_transfering:
             return 
-        print("trans_kv_step_aysnc ", len(self.video_engine.scheduler.send_transfering), len(self.video_engine.scheduler.recv_transfering))
-        time.sleep(2)
-        # send_tasks = self.video_engine.send_kv_trans_scheduler.schedule()
-        # recv_tasks = self.video_engine.recv_kv_trans_scheduler.schedule()
+
+        send_tasks = self.video_engine.send_kv_trans_scheduler.schedule()
+        recv_tasks = self.video_engine.recv_kv_trans_scheduler.schedule()
         
-        # if send_tasks or recv_tasks:
-        #     await self.video_engine.trans_blocks(
-        #         send_tasks = send_tasks,
-        #         recv_tasks = recv_tasks,
-        #     )
+        if send_tasks or recv_tasks:
+            await self.video_engine.trans_blocks(
+                send_tasks = send_tasks,
+                recv_tasks = recv_tasks,
+            )
             
     async def engine_step(self) -> bool:
         new_requests, finished_requests = (

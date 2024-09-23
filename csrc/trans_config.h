@@ -62,15 +62,17 @@ public:
 
 class TransferTask {
 public:
-    TransferTask(const TransferTaskMeta& meta, TaskType type)
-        : meta(meta), type(type){}
+    TransferTask(const TransferTaskMeta& meta, int video_addr, TaskType type)
+        : meta(meta), video_addr(video_addr), type(type){}
     TransferTaskMeta meta;
+    int video_addr;
     TaskType type;
 
     // Serialize the TransferTask to a string (JSON format)
     std::string serialize() const {
         json task;
         task["meta"] = meta.to_json();
+        task["video_addr"] = video_addr;
         task["type"] = static_cast<int>(type);
         return task.dump();
     }
@@ -79,8 +81,9 @@ public:
     static TransferTask deserialize(const std::string& serialized_data) {
         json task = json::parse(serialized_data);
         TransferTaskMeta meta = TransferTaskMeta::from_json(task.at("meta"));
+        int video_addr = task.at("video_addr").get<int>();
         TaskType type = static_cast<TaskType>(task.at("type").get<int>());
-        return TransferTask(meta, type);
+        return TransferTask(meta, video_addr, type);
     }
 };
 

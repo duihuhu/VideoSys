@@ -80,11 +80,11 @@ class SendKvTransferScheduler:
         self,
         request_id: str,
         global_ranks: List[int],
-        blocks: List[int],
+        video_addr: int,
         transfer_tag: int
     ) -> None:
         channel = "_".join([str(rank) for rank in global_ranks])
-        self.video_addrs[request_id] = blocks
+        self.video_addrs[request_id] = video_addr
         self.finished_worker_count[request_id] = self.num_workers
         if channel not in self.channel_request_ids:
             self.channel_request_ids[channel] = []
@@ -100,8 +100,7 @@ class SendKvTransferScheduler:
                 if head_req_tag == self.channel_transfer_tag[channel]:
                     request: PriorityRequest = heapq.heappop(priority_request)
                     request_id = request[1]
-                    
-                    scheduled_transfer_tasks.append(trans_ops.TransferTask(trans_ops.TransferTaskMeta(channel, request_id)).serialize())
+                    scheduled_transfer_tasks.append(trans_ops.TransferTask(trans_ops.TransferTaskMeta(channel, request_id), self.video_addrs[request_id], trans_ops.TaskType.TRANSFER_SEND).serialize())
                     self.channel_transfer_tag[channel] += 1
                 else:
                     break
@@ -167,7 +166,7 @@ class RecvKvTransScheduler:
         for channel, request_ids in self.channel_request_ids.items():
             while request_ids:
                 request_id = request_ids.pop(0)
-                scheduled_transfer_tasks.append(trans_ops.TransferTask(trans_ops.TransferTaskMeta(channel, request_id)).serialize())
+                scheduled_transfer_tasks.append(trans_ops.TransferTask(trans_ops.TransferTaskMeta(channel, request_id), self.video_addrs[request_id], trans_ops.TaskType.TRANSFER_RECV).serialize())
                 
         return scheduled_transfer_tasks 
 
