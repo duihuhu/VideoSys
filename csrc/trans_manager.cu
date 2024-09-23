@@ -78,7 +78,7 @@ void TransManager::add_tasks(const std::vector<std::string>& tasks) {
     }
 }
 
- std::vector<std::pair<std::vector<std::string>, std::vector<std::string>>>TransManager::get_finished_transfer_tasks() {
+ std::vector<std::pair<std::vector<std::string>, std::vector<std::string>>> TransManager::get_finished_transfer_tasks() {
      std::vector<std::pair<std::vector<std::string>, std::vector<std::string>>> finished_work_tasks;
     for (const auto& pair : send_trans_workers) {
         // const std::string& key = pair.first;
