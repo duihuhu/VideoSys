@@ -882,12 +882,12 @@ class OpenSoraPipeline(VideoSysPipeline):
     
     def allocate_kv(self, request_id, prompt, shape):
         free_mem = torch.cuda.mem_get_info()[0] 
-        required_mem = torch.tensor(shape, dtype=torch.bfloat16).numel() * 4
+        required_mem = torch.tensor(shape, dtype=torch.bfloat16).numel() * 2
         if free_mem >= required_mem:
             allocated_video = torch.empty(shape, dtype=torch.bfloat16)
             self.vae_record_data[request_id] = allocated_video
-            return True, allocated_video.data_ptr()
-        return False, None
+            return True, allocated_video.data_ptr(), required_mem
+        return False, None, None
     
     def del_dit_req(self, request_id):
         if request_id in self.dit_video_data:
@@ -895,7 +895,9 @@ class OpenSoraPipeline(VideoSysPipeline):
 
     def fetch_video_addr(self, request_id):
         if request_id in self.dit_video_data:
-            return self.dit_video_data[request_id].data_ptr()
+            return self.dit_video_data[request_id].data_ptr(), \
+                self.dit_video_data[request_id].numel() * self.dit_video_data[request_id].element_size()
+        
     def trans_blocks(self,         
                      send_tasks: List[trans_ops.TransferTask],
                      recv_tasks: List[trans_ops.TransferTask]):

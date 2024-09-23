@@ -70,6 +70,8 @@ class SendKvTransferScheduler:
         
         self.finished_worker_count: Dict[str, int]  = {}
         self.video_addrs: Dict[str, int] = {}
+        self.video_sizes: Dict[str, int] = {}
+        
         self.num_workers = num_workers
         
         self.role = role
@@ -81,10 +83,12 @@ class SendKvTransferScheduler:
         request_id: str,
         global_ranks: List[int],
         video_addr: int,
+        video_size: int,
         transfer_tag: int
     ) -> None:
         channel = "_".join([str(rank) for rank in global_ranks])
         self.video_addrs[request_id] = video_addr
+        self.video_sizes[request_id] = video_size
         self.finished_worker_count[request_id] = self.num_workers
         if channel not in self.channel_request_ids:
             self.channel_request_ids[channel] = []
@@ -100,7 +104,7 @@ class SendKvTransferScheduler:
                 if head_req_tag == self.channel_transfer_tag[channel]:
                     request: PriorityRequest = heapq.heappop(priority_request)
                     request_id = request[1]
-                    scheduled_transfer_tasks.append(trans_ops.TransferTask(trans_ops.TransferTaskMeta(channel, request_id), self.video_addrs[request_id], trans_ops.TaskType.TRANSFER_SEND).serialize())
+                    scheduled_transfer_tasks.append(trans_ops.TransferTask(trans_ops.TransferTaskMeta(channel, request_id), self.video_addrs[request_id], self.video_sizes[request_id], trans_ops.TaskType.TRANSFER_SEND).serialize())
                     self.channel_transfer_tag[channel] += 1
                 else:
                     break
@@ -119,6 +123,7 @@ class SendKvTransferScheduler:
             self.finished_worker_count[task_meta.request_id] -=1
             if self.finished_worker_count[task_meta.request_id] == 0:
                 del self.video_addrs[task_meta.request_id]
+                del self.video_sizes[task_meta.request_id]
                 del self.finished_worker_count[task_meta.request_id]
                 real_finished_req_ids.append(task_meta.request_id)
                 
@@ -136,6 +141,8 @@ class RecvKvTransScheduler:
         
         self.finished_worker_count: Dict[str, int]  = {}
         self.video_addrs: Dict[str, int] = {}
+        self.video_sizes: Dict[str, int] = {}
+        
         self.num_workers = num_workers
         
         # self.opposite_ranks = list(range(0, num_workers * 2))
@@ -149,9 +156,11 @@ class RecvKvTransScheduler:
         request_id: str,
         global_ranks: List[int],
         video_addr: int,
+        video_size: int,
     ) -> None:
         channel = "_".join([str(rank) for rank in global_ranks])
         self.video_addrs[request_id] = video_addr
+        self.video_sizes[request_id] = video_size
         self.finished_worker_count[request_id] = self.num_workers
         if channel not in self.channel_request_ids:
             self.channel_request_ids[channel] = []
@@ -166,7 +175,7 @@ class RecvKvTransScheduler:
         for channel, request_ids in self.channel_request_ids.items():
             while request_ids:
                 request_id = request_ids.pop(0)
-                scheduled_transfer_tasks.append(trans_ops.TransferTask(trans_ops.TransferTaskMeta(channel, request_id), self.video_addrs[request_id], trans_ops.TaskType.TRANSFER_RECV).serialize())
+                scheduled_transfer_tasks.append(trans_ops.TransferTask(trans_ops.TransferTaskMeta(channel, request_id), self.video_addrs[request_id], self.video_sizes[request_id], trans_ops.TaskType.TRANSFER_RECV).serialize())
                 
         return scheduled_transfer_tasks 
 
@@ -182,6 +191,7 @@ class RecvKvTransScheduler:
             self.finished_worker_count[task_meta.request_id] -=1
             if self.finished_worker_count[task_meta.request_id] == 0:
                 del self.video_addrs[task_meta.request_id]
+                del self.video_sizes[task_meta.request_id]
                 del self.finished_worker_count[task_meta.request_id]
                 real_finished_req_ids.append(task_meta.request_id)
                 

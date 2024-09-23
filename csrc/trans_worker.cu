@@ -37,12 +37,12 @@ void TransWorker::worker() {
             switch (task_type) {
                 case TaskType::TRANSFER_SEND:
                     std::cout<<"worker " << "TRANSFER_SEND " << std::endl;
-                    // trans_engine.send_blocks(task_meta.channel, task_meta.request_id, task.blocks, dst_rank, comms[use_comm], streams[use_comm]);
+                    trans_engine.send(task_meta.channel, task_meta.request_id, task.video_addr, task.video_size, 1, comms[use_comm], streams[use_comm]);
                     // use_comm = (use_comm + 1) % comms.size();
                     break;
                 case TaskType::TRANSFER_RECV:
                     std::cout<<"worker " << "TRANSFER_RECV " << std::endl;
-                    // trans_engine.recv_blocks(task_meta.channel, task_meta.request_id, task.blocks, dst_rank, comms[use_comm], streams[use_comm]);
+                    trans_engine.recv(task_meta.channel, task_meta.request_id, task.video_addr, task.video_size, 0, comms[use_comm], streams[use_comm]);
                     // use_comm = (use_comm + 1) % comms.size();
                     break;
                 default:

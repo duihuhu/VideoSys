@@ -206,9 +206,9 @@ class VideoSysEngine:
             self.del_dit_req(request_id)
             return
         
-        video_addr = self.fetch_video_addr(request_id)
+        video_addr, video_size = self.fetch_video_addr(request_id)
                 
-        self.send_kv_trans_scheduler.add_kv_request(request_id, response.global_ranks, video_addr, response.transfer_tag)
+        self.send_kv_trans_scheduler.add_kv_request(request_id, response.global_ranks, video_addr, video_size,response.transfer_tag)
 
                 
     def schedule_vae_waiting(self):
@@ -217,10 +217,10 @@ class VideoSysEngine:
             seq_group = self.scheduler.vae_waiting[0][0]
             global_ranks = self.scheduler.vae_waiting[0][1]
             
-            can_allocate, video_addr = self.allocate_kv(request_id=seq_group.request_id, prompt=seq_group.prompt, shape=seq_group.shape)
+            can_allocate, video_addr, video_size = self.allocate_kv(request_id=seq_group.request_id, prompt=seq_group.prompt, shape=seq_group.shape)
             if can_allocate:
                 self.scheduler.add_recv_transfering(seq_group)
-                transfer_tag = self.recv_kv_trans_scheduler.add_kv_request(seq_group.request_id, global_ranks, video_addr)
+                transfer_tag = self.recv_kv_trans_scheduler.add_kv_request(seq_group.request_id, global_ranks, video_addr, video_size)
                 kv_responses.append(KvPreparedResponse(seq_group.request_id, 0, None, video_addr, transfer_tag))
                 
             self.scheduler.vae_waiting.popleft()

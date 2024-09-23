@@ -62,10 +62,11 @@ public:
 
 class TransferTask {
 public:
-    TransferTask(const TransferTaskMeta& meta, long long video_addr, TaskType type)
-        : meta(meta), video_addr(video_addr), type(type){}
+    TransferTask(const TransferTaskMeta& meta, long long video_addr, int video_size, TaskType type)
+        : meta(meta), video_addr(video_addr), video_size(video_size), type(type){}
     TransferTaskMeta meta;
     long long video_addr;
+    int video_size;
     TaskType type;
 
     // Serialize the TransferTask to a string (JSON format)
@@ -73,6 +74,7 @@ public:
         json task;
         task["meta"] = meta.to_json();
         task["video_addr"] = video_addr;
+        task["video_size"] = video_size;
         task["type"] = static_cast<int>(type);
         return task.dump();
     }
@@ -82,8 +84,9 @@ public:
         json task = json::parse(serialized_data);
         TransferTaskMeta meta = TransferTaskMeta::from_json(task.at("meta"));
         long long video_addr = task.at("video_addr").get<long long>();
+        long long video_size = task.at("video_size").get<long long>();
         TaskType type = static_cast<TaskType>(task.at("type").get<int>());
-        return TransferTask(meta, video_addr, type);
+        return TransferTask(meta, video_addr, video_size, type);
     }
 };
 
