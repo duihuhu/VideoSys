@@ -24,9 +24,15 @@ class Scheduler:
     def add_send_transfering(self, seq_group: SequenceGroup) -> None:
         self.send_transfering[seq_group.request_id] = seq_group
     
+    def del_send_transfering(self, request_id: str) -> None:
+        # Delete sequence groups to the send  transfering map 
+        if request_id in self.send_transfering:
+            del self.send_transfering[request_id]
+    
     def add_recv_transfering(self, seq_group: SequenceGroup) -> None:
         #Add sequence groups to the recv transfering map
         self.recv_transfering[seq_group.request_id] = seq_group
+ 
  
     def schedule(self) -> SequenceGroup:
         if self.waiting:

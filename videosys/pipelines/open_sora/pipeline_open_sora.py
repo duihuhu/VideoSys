@@ -889,6 +889,10 @@ class OpenSoraPipeline(VideoSysPipeline):
             return True, allocated_video.data_ptr()
         return False, None
     
+    def del_dit_req(self, request_id):
+        if request_id in self.dit_record_data:
+            del self.dit_record_data[request_id]
+
     def save_video(self, video, output_path):
         save_video(video, output_path, fps=24)
 

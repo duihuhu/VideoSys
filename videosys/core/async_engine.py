@@ -72,6 +72,7 @@ class RequestTracker:
         self._new_requests: asyncio.Queue[Tuple[AsyncStream,
                                                 dict]] = asyncio.Queue()
         self.new_requests_event = asyncio.Event()
+        self._kv_responses: asyncio.Queue[Tuple[AsyncStream, dict]] = asyncio.Queue()
         
     def __contains__(self, item):
         return item in self._request_streams
@@ -140,6 +141,13 @@ class RequestTracker:
         self.new_requests_event.set()
         return stream
 
+    def add_kv_response(self,
+                        **engine_kv_response_kwargs) -> None:
+        self._kv_responses.put_nowait({
+            **engine_kv_response_kwargs
+        })
+        self.new_requests_event.set()
+        
     def abort_request(self, request_id: str, *, verbose: bool = False) -> None:
         """Abort a request during next background loop iteration."""
         if verbose:
@@ -154,6 +162,13 @@ class RequestTracker:
 
         self._request_streams[request_id].finish()
         
+    def get_kv_responses(self) -> List[dict]:
+        kv_responses: List = []
+        while not self._kv_responses.empty():
+            response = self._kv_responses.get_nowait()
+            kv_responses.append(response)
+        return kv_responses    
+    
     def get_new_and_finished_requests(self) -> Tuple[List[Dict], Set[str]]:
         """Get the new requests and finished requests to be
         sent to the engine."""
@@ -183,6 +198,7 @@ class RequestTracker:
 
     def has_new_requests(self):
         return not self._new_requests.empty()
+
 
 class AsyncEngine:
     def __init__(self, 
@@ -274,11 +290,11 @@ class AsyncEngine:
             print("new_request ", new_request)
             self.video_engine.add_request(**new_request)
             
-        request_outputs = await self.step_async()
-
-        if request_outputs:
-            self._request_tracker.process_request_output(self.video_engine.get_global_ranks(), request_outputs)
-
+        kv_responses = self._request_tracker.get_kv_responses()
+        for kv_response in kv_responses:
+            # Add the response
+            self.video_engine.add_kv_response(**kv_response)
+                
         #kv_responses out, receiver process allocate kv cache req from sender, and return allocat kv num
         kv_responses = self.video_engine.schedule_vae_waiting()
         for kv_response in kv_responses:
@@ -286,6 +302,11 @@ class AsyncEngine:
                 self.video_engine.get_global_ranks(), kv_response)
              
         await self.trans_kv_step_aysnc()
+
+        request_outputs = await self.step_async()
+
+        if request_outputs:
+            self._request_tracker.process_request_output(self.video_engine.get_global_ranks(), request_outputs)
 
 
         return request_outputs!=None
@@ -394,4 +415,10 @@ class AsyncEngine:
             res = self.video_engine.create_comm(nccl_id=nccl_id, dst_channel=dst_channel, worker_type="vae")
         else:
             res = self.video_engine.create_comm(nccl_id=nccl_id, dst_channel=dst_channel, worker_type="dit")
+    
+    async def add_kv_response(
+        self,
+        response: KvPreparedResponse,
+    ) -> None:
+        self._request_tracker.add_kv_response(response=response)
     

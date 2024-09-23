@@ -145,6 +145,9 @@ class VideoSysEngine:
     def allocate_kv(self, *args, **kwargs):
         return self.driver_worker.allocate_kv(*args, **kwargs)
     
+    def del_dit_req(self, *args, **kwargs):
+        return self._run_workers("del_dit_req", *args, **kwargs)[0]
+    
     def stop_remote_worker_execution_loop(self) -> None:
         if self.parallel_worker_tasks is None:
             return
@@ -188,6 +191,20 @@ class VideoSysEngine:
             seq_group = SequenceGroup(request_id=request_id, prompt=prompt, shape=shape)
             self.scheduler.add_vae_seq_group((seq_group, global_ranks))
 
+    def add_kv_response(self,
+        response: KvPreparedResponse
+    ) -> None:
+        request_id = response.request_id
+        if response.error != 0:
+            self.scheduler.del_send_transfering(request_id)
+            self.del_dit_req(request_id)
+            return
+        
+        blocks = self.scheduler.fetch_kv_blocks(self.scheduler.get_send_transfering(request_id))
+                
+        self.send_kv_trans_scheduler.add_kv_request(request_id, response.global_ranks, blocks[response.computed_blocks:], response.transfer_tag)
+
+                
     def schedule_vae_waiting(self):
         kv_responses = [] 
         while self.scheduler.vae_waiting:

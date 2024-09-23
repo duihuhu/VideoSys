@@ -12,6 +12,7 @@ import torch
 from comm import CommData, CommEngine, CommonHeader, ReqMeta
 from videosys.utils.config import DeployConfig
 import videosys.entrypoints.server_config as cfg
+from videosys.core.outputs import KvPreparedResponse
 
 AIOHTTP_TIMEOUT = aiohttp.ClientTimeout(total=6 * 60 * 60)
 TIMEOUT_KEEP_ALIVE = 5  # seconds.
@@ -119,6 +120,11 @@ async def generate_dit(request: Request) -> Response:
             async for resp in dit_kv_resp:
                 resp = resp.decode('utf-8')
                 payload = json.loads(resp)
+                global_ranks = payload.pop("global_ranks")
+                kv_response = KvPreparedResponse(**payload)
+                # print("response_kv_result ", kv_response.computed_blocks)
+                kv_response.global_ranks = global_ranks
+                await engine.add_kv_response(kv_response)
             yield (json.dumps(ret) + "\0").encode("utf-8")
     return StreamingResponse(stream_results())
 
