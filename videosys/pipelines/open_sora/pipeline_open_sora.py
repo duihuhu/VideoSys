@@ -252,7 +252,7 @@ class OpenSoraPipeline(VideoSysPipeline):
         )
         
         if config.enable_separate:
-            self.dit_record_data = {}
+            self.dit_video_data = {}
             print("trans manager ", config.rank, config.worker_type)
             self.trans_manager = trans_ops.TransManager(config.rank, config.local_rank, config.worker_type)
             self.vae_record_data = {}
@@ -865,7 +865,7 @@ class OpenSoraPipeline(VideoSysPipeline):
                 progress=verbose,
                 mask=masks,
             )
-            self.dit_record_data[request_id] = samples
+            self.dit_video_data[request_id] = samples
         return request_id, samples.shape
 
 
@@ -877,7 +877,7 @@ class OpenSoraPipeline(VideoSysPipeline):
         self.trans_manager.create_comm(nccl_id, dst_channel, worker_type)
 
     def transfer_dit(self, request_id):
-        samples = self.dit_record_data[request_id]
+        samples = self.dit_video_data[request_id]
         print("transfer_dit ", type(samples), samples.shape, samples.device)
     
     def allocate_kv(self, request_id, prompt, shape):
@@ -890,9 +890,13 @@ class OpenSoraPipeline(VideoSysPipeline):
         return False, None
     
     def del_dit_req(self, request_id):
-        if request_id in self.dit_record_data:
-            del self.dit_record_data[request_id]
+        if request_id in self.dit_video_data:
+            del self.dit_video_data[request_id]
 
+    def fetch_video_addr(self, request_id):
+        if request_id in self.dit_video_data:
+            return self.dit_video_data[request_id].data_ptr()
+        
     def save_video(self, video, output_path):
         save_video(video, output_path, fps=24)
 

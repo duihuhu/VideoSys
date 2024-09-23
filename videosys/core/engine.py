@@ -148,6 +148,9 @@ class VideoSysEngine:
     def del_dit_req(self, *args, **kwargs):
         return self._run_workers("del_dit_req", *args, **kwargs)[0]
     
+    def fetch_video_addr(self, *args, **kwargs):
+        return self.driver_worker.fetch_video_addr(*args, **kwargs)
+
     def stop_remote_worker_execution_loop(self) -> None:
         if self.parallel_worker_tasks is None:
             return
@@ -200,9 +203,9 @@ class VideoSysEngine:
             self.del_dit_req(request_id)
             return
         
-        blocks = self.scheduler.fetch_kv_blocks(self.scheduler.get_send_transfering(request_id))
+        video_addr = self.fetch_video_addr(request_id)
                 
-        self.send_kv_trans_scheduler.add_kv_request(request_id, response.global_ranks, blocks[response.computed_blocks:], response.transfer_tag)
+        self.send_kv_trans_scheduler.add_kv_request(request_id, response.global_ranks, video_addr, response.transfer_tag)
 
                 
     def schedule_vae_waiting(self):
