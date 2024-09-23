@@ -20,6 +20,15 @@
 
 using json = nlohmann::json;
 
+#define NCCLCHECK(cmd) do {                         \
+  ncclResult_t r = cmd;                             \
+  if (r!= ncclSuccess) {                            \
+    printf("Failed, NCCL error %s:%d '%s'\n",             \
+        __FILE__,__LINE__,ncclGetErrorString(r));   \
+    exit(EXIT_FAILURE);                             \
+  }                                                 \
+} while(0)
+
 // 定义TaskType枚举类型，用于区分不同的任务类型
 enum class TaskType {
     TRANSFER_SEND,
