@@ -276,8 +276,8 @@ class AsyncEngine:
             return 
 
         finished_work_tasks = self.video_engine.get_finished_transfer_tasks()
-        print("finished_work_tasks ", finished_work_tasks)
-        # for finished_tasks in finished_work_tasks:
+        for finished_tasks in finished_work_tasks:
+            print("finished_work_tasks ", finished_work_tasks)
         #     for worker_finished_tasks in finished_tasks:
         #         if worker_finished_tasks:
         #             for worker_finished_task in worker_finished_tasks:
