@@ -648,7 +648,8 @@ class OpenSoraPipeline(VideoSysPipeline):
 
         if not return_dict:
             return (video,)
-
+        
+        print("video info ", type(video), video.shape)
         return VideoSysPipelineOutput(video=video)
 
     @torch.no_grad()
@@ -900,7 +901,7 @@ class OpenSoraPipeline(VideoSysPipeline):
 
         if not return_dict:
             return (video,)
-        print("video info ", type(video))
+        print("video info ", type(video), video.shape)
         return VideoSysPipelineOutput(video=video)
     
     def get_nccl_id(self, dst_channel, worker_type):
