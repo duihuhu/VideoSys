@@ -277,7 +277,7 @@ class AsyncEngine:
         recv_tasks = self.video_engine.recv_kv_trans_scheduler.schedule()
         
         if send_tasks or recv_tasks:
-            await self.video_engine.trans_blocks(
+            self.video_engine.trans_blocks(
                 send_tasks = send_tasks,
                 recv_tasks = recv_tasks,
             )
