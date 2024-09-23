@@ -886,7 +886,7 @@ class OpenSoraPipeline(VideoSysPipeline):
         if free_mem >= required_mem:
             allocated_video = torch.empty(shape, device=self._device, dtype=self._dtype)
             self.vae_record_data[request_id] = allocated_video
-            print("allocated_video addr ",allocated_video.data_ptr())
+            print("allocated_video addr ",allocated_video.data_ptr(), allocated_video.device())
             return True, allocated_video.data_ptr(), allocated_video.numel() * allocated_video.element_size()
         return False, None, None
     
@@ -896,6 +896,7 @@ class OpenSoraPipeline(VideoSysPipeline):
 
     def fetch_video_addr(self, request_id):
         if request_id in self.dit_video_data:
+            print("fetch_video_addr ", self.dit_video_data[request_id].device())
             return self.dit_video_data[request_id].data_ptr(), \
                 self.dit_video_data[request_id].numel() * self.dit_video_data[request_id].element_size()
         
