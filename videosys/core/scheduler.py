@@ -60,5 +60,5 @@ class Scheduler:
             seq_group = self.recv_transfering[request_id]
             del self.recv_transfering[request_id]
             self.recv_finished_req_ids.remove(request_id)
-            self.vae_waiting.append(seq_group)
+            self.waiting.append(seq_group)
         return send_finished
