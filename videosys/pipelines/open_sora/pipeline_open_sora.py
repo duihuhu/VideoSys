@@ -251,7 +251,7 @@ class OpenSoraPipeline(VideoSysPipeline):
             text_encoder=text_encoder, vae=vae, transformer=transformer, scheduler=scheduler, tokenizer=tokenizer
         )
         
-        if config.enable_separate:
+        if config.enable_separate and config.rank==0:
             self.dit_video_data = {}
             print("trans manager ", config.rank, config.worker_type)
             self.trans_manager = trans_ops.TransManager(config.rank, config.local_rank, config.worker_type)
