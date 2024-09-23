@@ -267,10 +267,10 @@ class AsyncEngine:
                     print("step async ", t3-t2, t2-t1)
                 else:
                     print("vae request_id ", seq_group.request_id)
-                    t2 = time.time()
+                    t1 = time.time()
                     video = self.video_engine.generate_vae(request_id=seq_group.request_id)
-                    t3 = time.time()
-                    print("step async ", t3-t2, t2-t1)
+                    t2 = time.time()
+                    print("step async ", t2-t1)
                     self.video_engine.save_video(video, f"./outputs/{seq_group.prompt}.mp4")
             return RequestOutput(seq_group.request_id, seq_group.prompt, shape, True)
         return None
