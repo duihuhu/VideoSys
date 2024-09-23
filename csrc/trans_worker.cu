@@ -30,7 +30,7 @@ void TransWorker::worker() {
     init_device();
     while (true) {
         if(!task_queue.empty()) {
-            // std::cout<<"task_queue is not empty ";
+            std::cout<<"task_queue is not empty ";
             auto task = task_queue.pop_front();
             TaskType task_type = task.type;
             auto task_meta = task.meta;

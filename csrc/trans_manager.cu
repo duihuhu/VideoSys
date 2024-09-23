@@ -18,12 +18,12 @@ void TransManager::dist_worker() {
             TransWorker* task_worker = nullptr;
             switch (task_type) {
                 case TaskType::TRANSFER_SEND:
-                    std::cout<<"dist_worker " << "TRANSFER_SEND "<<std::endl;
+                    std::cout<<"dist_worker " << "TRANSFER_SEND "<< worker_task.meta.channel << std::endl;
                     task_worker = send_trans_workers[worker_task.meta.channel];
                     task_worker->add_tasks(worker_task);
                     break;
                 case TaskType::TRANSFER_RECV:
-                    std::cout<<"dist_worker " << "TRANSFER_RECV "<<std::endl;
+                    std::cout<<"dist_worker " << "TRANSFER_RECV "<< worker_task.meta.channel << std::endl;
                     task_worker = recv_trans_workers[worker_task.meta.channel];
                     task_worker->add_tasks(worker_task);
                     break;
