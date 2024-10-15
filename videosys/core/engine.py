@@ -97,6 +97,10 @@ class VideoSysEngine:
         pipeline = pipeline_cls(self.config)
         return pipeline
 
+    def _create_connection_initailize(self, rank=0, distributed_init_method=None):
+        videosys.initialize(rank=rank, world_size=self.config.num_gpus, init_method=distributed_init_method, seed=42)
+        
+        
     def _run_workers(
         self,
         method: str,
