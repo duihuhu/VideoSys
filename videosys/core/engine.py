@@ -94,7 +94,8 @@ class VideoSysEngine:
         self.config.rank = rank
         self.config.local_rank =  self.get_physical_device_id(rank)
         print("worker ", os.getpid(), self.config.rank , self.config.local_rank)
-        pipeline = pipeline_cls(config=self.config, device=torch.device("cuda:{rank}"))
+        device_rank = "cuda:%s" % rank
+        pipeline = pipeline_cls(config=self.config, device=torch.device(device_rank))
         return pipeline
 
     def _build_conn(self, rank, world_size, group_name, distributed_init_method="tcp://127.0.0.1:41377"):
