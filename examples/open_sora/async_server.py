@@ -132,6 +132,17 @@ async def generate_dit(request: Request) -> Response:
             yield (json.dumps(ret) + "\0").encode("utf-8")
     return StreamingResponse(stream_results())
 
+@app.post("/create")
+async def create(request: Request) -> Response:
+    request_dict = await request.json()
+    rank = request_dict.pop("rank")
+    world_size = request_dict.pop("world_size")
+    group_name = request_dict.pop("group_name")
+    num_gpus = request_dict.pop("num_gpus")
+    await engine.build_conn(rank=rank, world_size=world_size, group_name=group_name, num_gpus=num_gpus)
+    
+    ret = {'ret': 'success'}
+    return JSONResponse(ret)
 
 
 # @app.post("/generate")

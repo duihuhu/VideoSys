@@ -89,7 +89,7 @@ class VideoSysEngine:
 
     # TODO: add more options here for pipeline, or wrap all options into config
     def _create_pipeline(self, pipeline_cls, rank=0, local_rank=0, distributed_init_method=None):
-        videosys.initialize(rank=rank, world_size=self.config.num_gpus, init_method=distributed_init_method, seed=42)
+        # videosys.initialize(rank=rank, world_size=self.config.num_gpus, init_method=distributed_init_method, seed=42)
         
         self.config.rank = rank
         self.config.local_rank =  self.get_physical_device_id(rank)
@@ -97,7 +97,8 @@ class VideoSysEngine:
         pipeline = pipeline_cls(self.config)
         return pipeline
 
-    def _create_connection_initailize(self, rank=0, distributed_init_method=None):
+    def _build_conn(self, rank, world_size, group_name, distributed_init_method="tcp://127.0.0.1:41377"):
+        self.config.num_gpus = world_size
         videosys.initialize(rank=rank, world_size=self.config.num_gpus, init_method=distributed_init_method, seed=42)
         
         

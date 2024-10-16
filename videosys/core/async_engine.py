@@ -453,3 +453,5 @@ class AsyncEngine:
     ) -> None:
         self._request_tracker.add_kv_response(response=response)
     
+    async def build_conn(self, rank, world_size, group_name) -> None:
+        self.video_engine._build_conn(rank, world_size, group_name)
