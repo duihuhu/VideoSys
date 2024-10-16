@@ -194,11 +194,11 @@ if __name__ == "__main__":
     parser.add_argument("--num-gpus", type=int, default=1)
     parser.add_argument('--enable-separate', action="store_true", help=('separate or not '))
     parser.add_argument('--worker-type', type=str, choices=['dit', 'vae'], default=None, help=('instance '))
-    parser.add_argument('--device-id', type=int, default=0)
+    parser.add_argument('--rank', type=int, default=0)
     args = parser.parse_args()
     
     deploy_config = DeployConfig()
-    config = OpenSoraConfig(num_sampling_steps=30, cfg_scale=7.0, num_gpus=args.num_gpus, worker_type=args.worker_type, enable_separate=args.enable_separate)
+    config = OpenSoraConfig(num_sampling_steps=30, cfg_scale=7.0, num_gpus=args.num_gpus, worker_type=args.worker_type, enable_separate=args.enable_separate, rank=args.rank)
     # engine = VideoSysEngine(config)
     engine = AsyncEngine(config, deploy_config)
     uvicorn.run(app,

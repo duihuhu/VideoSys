@@ -143,7 +143,8 @@ class OpenSoraConfig:
         pab_config: PABConfig = OpenSoraPABConfig(),
         # ==role===
         worker_type: str="dit",
-        enable_separate: bool = False
+        enable_separate: bool = False,
+        rank=0
     ):
         self.pipeline_cls = OpenSoraPipeline
         self.transformer = transformer
@@ -164,7 +165,7 @@ class OpenSoraConfig:
 
         self.worker_type = worker_type
         self.enable_separate = enable_separate
-        self.rank = None
+        self.rank = rank
         self.local_rank = None
     
     def get_global_ranks(self):
