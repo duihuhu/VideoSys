@@ -84,6 +84,7 @@ class VideoSysEngine:
             # 如果 CUDA_VISIBLE_DEVICES 未设置，逻辑设备即为物理设备
             return rank
         # CUDA_VISIBLE_DEVICES 是一个以逗号分隔的字符串
+        print("cuda_visible_devices ", cuda_visible_devices)
         devices = cuda_visible_devices.split(',')
         return int(devices[rank])
 
