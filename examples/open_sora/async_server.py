@@ -138,8 +138,7 @@ async def create(request: Request) -> Response:
     rank = request_dict.pop("rank")
     world_size = request_dict.pop("world_size")
     group_name = request_dict.pop("group_name")
-    num_gpus = request_dict.pop("num_gpus")
-    await engine.build_conn(rank=rank, world_size=world_size, group_name=group_name, num_gpus=num_gpus)
+    await engine.build_conn(rank=rank, world_size=world_size, group_name=group_name)
     
     ret = {'ret': 'success'}
     return JSONResponse(ret)
