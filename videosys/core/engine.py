@@ -35,7 +35,7 @@ class VideoSysEngine:
         world_size = self.config.num_gpus
 
         if "CUDA_VISIBLE_DEVICES" not in os.environ:
-            os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(str(i) for i in range(world_size))
+            os.environ["CUDA_VISIBLE_DEVICES"] = ",".join(str(i) for i in range(self.config.dworld_size))
 
         # Disable torch async compiling which won't work with daemonic processes
         os.environ["TORCHINDUCTOR_COMPILE_THREADS"] = "1"

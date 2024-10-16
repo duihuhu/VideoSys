@@ -144,7 +144,8 @@ class OpenSoraConfig:
         # ==role===
         worker_type: str="dit",
         enable_separate: bool = False,
-        rank=0
+        rank=0,
+        dworld_size=1
     ):
         self.pipeline_cls = OpenSoraPipeline
         self.transformer = transformer
@@ -167,6 +168,7 @@ class OpenSoraConfig:
         self.enable_separate = enable_separate
         self.rank = rank
         self.local_rank = None
+        self.dworld_size = dworld_size
     
     def get_global_ranks(self):
         return [self.local_rank]
