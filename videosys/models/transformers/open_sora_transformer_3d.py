@@ -204,13 +204,18 @@ class STDiT3Block(nn.Module):
 
             # attention
             if self.temporal:
+                import time
+                t1 = time.time()
                 if enable_sequence_parallel():
                     x_m, S, T = self.dynamic_switch(x_m, S, T, to_spatial_shard=True)
                 x_m = rearrange(x_m, "B (T S) C -> (B S) T C", T=T, S=S)
+                t2 = time.time()
                 x_m = self.attn(x_m)
                 x_m = rearrange(x_m, "(B S) T C -> B (T S) C", T=T, S=S)
                 if enable_sequence_parallel():
                     x_m, S, T = self.dynamic_switch(x_m, S, T, to_spatial_shard=False)
+                    t3 = time.time()
+                    print("STDiTBlock ", t3-t2, t2-t1)
             else:
                 x_m = rearrange(x_m, "B (T S) C -> (B T) S C", T=T, S=S)
                 x_m = self.attn(x_m)
