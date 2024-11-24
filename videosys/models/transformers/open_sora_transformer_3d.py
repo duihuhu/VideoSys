@@ -222,6 +222,7 @@ class STDiT3Block(nn.Module):
                     print("STDiTBlock ", t4-t3, t3-t2, t2-t1)
             else:
                 x_m = rearrange(x_m, "B (T S) C -> (B T) S C", T=T, S=S)
+                import time
                 t1 = time.time()
                 x_m = self.attn(x_m)
                 torch.cuda.synchronize()
