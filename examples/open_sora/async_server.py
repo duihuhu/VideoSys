@@ -1,3 +1,4 @@
+# python3 async_server.py --port 8001 --rank 1 --dworld-size 2
 import argparse
 import json
 from typing import AsyncGenerator

@@ -1,3 +1,4 @@
+#python3 sample.py 
 from videosys import OpenSoraConfig, VideoSysEngine
 
 

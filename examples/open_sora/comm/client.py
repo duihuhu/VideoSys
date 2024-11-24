@@ -1,3 +1,4 @@
+# python3 client.py --rank 0 --world-size 2 --group-name g1 --op create --dport 8000
 import argparse
 import json
 from typing import Iterable, List
