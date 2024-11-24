@@ -625,6 +625,7 @@ class OpenSoraPipeline(VideoSysPipeline):
             y_null = self.null_embed(len(batch_prompts_loop))
 
             masks = apply_mask_strategy(z, refs, ms, loop_i, align=align)
+            t1 = time.time()
             samples = self.scheduler.sample(
                 self.transformer,
                 z=z,
@@ -634,12 +635,13 @@ class OpenSoraPipeline(VideoSysPipeline):
                 progress=verbose,
                 mask=masks,
             )
+            torch.cuda.synchronize() 
             print("type samples ", type(samples), samples.shape, samples.element_size() * samples.nelement(), samples.device)
-            t1 = time.time()
+            t2 = time.time()
             samples = self.vae.decode(samples.to(self._dtype), num_frames=num_frames)
             torch.cuda.synchronize() 
-            t2 = time.time()
-            print("vae t2 - t1", t2-t1)
+            t3 = time.time()
+            print("transformer, vae ", t2-t1, t3-t2)
             video_clips.append(samples)
 
         for i in range(1, loop):
