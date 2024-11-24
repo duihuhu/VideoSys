@@ -92,12 +92,13 @@ class VideoSysEngine:
 
     # TODO: add more options here for pipeline, or wrap all options into config
     def _create_pipeline(self, pipeline_cls, rank=0, local_rank=0, distributed_init_method=None):
-        # videosys.initialize(rank=rank, world_size=self.config.num_gpus, init_method=distributed_init_method, seed=42)
+        # self.config.local_rank =  self.get_physical_device_id(self.config.rank)
+        # print("worker ", os.getpid(), self.config.rank , self.config.local_rank)
+        # device_rank = "cuda:%s" % self.config.rank
+        # pipeline = pipeline_cls(config=self.config, device=torch.device(device_rank))
         
-        self.config.local_rank =  self.get_physical_device_id(self.config.rank)
-        print("worker ", os.getpid(), self.config.rank , self.config.local_rank)
-        device_rank = "cuda:%s" % self.config.rank
-        pipeline = pipeline_cls(config=self.config, device=torch.device(device_rank))
+        videosys.initialize(rank=rank, world_size=self.config.num_gpus, init_method=distributed_init_method, seed=42)
+        pipeline = pipeline_cls(self.config)
         return pipeline
 
     def _build_conn(self, rank, world_size, group_name, distributed_init_method="tcp://127.0.0.1:41377"):
