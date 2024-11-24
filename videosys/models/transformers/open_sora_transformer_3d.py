@@ -205,6 +205,7 @@ class STDiT3Block(nn.Module):
             # attention
             if self.temporal:
                 if enable_sequence_parallel():
+                    print("opensora enable_sequence_parallel ")
                     x_m, S, T = self.dynamic_switch(x_m, S, T, to_spatial_shard=True)
                 x_m = rearrange(x_m, "B (T S) C -> (B S) T C", T=T, S=S)
                 x_m = self.attn(x_m)

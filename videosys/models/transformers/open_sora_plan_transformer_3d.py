@@ -1613,7 +1613,6 @@ class BasicTransformerBlock_(nn.Module):
                 norm_hidden_states = self.pos_embed(norm_hidden_states)
 
             if enable_sequence_parallel():
-                print("enable_sequence_parallel ")
                 norm_hidden_states = self.dynamic_switch(norm_hidden_states, to_spatial_shard=True)
 
             attn_output = self.attn1(
