@@ -85,7 +85,7 @@ def initialize(
     init_method=None,
     seed: Optional[int] = None,
     sp_size: Optional[int] = None,
-    enable_cp: bool = True,
+    enable_cp: bool = False,
 ):
     if not dist.is_initialized():
         try:
