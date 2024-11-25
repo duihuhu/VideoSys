@@ -76,9 +76,24 @@ class VideoSysEngine:
             result_handler.start()
             self.worker_monitor.start()
 
-        self.driver_worker = self._create_pipeline(
-            pipeline_cls=pipeline_cls, distributed_init_method=distributed_init_method
-        )
+        # self.driver_worker = self._create_pipeline(
+        #     pipeline_cls=pipeline_cls, distributed_init_method=distributed_init_method
+        # )
+        
+        driver_result_handler = ResultHandler()
+        self.driver_worker = ProcessWorkerWrapper(
+                    driver_result_handler,
+                    partial(
+                        self._create_pipeline,
+                        pipeline_cls=pipeline_cls,
+                        rank=0,
+                        local_rank=0,
+                        distributed_init_method=distributed_init_method,
+                    ),
+                )
+        self.dirver_worker_monitor = WorkerMonitor(self.workers, driver_result_handler)
+        driver_result_handler.start()
+        self.dirver_worker_monitor.start()
 
     def get_physical_device_id(self, rank):
         cuda_visible_devices = os.environ.get("CUDA_VISIBLE_DEVICES")
@@ -129,10 +144,29 @@ class VideoSysEngine:
         # Get the results of the workers.
         return [driver_worker_output] + [output.get() for output in worker_outputs]
 
+    async def _run_workers_aync(self,
+        method: str,
+        *args,
+        async_run_tensor_parallel_workers_only: bool = False,
+        max_concurrent_workers: Optional[int] = None,
+        **kwargs,):
+        print("run_worker_aync")
+        worker_outputs = [worker.execute_method_async(method, *args, **kwargs) for worker in self.workers]
+        
+        if async_run_tensor_parallel_workers_only:
+            # Just return futures
+            return worker_outputs
+        dirver_worker_outputs = self.driver_worker.execute_method_async(method, *args, **kwargs)
+        results = await asyncio.gather(*worker_outputs)
+        driver_results = await asyncio.gather(*dirver_worker_outputs)
+        return [driver_results] + [results]
 
     def _driver_execute_model(self, *args, **kwargs):
         return self.driver_worker.generate(*args, **kwargs)
 
+    async def async_generate(self, *args, **kwargs):
+        return self._run_workers_aync("generate", *args, **kwargs)[0]
+    
     def generate(self, *args, **kwargs):
         return self._run_workers("generate", *args, **kwargs)[0]
 

@@ -15,7 +15,7 @@ from multiprocessing.connection import wait
 from typing import Any, Callable, Dict, Generic, List, Optional, TextIO, TypeVar, Union
 
 from videosys.utils.logging import create_logger
-
+import videosys
 T = TypeVar("T")
 _TERMINATE = "TERMINATE"  # sentinel
 # ANSI color codes
@@ -268,3 +268,6 @@ class ProcessWorkerWrapper:
     def kill_worker(self):
         self._task_queue.close()
         self.process.kill()
+
+    def _create_comm(self, config, rank=0, local_rank=0, distributed_init_method=None):
+        videosys.initialize(rank=rank, world_size=config.num_gpus, init_method=distributed_init_method, seed=42)
