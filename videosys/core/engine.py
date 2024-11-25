@@ -69,31 +69,31 @@ class VideoSysEngine:
                         distributed_init_method=distributed_init_method,
                     ),
                 )
-                for rank in range(1, world_size)
+                for rank in range(0, world_size)
             ]
 
             self.worker_monitor = WorkerMonitor(self.workers, result_handler)
             result_handler.start()
             self.worker_monitor.start()
 
-        # self.driver_worker = self._create_pipeline(
-        #     pipeline_cls=pipeline_cls, distributed_init_method=distributed_init_method
-        # )
+        self.driver_worker = self._create_pipeline(
+            pipeline_cls=pipeline_cls, distributed_init_method=distributed_init_method
+        )
         
-        driver_result_handler = ResultHandler()
-        self.driver_worker = ProcessWorkerWrapper(
-                    driver_result_handler,
-                    partial(
-                        self._create_pipeline,
-                        pipeline_cls=pipeline_cls,
-                        rank=0,
-                        local_rank=0,
-                        distributed_init_method=distributed_init_method,
-                    ),
-                )
-        self.dirver_worker_monitor = WorkerMonitor(self.driver_worker, driver_result_handler)
-        driver_result_handler.start()
-        self.dirver_worker_monitor.start()
+        # driver_result_handler = ResultHandler()
+        # self.driver_worker = ProcessWorkerWrapper(
+        #             driver_result_handler,
+        #             partial(
+        #                 self._create_pipeline,
+        #                 pipeline_cls=pipeline_cls,
+        #                 rank=0,
+        #                 local_rank=0,
+        #                 distributed_init_method=distributed_init_method,
+        #             ),
+        #         )
+        # self.dirver_worker_monitor = WorkerMonitor(self.driver_worker, driver_result_handler)
+        # driver_result_handler.start()
+        # self.dirver_worker_monitor.start()
 
     def get_physical_device_id(self, rank):
         cuda_visible_devices = os.environ.get("CUDA_VISIBLE_DEVICES")
@@ -156,10 +156,11 @@ class VideoSysEngine:
         if async_run_tensor_parallel_workers_only:
             # Just return futures
             return worker_outputs
-        dirver_worker_outputs = [self.driver_worker.execute_method_async(method, *args, **kwargs)]
+        # dirver_worker_outputs = [self.driver_worker.execute_method_async(method, *args, **kwargs)]
         results = await asyncio.gather(*worker_outputs)
-        driver_results = await asyncio.gather(*dirver_worker_outputs)
-        return [driver_results] + [results]
+        # driver_results = await asyncio.gather(*dirver_worker_outputs)
+        # return [driver_results] + [results]
+        return [results]
 
     def _driver_execute_model(self, *args, **kwargs):
         return self.driver_worker.generate(*args, **kwargs)
