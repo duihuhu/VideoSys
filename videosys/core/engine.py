@@ -81,7 +81,7 @@ class VideoSysEngine:
         # )
         
         driver_result_handler = ResultHandler()
-        self.driver_worker = [ProcessWorkerWrapper(
+        self.driver_worker = ProcessWorkerWrapper(
                     driver_result_handler,
                     partial(
                         self._create_pipeline,
@@ -90,7 +90,7 @@ class VideoSysEngine:
                         local_rank=0,
                         distributed_init_method=distributed_init_method,
                     ),
-                )]
+                )
         self.dirver_worker_monitor = WorkerMonitor(self.driver_worker, driver_result_handler)
         driver_result_handler.start()
         self.dirver_worker_monitor.start()
