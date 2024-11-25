@@ -165,7 +165,7 @@ class VideoSysEngine:
         return self.driver_worker.generate(*args, **kwargs)
 
     async def async_generate(self, *args, **kwargs):
-        return await self._run_workers_aync("generate", *args, **kwargs)[0]
+        return await self._run_workers_aync("generate", *args, **kwargs)
     
     def generate(self, *args, **kwargs):
         return self._run_workers("generate", *args, **kwargs)[0]
