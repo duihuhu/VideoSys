@@ -156,7 +156,7 @@ class VideoSysEngine:
         if async_run_tensor_parallel_workers_only:
             # Just return futures
             return worker_outputs
-        dirver_worker_outputs = self.driver_worker.execute_method_async(method, *args, **kwargs)
+        dirver_worker_outputs = [self.driver_worker.execute_method_async(method, *args, **kwargs)]
         results = await asyncio.gather(*worker_outputs)
         driver_results = await asyncio.gather(*dirver_worker_outputs)
         return [driver_results] + [results]
@@ -165,7 +165,7 @@ class VideoSysEngine:
         return self.driver_worker.generate(*args, **kwargs)
 
     async def async_generate(self, *args, **kwargs):
-        return await self._run_workers_aync("generate", *args, **kwargs)
+        return await self._run_workers_aync("generate", *args, **kwargs)[0]
     
     def generate(self, *args, **kwargs):
         return self._run_workers("generate", *args, **kwargs)[0]
