@@ -154,6 +154,7 @@ async def async_generate(request: Request) -> Response:
     # resolution = request_dict.pop("resolution")
     # aspect_ratio = request_dict.pop("aspect_ratio")
     # num_frames = request_dict.pop("num_frames")
+    print("async_generate")
     request_id = "111"
     prompt = "Sunset over the sea."
     resolution = "480p"
