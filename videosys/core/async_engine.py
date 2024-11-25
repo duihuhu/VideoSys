@@ -457,7 +457,7 @@ class AsyncEngine:
         self.video_engine._build_conn(rank, world_size, group_name)
         
     async def worker_generate(self, request_id, prompt, resolution, aspect_ratio, num_frames) -> None:
-        self.video_engine.async_generate(prompt=prompt,
+        await self.video_engine.async_generate(prompt=prompt,
                     resolution=resolution,
                     aspect_ratio=aspect_ratio,
                     num_frames=num_frames,)
