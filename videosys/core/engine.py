@@ -55,7 +55,10 @@ class VideoSysEngine:
 
         if world_size == 1:
             self.workers = []
-            self.worker_monitor = None
+            self.worker_monitor = None        
+            self.driver_worker = self._create_pipeline(
+            pipeline_cls=pipeline_cls, distributed_init_method=distributed_init_method)
+        
         else:
             result_handler = ResultHandler()
             self.workers = [
@@ -76,9 +79,9 @@ class VideoSysEngine:
             result_handler.start()
             self.worker_monitor.start()
 
-        self.driver_worker = self._create_pipeline(
-            pipeline_cls=pipeline_cls, distributed_init_method=distributed_init_method
-        )
+        # self.driver_worker = self._create_pipeline(
+        #     pipeline_cls=pipeline_cls, distributed_init_method=distributed_init_method
+        # )
         
         # driver_result_handler = ResultHandler()
         # self.driver_worker = ProcessWorkerWrapper(
