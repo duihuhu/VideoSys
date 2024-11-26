@@ -51,13 +51,13 @@ class VideoSysEngine:
         assert world_size <= torch.cuda.device_count()
 
         # change addr for multi-node
-        distributed_init_method = get_distributed_init_method("127.0.0.1", get_open_port())
 
         if world_size == 1:
             self.workers = []
             self.worker_monitor = None      
               
             driver_result_handler = ResultHandler()
+            distributed_init_method = get_distributed_init_method("127.0.0.1", get_open_port())
             self.driver_worker = ProcessWorkerWrapper(
                         driver_result_handler,
                         partial(
@@ -82,7 +82,7 @@ class VideoSysEngine:
                         pipeline_cls=pipeline_cls,
                         rank=rank,
                         local_rank=rank,
-                        distributed_init_method=distributed_init_method,
+                        # distributed_init_method=distributed_init_method,
                     ),
                 )
                 for rank in range(0, world_size)
@@ -114,7 +114,7 @@ class VideoSysEngine:
         # print("worker ", os.getpid(), self.config.rank , self.config.local_rank)
         # device_rank = "cuda:%s" % self.config.rank
         # pipeline = pipeline_cls(config=self.config, device=torch.device(device_rank))
-        
+        distributed_init_method = get_distributed_init_method("127.0.0.1", get_open_port())
         videosys.initialize(rank=0, world_size=1, init_method=distributed_init_method, seed=42)
         pipeline = pipeline_cls(self.config)
         return pipeline
