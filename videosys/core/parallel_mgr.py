@@ -36,6 +36,9 @@ def set_parallel_manager(dp_size, cp_size, sp_size):
     global PARALLEL_MANAGER
     PARALLEL_MANAGER = ParallelManager(dp_size, cp_size, sp_size)
 
+def del_parallel_manager():
+    global PARALLEL_MANAGER
+    PARALLEL_MANAGER = None
 
 def get_data_parallel_group():
     return PARALLEL_MANAGER.dp_group
@@ -125,6 +128,7 @@ def initialize_postposition(
 def destroy():
     if dist.is_initialized():
         dist.destroy_process_group()
+        del_parallel_manager()
 
 def initialize(
     rank=0,
