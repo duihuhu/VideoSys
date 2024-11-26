@@ -122,6 +122,9 @@ def initialize_postposition(
     if seed is not None:
         set_seed(seed + get_data_parallel_rank())
 
+def destroy():
+    if dist.is_initialized():
+        dist.destroy_process_group()
 
 def initialize(
     rank=0,
@@ -163,3 +166,4 @@ def initialize(
 
     if seed is not None:
         set_seed(seed + get_data_parallel_rank())
+

@@ -1,5 +1,5 @@
 from .core.engine import VideoSysEngine
-from .core.parallel_mgr import initialize, initialize_device, initialize_postposition
+from .core.parallel_mgr import initialize, initialize_device, initialize_postposition, destroy
 from .pipelines.cogvideox import CogVideoXConfig, CogVideoXPABConfig, CogVideoXPipeline
 from .pipelines.latte import LatteConfig, LattePABConfig, LattePipeline
 from .pipelines.open_sora import OpenSoraConfig, OpenSoraPABConfig, OpenSoraPipeline
@@ -9,6 +9,7 @@ __all__ = [
     "initialize",
     "initialize_device",
     "initialize_postposition",
+    "destroy",
     "VideoSysEngine",
     "LattePipeline", "LatteConfig", "LattePABConfig",
     "OpenSoraPlanPipeline", "OpenSoraPlanConfig", "OpenSoraPlanPABConfig",

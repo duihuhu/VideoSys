@@ -269,6 +269,3 @@ class ProcessWorkerWrapper:
     def kill_worker(self):
         self._task_queue.close()
         self.process.kill()
-
-    def _create_comm(self, rank=0, num_gpus=1, distributed_init_method=None):
-        videosys.initialize_postposition(rank=rank, world_size=num_gpus, init_method=distributed_init_method, seed=42)

@@ -464,3 +464,8 @@ class AsyncEngine:
                     resolution=resolution,
                     aspect_ratio=aspect_ratio,
                     num_frames=num_frames,)
+    
+    async def destory_worker_comm(self, worker_ids):
+        await self.video_engine.destory_worker_comm(worker_ids)
+
+        
