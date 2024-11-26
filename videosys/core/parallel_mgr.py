@@ -34,6 +34,7 @@ class ParallelManager(ProcessGroupMesh):
 
 def set_parallel_manager(dp_size, cp_size, sp_size):
     global PARALLEL_MANAGER
+    print("ParallelManager ")
     PARALLEL_MANAGER = ParallelManager(dp_size, cp_size, sp_size)
 
 def del_parallel_manager():
