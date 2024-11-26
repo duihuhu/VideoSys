@@ -95,7 +95,7 @@ def initialize_postposition(
             dist.destroy_process_group()
         except Exception:
             pass
-        print("init_method ", init_method)
+        print("initialize_postposition method ", init_method)
         dist.init_process_group(backend="nccl", init_method=init_method, world_size=world_size, rank=rank)
         # torch.cuda.set_device(local_rank)
         init_dist_logger()
@@ -116,7 +116,7 @@ def initialize_postposition(
         cp_size = 2
     else:
         cp_size = 1
-
+    print("initialize_postposition set_parallel_manager ")
     set_parallel_manager(dp_size, cp_size, sp_size)
 
     if seed is not None:
