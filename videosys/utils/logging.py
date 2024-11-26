@@ -17,8 +17,11 @@ def init_dist_logger():
     Update the logger to write to a log file.
     """
     global logger
-    if logger is not None:
+    global init_log
+    if init_log == True:
         return 
+    else:
+        init_log = True
     if dist.get_rank() == 0:
         logger = logging.getLogger(__name__)
         handler = RichHandler(show_path=False, markup=True, rich_tracebacks=True)
@@ -32,3 +35,4 @@ def init_dist_logger():
 
 
 logger = create_logger()
+init_log = False

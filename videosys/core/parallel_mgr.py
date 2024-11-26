@@ -28,13 +28,11 @@ class ParallelManager(ProcessGroupMesh):
         self.sp_group: ProcessGroup = self.get_group_along_axis(sp_axis)
         self.sp_rank = dist.get_rank(self.sp_group)
         self.enable_sp = sp_size > 1
-        print("Init parallel manager with dp_size: {dp_size}, cp_size: {cp_size}, sp_size: {sp_size}")
         logger.info(f"Init parallel manager with dp_size: {dp_size}, cp_size: {cp_size}, sp_size: {sp_size}")
 
 
 def set_parallel_manager(dp_size, cp_size, sp_size):
     global PARALLEL_MANAGER
-    print("ParallelManager ")
     PARALLEL_MANAGER = ParallelManager(dp_size, cp_size, sp_size)
 
 def del_parallel_manager():
