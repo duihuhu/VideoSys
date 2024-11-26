@@ -78,6 +78,50 @@ def enable_sequence_parallel():
 def get_parallel_manager():
     return PARALLEL_MANAGER
 
+def initialize_device(local_rank=0):
+    torch.cuda.set_device(local_rank)
+
+def initialize_postposition(
+    rank=0,
+    # local_rank=0,
+    world_size=1,
+    init_method=None,
+    seed: Optional[int] = None,
+    sp_size: Optional[int] = None,
+    enable_cp: bool = False,
+):
+    if not dist.is_initialized():
+        try:
+            dist.destroy_process_group()
+        except Exception:
+            pass
+        print("init_method ", init_method)
+        dist.init_process_group(backend="nccl", init_method=init_method, world_size=world_size, rank=rank)
+        # torch.cuda.set_device(local_rank)
+        init_dist_logger()
+        torch.backends.cuda.matmul.allow_tf32 = True
+        torch.backends.cudnn.allow_tf32 = True
+
+    # init sequence parallel
+    if sp_size is None:
+        sp_size = dist.get_world_size()
+        dp_size = 1
+    else:
+        assert dist.get_world_size() % sp_size == 0, f"world_size {dist.get_world_size()} must be divisible by sp_size"
+        dp_size = dist.get_world_size() // sp_size
+
+    # update cfg parallel
+    if enable_cp and sp_size % 2 == 0:
+        sp_size = sp_size // 2
+        cp_size = 2
+    else:
+        cp_size = 1
+
+    set_parallel_manager(dp_size, cp_size, sp_size)
+
+    if seed is not None:
+        set_seed(seed + get_data_parallel_rank())
+
 
 def initialize(
     rank=0,
