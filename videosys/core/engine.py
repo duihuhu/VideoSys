@@ -171,7 +171,7 @@ class VideoSysEngine:
     async def build_worker_comm(self, worker_ids):
         for worker_id in worker_ids:
             distributed_init_method = get_distributed_init_method("127.0.0.1", get_open_port())
-            self.workers[worker_id]._create_comm(distributed_init_method=distributed_init_method)
+            self.workers[worker_id].execute_method("_create_comm",distributed_init_method=distributed_init_method)
             
     async def async_generate(self, worker_ids, *args, **kwargs):
         video = await self._run_workers_aync("generate", worker_ids, *args, **kwargs)
