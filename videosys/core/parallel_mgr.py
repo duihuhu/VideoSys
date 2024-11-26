@@ -81,6 +81,7 @@ def get_parallel_manager():
 
 def initialize(
     rank=0,
+    local_rank=0,
     world_size=1,
     init_method=None,
     seed: Optional[int] = None,
@@ -94,7 +95,7 @@ def initialize(
             pass
         print("init_method ", init_method)
         dist.init_process_group(backend="nccl", init_method=init_method, world_size=world_size, rank=rank)
-        torch.cuda.set_device(rank)
+        torch.cuda.set_device(local_rank)
         init_dist_logger()
         torch.backends.cuda.matmul.allow_tf32 = True
         torch.backends.cudnn.allow_tf32 = True
