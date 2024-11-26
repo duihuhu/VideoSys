@@ -155,12 +155,14 @@ async def async_generate(request: Request) -> Response:
     # aspect_ratio = request_dict.pop("aspect_ratio")
     # num_frames = request_dict.pop("num_frames")
     print("async_generate")
+    worker_ids = request_dict.pop("worker_ids")
     request_id = "111"
     prompt = "Sunset over the sea."
     resolution = "480p"
     aspect_ratio = "9:16"
     num_frames = "2s"
-    await engine.worker_generate(request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
+    await engine.build_worker_comm(worker_ids)
+    await engine.worker_generate(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
 # @app.post("/generate")
 # async def run_base(request: Request) -> Response:
     

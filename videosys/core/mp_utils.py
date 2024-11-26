@@ -222,7 +222,8 @@ def _run_worker_process(
 class ProcessWorkerWrapper:
     """Local process wrapper for handling single-node multi-GPU."""
 
-    def __init__(self, result_handler: ResultHandler, worker_factory: Callable[[], Any]) -> None:
+    def __init__(self, result_handler: ResultHandler, rank:int, worker_factory: Callable[[], Any]) -> None:
+        self.rank = rank
         self._task_queue = mp.Queue()
         self.result_queue = result_handler.result_queue
         self.tasks = result_handler.tasks
@@ -269,5 +270,5 @@ class ProcessWorkerWrapper:
         self._task_queue.close()
         self.process.kill()
 
-    def _create_comm(self, config, rank=0, local_rank=0, distributed_init_method=None):
-        videosys.initialize(rank=rank, world_size=config.num_gpus, init_method=distributed_init_method, seed=42)
+    def _create_comm(self, rank=0, num_gpus=1, distributed_init_method=None):
+        videosys.initialize(rank=rank, world_size=num_gpus, init_method=distributed_init_method, seed=42)

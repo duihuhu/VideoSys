@@ -55,15 +55,28 @@ class VideoSysEngine:
 
         if world_size == 1:
             self.workers = []
-            self.worker_monitor = None        
-            self.driver_worker = self._create_pipeline(
-            pipeline_cls=pipeline_cls, distributed_init_method=distributed_init_method)
-        
+            self.worker_monitor = None      
+              
+            driver_result_handler = ResultHandler()
+            self.driver_worker = ProcessWorkerWrapper(
+                        driver_result_handler,
+                        partial(
+                            self._create_pipeline,
+                            pipeline_cls=pipeline_cls,
+                            rank=0,
+                            local_rank=0,
+                            distributed_init_method=distributed_init_method,
+                        ),
+                    )
+            self.dirver_worker_monitor = WorkerMonitor(self.driver_worker, driver_result_handler)
+            driver_result_handler.start()
+            self.dirver_worker_monitor.start()
         else:
             result_handler = ResultHandler()
             self.workers = [
                 ProcessWorkerWrapper(
                     result_handler,
+                    rank,
                     partial(
                         self._create_pipeline,
                         pipeline_cls=pipeline_cls,
@@ -83,20 +96,7 @@ class VideoSysEngine:
         #     pipeline_cls=pipeline_cls, distributed_init_method=distributed_init_method
         # )
         
-        # driver_result_handler = ResultHandler()
-        # self.driver_worker = ProcessWorkerWrapper(
-        #             driver_result_handler,
-        #             partial(
-        #                 self._create_pipeline,
-        #                 pipeline_cls=pipeline_cls,
-        #                 rank=0,
-        #                 local_rank=0,
-        #                 distributed_init_method=distributed_init_method,
-        #             ),
-        #         )
-        # self.dirver_worker_monitor = WorkerMonitor(self.driver_worker, driver_result_handler)
-        # driver_result_handler.start()
-        # self.dirver_worker_monitor.start()
+
 
     def get_physical_device_id(self, rank):
         cuda_visible_devices = os.environ.get("CUDA_VISIBLE_DEVICES")
@@ -115,7 +115,7 @@ class VideoSysEngine:
         # device_rank = "cuda:%s" % self.config.rank
         # pipeline = pipeline_cls(config=self.config, device=torch.device(device_rank))
         
-        videosys.initialize(rank=rank, world_size=self.config.num_gpus, init_method=distributed_init_method, seed=42)
+        # videosys.initialize(rank=rank, world_size=self.config.num_gpus, init_method=distributed_init_method, seed=42)
         pipeline = pipeline_cls(self.config)
         return pipeline
 
@@ -149,12 +149,16 @@ class VideoSysEngine:
 
     async def _run_workers_aync(self,
         method: str,
+        worker_ids,
         *args,
         async_run_tensor_parallel_workers_only: bool = False,
         max_concurrent_workers: Optional[int] = None,
         **kwargs,):
         print("run_worker_aync")
-        worker_outputs = [worker.execute_method_async(method, *args, **kwargs) for worker in self.workers]
+        # worker_outputs = [worker.execute_method_async(method, *args, **kwargs) for worker in self.workers]
+        
+        worker_outputs = [self.workers[worker_id].execute_method_async(method, *args, **kwargs) for worker_id in worker_ids]
+
         
         if async_run_tensor_parallel_workers_only:
             # Just return futures
@@ -168,8 +172,13 @@ class VideoSysEngine:
     def _driver_execute_model(self, *args, **kwargs):
         return self.driver_worker.generate(*args, **kwargs)
 
-    async def async_generate(self, *args, **kwargs):
-        video = await self._run_workers_aync("generate", *args, **kwargs)
+    async def build_worker_comm(self, worker_ids):
+        for worker_id in worker_ids:
+            distributed_init_method = get_distributed_init_method("127.0.0.1", get_open_port())
+            self.workers[worker_id]._create_comm(distributed_init_method=distributed_init_method)
+            
+    async def async_generate(self, worker_ids, *args, **kwargs):
+        video = await self._run_workers_aync("generate", worker_ids, *args, **kwargs)
         return video[0]
     
     def generate(self, *args, **kwargs):
