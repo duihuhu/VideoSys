@@ -156,6 +156,7 @@ async def async_generate(request: Request) -> Response:
     # num_frames = request_dict.pop("num_frames")
     print("async_generate")
     worker_ids = request_dict.pop("worker_ids")
+    print(worker_ids)
     request_id = "111"
     prompt = "Sunset over the sea."
     resolution = "480p"
