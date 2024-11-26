@@ -227,7 +227,6 @@ class ProcessWorkerWrapper:
         self._task_queue = mp.Queue()
         self.result_queue = result_handler.result_queue
         self.tasks = result_handler.tasks
-        print("init ProcessWorkerWrapper")
         self.process = mp.Process(  # type: ignore[attr-defined]
             target=_run_worker_process,
             name="VideoSysWorkerProcess",
@@ -238,7 +237,6 @@ class ProcessWorkerWrapper:
             ),
             daemon=True,
         )
-        print("after init ProcessWorkerWrapper")
 
         self.process.start()
 
@@ -273,5 +271,4 @@ class ProcessWorkerWrapper:
         self.process.kill()
 
     def _create_comm(self, rank=0, num_gpus=1, distributed_init_method=None):
-        print("_create_comm ")
         videosys.initialize(rank=rank, world_size=num_gpus, init_method=distributed_init_method, seed=42)

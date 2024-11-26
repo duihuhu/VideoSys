@@ -162,7 +162,7 @@ async def async_generate(request: Request) -> Response:
     resolution = "480p"
     aspect_ratio = "9:16"
     num_frames = "2s"
-    await engine.build_worker_comm(worker_ids)
+    # await engine.build_worker_comm(worker_ids)
     await engine.worker_generate(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
 # @app.post("/generate")
 # async def run_base(request: Request) -> Response:

@@ -115,7 +115,7 @@ class VideoSysEngine:
         # device_rank = "cuda:%s" % self.config.rank
         # pipeline = pipeline_cls(config=self.config, device=torch.device(device_rank))
         
-        # videosys.initialize(rank=rank, world_size=self.config.num_gpus, init_method=distributed_init_method, seed=42)
+        videosys.initialize(rank=rank, world_size=1, init_method=distributed_init_method, seed=42)
         pipeline = pipeline_cls(self.config)
         return pipeline
 
