@@ -20,6 +20,7 @@ from .data_process import get_image_size, get_num_frames, prepare_multi_resoluti
 
 from .video_ops import trans_ops
 import time
+import videosys
 os.environ["TOKENIZERS_PARALLELISM"] = "true"
 
 
@@ -963,6 +964,10 @@ class OpenSoraPipeline(VideoSysPipeline):
     
     def save_video(self, video, output_path):
         save_video(video, output_path, fps=24)
+
+
+    def _create_comm(self, rank=0, num_gpus=1, distributed_init_method=None):
+        videosys.initialize_postposition(rank=rank, world_size=num_gpus, init_method=distributed_init_method, seed=42)
 
 
 def load_prompts(prompt_path, start_idx=None, end_idx=None):
