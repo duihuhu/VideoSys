@@ -17,6 +17,8 @@ def init_dist_logger():
     Update the logger to write to a log file.
     """
     global logger
+    if logger is not None:
+        return 
     if dist.get_rank() == 0:
         logger = logging.getLogger(__name__)
         handler = RichHandler(show_path=False, markup=True, rich_tracebacks=True)

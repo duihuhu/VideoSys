@@ -84,7 +84,6 @@ def get_parallel_manager():
 
 def initialize_device(local_rank=0):
     torch.cuda.set_device(local_rank)
-    init_dist_logger()
 
 def initialize_postposition(
     rank=0,
@@ -103,6 +102,7 @@ def initialize_postposition(
         print("initialize_postposition method ", init_method)
         dist.init_process_group(backend="nccl", init_method=init_method, world_size=world_size, rank=rank)
         # torch.cuda.set_device(local_rank)
+        init_dist_logger()
         torch.backends.cuda.matmul.allow_tf32 = True
         torch.backends.cudnn.allow_tf32 = True
 
