@@ -236,7 +236,7 @@ class AsyncSched:
     
     def create_consumer(self):
         for i in range(2):
-            consumer = asyncio.create_task(target=self.process)
+            consumer = asyncio.create_task(self.process())
             self.consumers.append(consumer)
 
     async def run_engine_loop(self):
