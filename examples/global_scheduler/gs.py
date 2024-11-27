@@ -46,7 +46,7 @@ async def recv_request(request: Request) -> Response:
     resolution = request_dict.pop("resolution")
     aspect_ratio = request_dict.pop("aspect_ratio")
     num_frames = request_dict.pop("num_frames")
-    results_generator = sched.generate(request_id = request_id, prompt = prompt, \
+    results_generator = await sched.generate(request_id = request_id, prompt = prompt, \
         resolution = resolution, aspect_ratio = aspect_ratio,num_frames = num_frames)
     
     

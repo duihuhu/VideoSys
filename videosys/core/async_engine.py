@@ -144,7 +144,6 @@ class RequestTracker:
                     **engine_add_request_kwargs) -> AsyncStream:
         """Add a request to be sent to the engine on the next background
         loop iteration."""
-        print("request tracker ")
         if request_id in self._request_streams:
             raise KeyError(f"Request {request_id} already exists.")
         stream = AsyncStream(request_id)
@@ -343,8 +342,8 @@ class AsyncSched:
             global_ranks = global_ranks,
         )
 
-        async for request_output in stream:
-            yield request_output
+        # async for request_output in stream:
+        #     yield request_output
 
     async def add_request(self, 
         request_id: str,
