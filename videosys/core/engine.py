@@ -202,6 +202,22 @@ class VideoSysEngine:
         results = await asyncio.gather(*worker_outputs)
         return [results]
 
+    async def _run_workers_vae_aync(self,
+        method: str,
+        worker_ids,
+        *args,
+        async_run_tensor_parallel_workers_only: bool = False,
+        max_concurrent_workers: Optional[int] = None,
+        **kwargs,):
+        print("run_worker_vae aync")
+        worker_outputs = [self.workers[worker_id].execute_method_async(method, *args, **kwargs) for worker_id in worker_ids]
+
+        if async_run_tensor_parallel_workers_only:
+            # Just return futures
+            return worker_outputs
+        results = await asyncio.gather(*worker_outputs)
+        return [results]
+
     def _driver_execute_model(self, *args, **kwargs):
         return self.driver_worker.generate(*args, **kwargs)
 
@@ -220,6 +236,10 @@ class VideoSysEngine:
     
     async def async_generate_dit(self, worker_ids, *args, **kwargs):
         video = await self._run_workers_dit_aync("generate_dit", worker_ids, *args, **kwargs)
+        return video[0]
+
+    async def async_generate_vae(self, worker_ids, *args, **kwargs):
+        video = await self._run_workers_vae_aync("generate_vae", worker_ids, *args, **kwargs)
         return video[0]
     
     def generate(self, *args, **kwargs):

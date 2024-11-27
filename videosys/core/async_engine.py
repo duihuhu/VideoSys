@@ -226,17 +226,9 @@ class AsyncSched:
         self.task_queue = queue.Queue()
         self.consumers = []
     
-    def post_http_request(self, prompt, resolution, aspect_ratio, num_frames, worker_ids) -> requests.Response:
+    def post_http_request(self, pload, api_url) -> requests.Response:
         headers = {"User-Agent": "Test Client"}
-        pload = {
-            "request_id": "111",
-            "prompt": prompt,
-            "resolution": resolution, 
-            "aspect_ratio": aspect_ratio,
-            "num_frames": num_frames,
-            "worker_ids": worker_ids,
-        }
-        api_url = "http://127.0.0.1:8000/async_generate_dit"
+
         response = requests.post(api_url, headers=headers, json=pload)
         return response
 
@@ -246,7 +238,26 @@ class AsyncSched:
             task = self.task_queue.get()  # 阻塞，直到有任务
             if task is None:
                 break  # 如果任务是 None，表示结束
-            self.post_http_request(task.prompt, task.resolution, task.aspect_ratio, task.num_frames, task.worker_ids)
+            api_url = "http://127.0.0.1:8000/async_generate_dit"
+            pload = {
+                "request_id": task.request_id,
+                "prompt": task.prompt,
+                "resolution": task.resolution, 
+                "aspect_ratio": task.aspect_ratio,
+                "num_frames": task.num_frames,
+                "worker_ids": task.worker_ids,
+            }
+            response = self.post_http_request(pload=pload, api_url=api_url)
+            
+            if len(task.worker_ids) > 1:
+                print("to update ", self.video_sched.scheduler.gpu_status)
+                api_url = "http://127.0.0.1:8000/async_generate_vae"
+                pload = {
+                    "request_id": task.request_id,
+                    "worker_ids": [task.worker_ids[0]],
+                }
+                response = self.post_http_request(pload=pload, api_url=api_url)
+            
         return 
     
     def create_consumer(self):
@@ -661,7 +672,10 @@ class AsyncEngine:
                     resolution=resolution,
                     aspect_ratio=aspect_ratio,
                     num_frames=num_frames,)
-    
+
+    async def worker_generate_vae(self, worker_ids, request_id) -> None:
+        await self.video_engine.async_generate_vae(worker_ids=worker_ids, request_id=request_id)
+        
     
     async def destory_worker_comm(self, worker_ids):
         await self.video_engine.destory_worker_comm(worker_ids)
