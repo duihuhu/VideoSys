@@ -9,11 +9,15 @@ class VideoScheduler:
         self.waiting: Deque[SequenceGroup] = deque()
         self.num_gpus = 2
         self.gpu_status = [0,0]
-        
+        self.num = 0
     def schedule(self) -> SequenceGroup:
         if self.waiting:
             seq_group = self.waiting[0]
-            worker_ids = [0,1]
+            if self.num == 0:
+                worker_ids = [0]
+                self.num = self.num + 1
+            else:
+                worker_ids = [1]
             seq_group.worker_ids = worker_ids
             self.waiting.popleft()
             return seq_group

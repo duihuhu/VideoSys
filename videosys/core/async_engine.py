@@ -246,7 +246,6 @@ class AsyncSched:
             task = self.task_queue.get()  # 阻塞，直到有任务
             if task is None:
                 break  # 如果任务是 None，表示结束
-            print("aaa")
             self.post_http_request(task.prompt, task.resolution, task.aspect_ratio, task.num_frames, task.worker_ids)
         return 
     
