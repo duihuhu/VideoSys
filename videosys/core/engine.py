@@ -192,9 +192,9 @@ class VideoSysEngine:
         for (worker_id, idx) in zip(worker_ids, range(len(worker_ids))):
             if idx == 0:
                 kwargs["store_dit"] = True
-                worker_outputs.append(self.workers[worker_id].execute_method_async(method, *args, **kwargs_idx))
             else:
-                worker_outputs.append(self.workers[worker_id].execute_method_async(method, *args, **kwargs))
+                kwargs["store_dit"] = False
+            worker_outputs.append(self.workers[worker_id].execute_method_async(method, *args, **kwargs))
                 
         if async_run_tensor_parallel_workers_only:
             # Just return futures
