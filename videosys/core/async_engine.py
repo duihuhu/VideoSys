@@ -225,23 +225,19 @@ class AsyncSched:
         self.task_queue = queue.Queue()
         self.consumers = []
 
-    def process(self,):
+    async def process(self):
         while True:
             task = self.task_queue.get()  # 阻塞，直到有任务
             if task is None:
                 break  # 如果任务是 None，表示结束
             print("aaa")
+            await self.send_to_worker(task)
         return 
     
     def create_consumer(self):
         for i in range(2):
-            consumer = threading.Thread(target=self.process)
-            consumer.start()
+            consumer = asyncio.create_task(target=self.process)
             self.consumers.append(consumer)
-        
-    def destory_consumer(self):
-        for consumer in self.consumers:
-            consumer.join()
 
     async def run_engine_loop(self):
         has_requests_in_progress = False
