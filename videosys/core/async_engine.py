@@ -236,7 +236,7 @@ class AsyncSched:
             "num_frames": num_frames,
             "worker_ids": worker_ids,
         }
-        api_url = "http://127.0.0.1:8000/async_generate"
+        api_url = "http://127.0.0.1:8000/async_generate_dit"
         response = requests.post(api_url, headers=headers, json=pload)
         return response
 
@@ -655,6 +655,13 @@ class AsyncEngine:
                     resolution=resolution,
                     aspect_ratio=aspect_ratio,
                     num_frames=num_frames,)
+    
+    async def worker_generate_dit(self, worker_ids, request_id, prompt, resolution, aspect_ratio, num_frames) -> None:
+        await self.video_engine.async_generate_dit(worker_ids=worker_ids, request_id=request_id, prompt=prompt,
+                    resolution=resolution,
+                    aspect_ratio=aspect_ratio,
+                    num_frames=num_frames,)
+    
     
     async def destory_worker_comm(self, worker_ids):
         await self.video_engine.destory_worker_comm(worker_ids)

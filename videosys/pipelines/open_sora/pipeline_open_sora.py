@@ -671,6 +671,7 @@ class OpenSoraPipeline(VideoSysPipeline):
         resolution="480p",
         aspect_ratio="9:16",
         num_frames: int = 51,
+        store_dit: bool = False,
         loop: int = 1,
         llm_refine: bool = False,
         negative_prompt: str = "",
@@ -877,7 +878,8 @@ class OpenSoraPipeline(VideoSysPipeline):
                 progress=verbose,
                 mask=masks,
             )
-            self.dit_video_data[request_id] = samples
+            if store_dit:
+                self.dit_video_data[request_id] = samples
         return request_id, samples.shape
 
     @torch.no_grad()

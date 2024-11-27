@@ -165,45 +165,44 @@ async def async_generate(request: Request) -> Response:
     await engine.build_worker_comm(worker_ids)
     await engine.worker_generate(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
     await engine.destory_worker_comm(worker_ids)
-# @app.post("/generate")
-# async def run_base(request: Request) -> Response:
-    
-#     # request_dict = await request.json()
-#     # prompt = request_dict.pop("prompt")
-#     # prompt = request_dict.pop("prompt", "Sunset over the sea.")
-    
-#     # change num_gpus for multi-gpu inference
-#     # sampling parameters are defined in the config
-#     # config = OpenSoraConfig(num_sampling_steps=30, cfg_scale=7.0, num_gpus=1)
-#     # engine = VideoSysEngine(config)
 
-#     prompt = "Sunset over the sea."
-#     # num frames: 2s, 4s, 8s, 16s
-#     # resolution: 144p, 240p, 360p, 480p, 720p
-#     # aspect ratio: 9:16, 16:9, 3:4, 4:3, 1:1
-#     t1 = time.time()
-#     video = engine.generate(
-#         prompt=prompt,
-#         resolution="480p",
-#         aspect_ratio="9:16",
-#         num_frames="2s",
-#     ).video[0]
-#     t2 = time.time()
-#     print("execute time ", t2-t1)
+@app.post("/async_generate_dit")
+async def async_generate(request: Request) -> Response:
+    request_dict = await request.json()
+    # request_id = request_dict.pop("request_id")
+    # prompt = request_dict.pop("prompt")
+    # resolution = request_dict.pop("resolution")
+    # aspect_ratio = request_dict.pop("aspect_ratio")
+    # num_frames = request_dict.pop("num_frames")
+    print("async_generate")
+    worker_ids = request_dict.pop("worker_ids")
+    print(worker_ids)
+    request_id = "111"
+    prompt = "Sunset over the sea."
+    resolution = "480p"
+    aspect_ratio = "9:16"
+    num_frames = "2s"
+    await engine.build_worker_comm(worker_ids)
+    await engine.worker_generate_dit(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
+    await engine.destory_worker_comm(worker_ids)
     
-#     response = await query_hbm_meta("111", [1, 3, 51, 480, 848], "127.0.0.1", "8001")
-#     print("response ", response)
-#     engine.save_video(video, f"./outputs/{prompt}.mp4")
-#     """Health check."""
-#     return Response(status_code=200)
-
-# def run_pab():
-#     config = OpenSoraConfig(enable_pab=True)
-#     engine = VideoSysEngine(config)
-
-#     prompt = "Sunset over the sea."
-#     video = engine.generate(prompt).video[0]
-#     engine.save_video(video, f"./outputs/{prompt}.mp4")
+@app.post("/async_generate_vae")
+async def async_generate(request: Request) -> Response:
+    request_dict = await request.json()
+    # request_id = request_dict.pop("request_id")
+    # prompt = request_dict.pop("prompt")
+    # resolution = request_dict.pop("resolution")
+    # aspect_ratio = request_dict.pop("aspect_ratio")
+    # num_frames = request_dict.pop("num_frames")
+    worker_ids = request_dict.pop("worker_ids")
+    request_id = "111"
+    prompt = "Sunset over the sea."
+    resolution = "480p"
+    aspect_ratio = "9:16"
+    num_frames = "2s"
+    await engine.build_worker_comm(worker_ids)
+    await engine.worker_generate(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
+    await engine.destory_worker_comm(worker_ids)
 
 if __name__ == "__main__":
     # run_base()
