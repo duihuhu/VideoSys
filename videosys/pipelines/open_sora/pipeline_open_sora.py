@@ -893,7 +893,7 @@ class OpenSoraPipeline(VideoSysPipeline):
 
         print("generate_vae start ")
         video_clips = []
-        samples = self.vae_record_data[request_id]
+        samples = self.dit_video_data[request_id]
         
         t1 = time.time()
         samples = self.vae.decode(samples.to(self._dtype), num_frames=num_frames)
@@ -916,6 +916,7 @@ class OpenSoraPipeline(VideoSysPipeline):
         if not return_dict:
             return (video,)
         print("video info ", type(video), video.shape)
+        del self.dit_video_data[request_id]
         return VideoSysPipelineOutput(video=video)
     
     def get_nccl_id(self, dst_channel, worker_type):
