@@ -14,6 +14,7 @@ import threading
 import aiohttp
 from videosys.core.sequence import SequenceGroup
 import queue
+import requests
 AIOHTTP_TIMEOUT = aiohttp.ClientTimeout(total=6 * 60 * 60)
 
 ENGINE_ITERATION_TIMEOUT_S = int(
@@ -224,20 +225,40 @@ class AsyncSched:
         
         self.task_queue = queue.Queue()
         self.consumers = []
+    
+    def post_http_request(self, prompt, resolution, aspect_ratio, num_frames, worker_ids) -> requests.Response:
+        headers = {"User-Agent": "Test Client"}
+        pload = {
+            "request_id": "111",
+            "prompt": prompt,
+            "resolution": resolution, 
+            "aspect_ratio": aspect_ratio,
+            "num_frames": num_frames,
+            "worker_ids": worker_ids,
+        }
+        api_url = "http://127.0.0.1/8000/async_generate"
+        response = requests.post(api_url, headers=headers, json=pload)
+        return response
 
-    async def process(self):
+    
+    def process(self,):
         while True:
             task = self.task_queue.get()  # 阻塞，直到有任务
             if task is None:
                 break  # 如果任务是 None，表示结束
             print("aaa")
-            await self.send_to_worker(task)
+            self.post_http_request(task.prompt, task.resolution, task.aspect_ratio, task.num_frames, task.worker_ids)
         return 
     
     def create_consumer(self):
         for i in range(2):
-            consumer = asyncio.create_task(self.process())
+            consumer = threading.Thread(target=self.process)
+            consumer.start()
             self.consumers.append(consumer)
+        
+    def destory_consumer(self):
+        for consumer in self.consumers:
+            consumer.join()
 
     async def run_engine_loop(self):
         has_requests_in_progress = False
@@ -257,18 +278,18 @@ class AsyncSched:
                 raise
             await asyncio.sleep(0)
 
-    async def async_send_to(self, entry_point: Tuple[str, int], func_name: str, data: CommData):
-        api_url = f"http://{entry_point[0]}:{entry_point[1]}/{func_name}"
-        async with aiohttp.ClientSession(timeout=AIOHTTP_TIMEOUT) as session:
-            async with session.post(url=api_url, json=data.payload,
-                                    headers=data.headers) as response:
-                return await response.json()
+    # async def async_send_to(self, entry_point: Tuple[str, int], func_name: str, data: CommData):
+    #     api_url = f"http://{entry_point[0]}:{entry_point[1]}/{func_name}"
+    #     async with aiohttp.ClientSession(timeout=AIOHTTP_TIMEOUT) as session:
+    #         async with session.post(url=api_url, json=data.payload,
+    #                                 headers=data.headers) as response:
+    #             return await response.json()
             
-    async def send_to_worker(self, seq_group: SequenceGroup):
-        entry_point = ("127.0.0.1", 8000)
-        data = CommData(seq_group.__json__())
-        await self.async_send_to(entry_point, "async_generate", data)
-        return
+    # async def send_to_worker(self, seq_group: SequenceGroup):
+    #     entry_point = ("127.0.0.1", 8000)
+    #     data = CommData(seq_group.__json__())
+    #     await self.async_send_to(entry_point, "async_generate", seq_group)
+    #     return
         
     async def step_async(self):
         seq_group = self.video_sched.scheduler.schedule()
