@@ -255,12 +255,13 @@ class OpenSoraPipeline(VideoSysPipeline):
             text_encoder=text_encoder, vae=vae, transformer=transformer, scheduler=scheduler, tokenizer=tokenizer
         )
         
+        self.dit_video_data = {}
+        self.vae_record_data = {}
         if config.enable_separate:
-            self.dit_video_data = {}
             print("trans manager ", config.rank, config.worker_type)
             if config.rank == 0:
                 self.trans_manager = trans_ops.TransManager(config.rank, config.local_rank, config.worker_type)
-            self.vae_record_data = {}
+
     def get_text_embeddings(self, texts):
         text_tokens_and_mask = self.tokenizer(
             texts,
