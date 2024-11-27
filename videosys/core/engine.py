@@ -194,7 +194,7 @@ class VideoSysEngine:
                 args = (*args, True)
             else:
                 args = (*args, True)
-            self.workers[worker_id].execute_method_async(method, *args, **kwargs)
+            worker_outputs.append(self.workers[worker_id].execute_method_async(method, *args, **kwargs))
         
         if async_run_tensor_parallel_workers_only:
             # Just return futures
