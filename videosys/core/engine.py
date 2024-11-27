@@ -192,8 +192,10 @@ class VideoSysEngine:
         for (worker_id, idx) in zip(worker_ids, range(len(worker_ids))):
             if idx == 0:
                 args_idx = (*args, True)
+                print(*args_idx)
                 worker_outputs.append(self.workers[worker_id].execute_method_async(method, *args_idx, **kwargs))
             else:
+                print(*args)
                 worker_outputs.append(self.workers[worker_id].execute_method_async(method, *args, **kwargs))
                 
         if async_run_tensor_parallel_workers_only:
