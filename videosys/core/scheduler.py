@@ -13,7 +13,7 @@ class VideoScheduler:
     def schedule(self) -> SequenceGroup:
         if self.waiting:
             seq_group = self.waiting[0]
-            worker_ids = [0,0]
+            worker_ids = [0,1]
             seq_group.worker_ids = worker_ids
             self.waiting.popleft()
             return seq_group

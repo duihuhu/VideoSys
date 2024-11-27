@@ -265,7 +265,6 @@ class AsyncSched:
         # print("engine_step ")
         
         for new_request in new_requests:
-            print("new_request ", new_request)
             self.video_sched.add_request(**new_request)
         
         request_outputs = await self.step_async()
