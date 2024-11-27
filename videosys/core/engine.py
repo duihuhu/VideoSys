@@ -191,7 +191,7 @@ class VideoSysEngine:
         worker_outputs = []
         for (worker_id, idx) in zip(worker_ids, range(len(worker_ids))):
             if idx == 0:
-                kwargs_idx = (*kwargs, True)
+                kwargs["store_dit"] = True
                 worker_outputs.append(self.workers[worker_id].execute_method_async(method, *args, **kwargs_idx))
             else:
                 worker_outputs.append(self.workers[worker_id].execute_method_async(method, *args, **kwargs))
