@@ -256,7 +256,7 @@ class AsyncSched:
     
     async def step_async(self):
         seq_group = self.video_sched.scheduler.schedule()
-        threading.Thread(target=self.send_to_worker, args=(seq_group)).start()
+        threading.Thread(target=self.send_to_worker, args=(seq_group,)).start()
         return None
      
     async def engine_step(self) -> bool:
