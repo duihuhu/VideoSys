@@ -235,7 +235,7 @@ class AsyncSched:
     
     def create_consumer(self):
         for i in range(2):
-            consumer = threading.Thread(target=self.process, args=(self.task_queue, ))
+            consumer = threading.Thread(target=self.process)
             consumer.start()
             self.consumers.append(consumer)
         
