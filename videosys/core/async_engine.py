@@ -13,7 +13,7 @@ from videosys.core.engine import VideoSched
 import threading
 import aiohttp
 from videosys.core.sequence import SequenceGroup
-
+import queue
 AIOHTTP_TIMEOUT = aiohttp.ClientTimeout(total=6 * 60 * 60)
 
 ENGINE_ITERATION_TIMEOUT_S = int(
@@ -221,6 +221,27 @@ class AsyncSched:
         
         self.background_loop = None
         self._errored_with: Optional[BaseException] = None
+        
+        self.task_queue = queue.Queue()
+        self.consumers = []
+
+    def process(self,):
+        while True:
+            task = self.task_queue.get()  # 阻塞，直到有任务
+            if task is None:
+                break  # 如果任务是 None，表示结束
+            print("aaa")
+        return 
+    
+    def create_consumer(self):
+        for i in range(2):
+            consumer = threading.Thread(target=self.process, args=(self.task_queue, ))
+            consumer.start()
+            self.consumers.append(consumer)
+        
+    def destory_consumer(self):
+        for consumer in self.consumers:
+            consumer.join()
 
     async def run_engine_loop(self):
         has_requests_in_progress = False
@@ -253,10 +274,9 @@ class AsyncSched:
         await self.async_send_to(entry_point, "async_generate", data)
         return
         
-    
     async def step_async(self):
         seq_group = self.video_sched.scheduler.schedule()
-        threading.Thread(target=self.send_to_worker, args=(seq_group,)).start()
+        self.task_queue.put(seq_group)
         return None
      
     async def engine_step(self) -> bool:
