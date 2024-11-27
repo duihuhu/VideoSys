@@ -52,7 +52,7 @@ def post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames):
             
 def main(prompt, resolution, aspect_ratio, num_frames):
     t1 = time.time()
-    for i in range(1):
+    for i in range(2):
         post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
     t2 = time.time()
     print(t2-t1)
