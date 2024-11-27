@@ -236,7 +236,7 @@ class AsyncSched:
             "num_frames": num_frames,
             "worker_ids": worker_ids,
         }
-        api_url = "http://127.0.0.1/8000/async_generate"
+        api_url = "http://127.0.0.1:8000/async_generate"
         response = requests.post(api_url, headers=headers, json=pload)
         return response
 
