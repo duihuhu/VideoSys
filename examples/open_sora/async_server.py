@@ -169,19 +169,13 @@ async def async_generate(request: Request) -> Response:
 @app.post("/async_generate_dit")
 async def async_generate_dit(request: Request) -> Response:
     request_dict = await request.json()
-    # request_id = request_dict.pop("request_id")
-    # prompt = request_dict.pop("prompt")
-    # resolution = request_dict.pop("resolution")
-    # aspect_ratio = request_dict.pop("aspect_ratio")
-    # num_frames = request_dict.pop("num_frames")
+    request_id = request_dict.pop("request_id")
+    prompt = request_dict.pop("prompt")
+    resolution = request_dict.pop("resolution")
+    aspect_ratio = request_dict.pop("aspect_ratio")
+    num_frames = request_dict.pop("num_frames")
     print("async_generate")
     worker_ids = request_dict.pop("worker_ids")
-    print(worker_ids)
-    request_id = "111"
-    prompt = "Sunset over the sea."
-    resolution = "480p"
-    aspect_ratio = "9:16"
-    num_frames = "2s"
     await engine.build_worker_comm(worker_ids)
     await engine.worker_generate_dit(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
     await engine.destory_worker_comm(worker_ids)
@@ -189,17 +183,8 @@ async def async_generate_dit(request: Request) -> Response:
 @app.post("/async_generate_vae")
 async def async_generate_vae(request: Request) -> Response:
     request_dict = await request.json()
-    # request_id = request_dict.pop("request_id")
-    # prompt = request_dict.pop("prompt")
-    # resolution = request_dict.pop("resolution")
-    # aspect_ratio = request_dict.pop("aspect_ratio")
-    # num_frames = request_dict.pop("num_frames")
+    request_id = request_dict.pop("request_id")
     worker_ids = request_dict.pop("worker_ids")
-    request_id = "111"
-    prompt = "Sunset over the sea."
-    resolution = "480p"
-    aspect_ratio = "9:16"
-    num_frames = "2s"
     await engine.build_worker_comm(worker_ids)
     await engine.worker_generate_vae(worker_ids=worker_ids, request_id=request_id)
     await engine.destory_worker_comm(worker_ids)
