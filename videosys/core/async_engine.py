@@ -251,7 +251,7 @@ class AsyncSched:
             
             if len(task.worker_ids) > 1:
                 print("to update ", self.video_sched.scheduler.gpu_status)
-                self.video_sched.scheduler.gpu_status[task.worker_ids] = 0
+                self.video_sched.scheduler.gpu_status[task.worker_ids[-1]] = 0
                 print("to update ", self.video_sched.scheduler.gpu_status)
                 api_url = "http://127.0.0.1:8000/async_generate_vae"
                 pload = {
