@@ -336,8 +336,6 @@ class AsyncSched:
             resolution = resolution,
             aspect_ratio = aspect_ratio,
             num_frames = num_frames,
-            shape = shape,
-            global_ranks = global_ranks,
         )
 
         # async for request_output in stream:
