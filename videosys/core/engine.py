@@ -7,13 +7,27 @@ import videosys
 
 from .mp_utils import ProcessWorkerWrapper, ResultHandler, WorkerMonitor, get_distributed_init_method, get_open_port
 from videosys.core.sequence import SequenceGroup
-from videosys.core.scheduler import Scheduler
+from videosys.core.scheduler import Scheduler, VideoScheduler
 from videosys.core.kv_trans_scheduler import SendKvTransferScheduler, RecvKvTransScheduler
 from videosys.core.outputs import KvPreparedResponse
 from typing import (Any, Awaitable, Callable, TypeVar, Optional, List)
 import asyncio
 T = TypeVar("T")
 
+class VideoSched:
+    def __init__(self):
+        self.scheduler = VideoScheduler()
+        
+    def add_request(self, 
+                request_id,
+                prompt: Optional[str] = None,
+                resolution: Optional[str] = None,
+                aspect_ratio: Optional[str] = None,
+                num_frames: Optional[str] = None):
+        seq_group = SequenceGroup(request_id=request_id, prompt=prompt, resolution=resolution,\
+            aspect_ratio=aspect_ratio, num_frames=num_frames)
+        self.scheduler.add_seq_group(seq_group)
+        
 class VideoSysEngine:
     """
     this is partly inspired by vllm

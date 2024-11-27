@@ -118,7 +118,6 @@ def initialize_postposition(
         cp_size = 2
     else:
         cp_size = 1
-    print("initialize_postposition set_parallel_manager ")
     set_parallel_manager(dp_size, cp_size, sp_size)
 
     if seed is not None:

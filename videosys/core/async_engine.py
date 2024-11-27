@@ -9,9 +9,20 @@ from videosys.core.outputs import RequestOutput, KvPreparedResponse
 from videosys import OpenSoraConfig
 from videosys.utils.config import DeployConfig
 from videosys.pipelines.open_sora.video_ops import trans_ops
+from videosys.core.engine import VideoSched
+import threading
+import aiohttp
+from videosys.core.sequence import SequenceGroup
+
+AIOHTTP_TIMEOUT = aiohttp.ClientTimeout(total=6 * 60 * 60)
 
 ENGINE_ITERATION_TIMEOUT_S = int(
     os.environ.get("VLLM_ENGINE_ITERATION_TIMEOUT_S", "60"))
+
+class CommData:
+    def __init__(self, headers, payload) -> None:
+        self.headers = headers
+        self.payload = payload
 
 class AsyncEngineDeadError(RuntimeError):
     pass
@@ -201,6 +212,159 @@ class RequestTracker:
     def has_new_requests(self):
         return not self._new_requests.empty()
 
+
+class AsyncSched:
+    def __init__(self, 
+                 start_engine_loop: bool = True,):
+        self.video_sched = VideoSched()
+        self.start_engine_loop = start_engine_loop
+        
+        self.background_loop = None
+        self._errored_with: Optional[BaseException] = None
+
+    async def run_engine_loop(self):
+        has_requests_in_progress = False
+        print("AsyncSched run_engine_loop ")
+        while True:
+            if (not has_requests_in_progress 
+                and not self.video_sched.scheduler.waiting 
+                ):
+                
+                await self._request_tracker.wait_for_new_requests()
+            # Abort if iteration takes too long due to unrecoverable errors
+            # (eg. NCCL timeouts).
+            try:
+                has_requests_in_progress = await asyncio.wait_for(
+                    self.engine_step(), ENGINE_ITERATION_TIMEOUT_S)
+            except asyncio.TimeoutError as exc:
+                raise
+            await asyncio.sleep(0)
+
+    async def async_send_to(self, entry_point: Tuple[str, int], func_name: str, data: CommData):
+        api_url = f"http://{entry_point[0]}:{entry_point[1]}/{func_name}"
+        async with aiohttp.ClientSession(timeout=AIOHTTP_TIMEOUT) as session:
+            async with session.post(url=api_url, json=data.payload,
+                                    headers=data.headers) as response:
+                return await response.json()
+            
+    async def send_to_worker(self, seq_group: SequenceGroup):
+        entry_point = ("127.0.0.1", 8000)
+        data = CommData(seq_group.__json__())
+        await self.async_send_to(entry_point, "async_generate", data)
+        return
+        
+    
+    async def step_async(self):
+        seq_group = self.video_sched.scheduler.schedule()
+        threading.Thread(target=self.send_to_worker, args=(seq_group)).start()
+        return None
+     
+    async def engine_step(self) -> bool:
+        new_requests, finished_requests = (
+            self._request_tracker.get_new_and_finished_requests())
+        # print("engine_step ")
+        
+        for new_request in new_requests:
+            print("new_request ", new_request)
+            self.video_sched.add_request(**new_request)
+        
+        request_outputs = await self.step_async()
+
+        # if request_outputs:
+        #     self._request_tracker.process_request_output(self.video_engine.get_global_ranks(), request_outputs)
+        return request_outputs!=None
+    
+    @property
+    def is_running(self) -> bool:
+        return (self.background_loop is not None
+            and not self._background_loop_unshielded.done())
+        
+    @property
+    def is_stopped(self) -> bool:
+        return self.errored or (self.background_loop is not None
+                                and self._background_loop_unshielded.done())
+
+    @property
+    def errored(self) -> bool:
+        return self._errored_with is not None
+ 
+    def set_errored(self, exc: Exception) -> None:
+        self._errored_with = exc
+
+    def _error_callback(self, exc: Exception) -> None:
+        self.set_errored(exc)
+        self._request_tracker.propagate_exception(exc)
+        
+    def start_background_loop(self) -> None:
+        """Start the background loop."""
+        if self.errored:
+            raise AsyncEngineDeadError(
+                "Background loop has errored already.") from self._errored_with
+        if self.is_running:
+            raise RuntimeError("Background loop is already running.")
+        # Initialize the RequestTracker here so it uses the right event loop.
+        self._request_tracker = RequestTracker()
+
+        self._background_loop_unshielded = asyncio.get_event_loop(
+        ).create_task(self.run_engine_loop())
+        self._background_loop_unshielded.add_done_callback(
+            partial(_raise_exception_on_finish,
+                    error_callback=self._error_callback))
+        self.background_loop = asyncio.shield(self._background_loop_unshielded)
+        
+    async def generate(
+        self,
+        request_id: str,
+        prompt: Optional[str] = None,
+        resolution: Optional[str] = None,
+        aspect_ratio: Optional[str] = None,
+        num_frames: Optional[str] = None,
+        shape: Optional[List] = None,
+        global_ranks: Optional[List] = None
+    ) -> AsyncStream:
+        if not self.is_running:
+            if self.start_engine_loop:
+                self.start_engine_time = time.time()
+                self.start_background_loop()
+            else:
+                raise AsyncEngineDeadError(
+                    "Background loop is not running. If it was running, "
+                    "inspect the output to find the stacktrace of the "
+                    "error that caused the background loop to stop "
+                    "(AsyncEngineDeadError).")
+
+        stream = await self.add_request(
+            request_id = request_id,
+            prompt = prompt,
+            resolution = resolution,
+            aspect_ratio = aspect_ratio,
+            num_frames = num_frames,
+            shape = shape,
+            global_ranks = global_ranks,
+        )
+
+        async for request_output in stream:
+            yield request_output
+
+    async def add_request(self, 
+        request_id: str,
+        prompt: Optional[str] = None,
+        resolution: Optional[str] = None,
+        aspect_ratio: Optional[str] = None,
+        num_frames: Optional[str] = None,
+        shape: Optional[List] = None,
+        global_ranks: Optional[List] = None):
+        
+        stream = self._request_tracker.add_request(
+            request_id = request_id,
+            prompt = prompt,
+            resolution = resolution,
+            aspect_ratio = aspect_ratio,
+            num_frames = num_frames,
+            shape = shape,
+            global_ranks = global_ranks
+        )
+        return stream
 
 class AsyncEngine:
     def __init__(self, 

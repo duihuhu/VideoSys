@@ -1,6 +1,28 @@
 from typing import Deque, Dict, Tuple, List
 from collections import deque
 from videosys.core.sequence import SequenceGroup
+class VideoScheduler:
+    def __init__(
+        self,
+    ) -> None:
+        # Sequence groups in the WAITING state.
+        self.waiting: Deque[SequenceGroup] = deque()
+        self.num_gpus = 2
+        self.gpu_status = [0,0]
+        
+    def schedule(self) -> SequenceGroup:
+        if self.waiting:
+            seq_group = self.waiting[0]
+            worker_ids = [0,0]
+            seq_group.worker_ids = worker_ids
+            self.waiting.popleft()
+            return seq_group
+        return None
+
+    def add_seq_group(self, seq_group: SequenceGroup) -> None:
+        # Add sequence groups to the waiting queue.
+        self.waiting.append(seq_group)
+    
 class Scheduler:
     def __init__(
             self,
