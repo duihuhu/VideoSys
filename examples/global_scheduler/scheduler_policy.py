@@ -106,6 +106,8 @@ def execute_mixed_cluster_round_robin():
             t2 = time.time()
             print("end execute task time ", task.resolution, gpu_num, t2-t1, t2)
 
+#if use slo: for choose gpu num
+#no use slo: only dynamic deployment to awareness resolution
 def execute_mixed_cluster_dynamic_awareness():
     return
    
