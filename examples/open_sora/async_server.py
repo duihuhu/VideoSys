@@ -177,7 +177,10 @@ async def async_generate_dit(request: Request) -> Response:
     print("async_generate")
     worker_ids = request_dict.pop("worker_ids")
     await engine.build_worker_comm(worker_ids)
-    await engine.worker_generate_dit(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
+    if len(worker_ids) > 1:
+        await engine.worker_generate_dit(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
+    else:
+        await engine.worker_generate(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
     await engine.destory_worker_comm(worker_ids)
     
 @app.post("/async_generate_vae")
