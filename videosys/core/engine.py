@@ -1,5 +1,6 @@
 import os
 from functools import partial
+import time
 
 import torch
 
@@ -10,13 +11,18 @@ from videosys.core.sequence import SequenceGroup
 from videosys.core.scheduler import Scheduler, VideoScheduler
 from videosys.core.kv_trans_scheduler import SendKvTransferScheduler, RecvKvTransScheduler
 from videosys.core.outputs import KvPreparedResponse
-from typing import (Any, Awaitable, Callable, TypeVar, Optional, List)
+from typing import (Any, Awaitable, Callable, TypeVar, Optional, List, Dict)
 import asyncio
 T = TypeVar("T")
 
 class VideoSched:
-    def __init__(self):
-        self.scheduler = VideoScheduler()
+    def __init__(self,
+                 enable_min_cost: Optional[bool] = False,
+                 enable_slo: Optional[bool] = False,
+                 slo_times: Optional[Dict[str, int]] = None):
+        self.scheduler = VideoScheduler(enable_min_cost = enable_min_cost,
+                                        enable_slo = enable_slo,
+                                        slo_times = slo_times)
         
     def add_request(self, 
                 request_id,
@@ -24,8 +30,10 @@ class VideoSched:
                 resolution: Optional[str] = None,
                 aspect_ratio: Optional[str] = None,
                 num_frames: Optional[str] = None):
+        # record the entry time
+        add_time = time.time()
         seq_group = SequenceGroup(request_id=request_id, prompt=prompt, resolution=resolution,\
-            aspect_ratio=aspect_ratio, num_frames=num_frames)
+            aspect_ratio=aspect_ratio, num_frames=num_frames, add_time=add_time)
         self.scheduler.add_seq_group(seq_group)
         
 class VideoSysEngine:

@@ -57,6 +57,7 @@ if __name__ == "__main__":
     parser.add_argument("--port", type=int, default=8001)
 
     args = parser.parse_args()
+    # add policy & slo requirements
     sched = AsyncSched()
     sched.create_consumer()
     uvicorn.run(app,

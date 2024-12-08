@@ -15,6 +15,7 @@ class SequenceGroup:
         num_frames: Optional[str] = None,
         shape: Optional[List] = None,
         worker_ids: Optional[List] = None,
+        add_time: Optional[float] = None
     ) -> None:
         self.request_id = request_id
         self.prompt = prompt
@@ -23,6 +24,7 @@ class SequenceGroup:
         self.num_frames = num_frames
         self.shape = shape
         self.worker_ids = worker_ids
+        self.add_time = add_time
     
     def __json__(self):
         return {
@@ -33,4 +35,3 @@ class SequenceGroup:
             "num_frames": self.num_frames,
             "worker_ids": self.worker_ids
         }
-        

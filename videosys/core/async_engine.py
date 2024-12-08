@@ -216,8 +216,13 @@ class RequestTracker:
 
 class AsyncSched:
     def __init__(self, 
-                 start_engine_loop: bool = True,):
-        self.video_sched = VideoSched()
+                 start_engine_loop: bool = True,
+                 enable_min_cost: Optional[bool] = False,
+                 enable_slo: Optional[bool] = False,
+                 slo_times: Optional[Dict[str, int]] = None):
+        self.video_sched = VideoSched(enable_min_cost = enable_min_cost,
+                                      enable_slo = enable_slo,
+                                      slo_times = slo_times)
         self.start_engine_loop = start_engine_loop
         
         self.background_loop = None
@@ -251,6 +256,10 @@ class AsyncSched:
             
             if len(task.worker_ids) > 1:
                 print("to update ", self.video_sched.scheduler.gpu_status)
+                '''# release dit workers
+                for idx, worker_id in enumerate(task.worker_ids):
+                    if idx != 0:
+                        self.video_sched.scheduler.gpu_status[worker_id] = 0'''
                 self.video_sched.scheduler.gpu_status[task.worker_ids[-1]] = 0
                 print("to update ", self.video_sched.scheduler.gpu_status)
                 api_url = "http://127.0.0.1:8000/async_generate_vae"
