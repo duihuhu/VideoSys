@@ -24,7 +24,7 @@ class Multi_GPU_Type_Resources_Pool:
                   type4_slo: Optional[float] = None) -> None:
                   self.log_file_path = log_file_path
                   self.gpu_types_num: Dict[int, int] = {1: type1_num, 2: type2_num, 4: type4_num}
-                  self.gpu_status: List[int] = [0 for _ in range(sum(type1_num + type2_num * 2 + type4_num * 4))]
+                  self.gpu_status: List[int] = [0 for _ in range(type1_num + type2_num * 2 + type4_num * 4)]
                   self.gpu_free_time: List[float] = [0.0 for _ in range(sum(type1_num + type2_num * 2 + type4_num * 4))]
                   self.dit_time_configs: Dict[str, Dict[int, float]] = {"144p": {1: 3, 2: 3.4, 4: 3.5}, 
                                                                       "240p": {1: 8.3, 2: 4.6, 4: 3.7}, 
