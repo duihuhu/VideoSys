@@ -3,6 +3,7 @@ import threading
 import time
 import argparse
 import random
+from collections import deque
 
 class Request:
      def __init__(self,
@@ -25,7 +26,7 @@ class Multi_GPU_Type_Resources_Pool:
                   self.log_file_path = log_file_path
                   self.gpu_types_num: Dict[int, int] = {1: type1_num, 2: type2_num, 4: type4_num}
                   self.gpu_status: List[int] = [0 for _ in range(type1_num + type2_num * 2 + type4_num * 4)]
-                  self.gpu_free_time: List[float] = [0.0 for _ in range(sum(type1_num + type2_num * 2 + type4_num * 4))]
+                  self.gpu_free_time: List[float] = [0.0 for _ in range(type1_num + type2_num * 2 + type4_num * 4)]
                   self.dit_time_configs: Dict[str, Dict[int, float]] = {"144p": {1: 3, 2: 3.4, 4: 3.5}, 
                                                                       "240p": {1: 8.3, 2: 4.6, 4: 3.7}, 
                                                                       "360p": {1: 19.2, 2: 10.4, 4: 6.1}}
@@ -39,6 +40,7 @@ class Multi_GPU_Type_Resources_Pool:
                   self.type4_lock = threading.Lock()
                   self.all_type_lock = threading.Lock()  
                   self.gpu_status_lock = threading.Lock()   
+                  self.logs_lock = threading.Lock()
      
      def get_min_gpu_num(self,
                          waiting_time: float,
@@ -50,6 +52,13 @@ class Multi_GPU_Type_Resources_Pool:
                             gpu_num: int,
                             resolution: str) -> float:
                pass
+     
+     def write_logs(self,
+                    request: Request,
+                    end_time: float) -> None:
+               with self.logs_lock:
+                    with open(self.log_file_path, 'a') as file:
+                         file.write(f"request {request.id} ends at {end_time} with resolution {request.resolution}\n")
 
      def require_gpu_resources(self, 
                                request_type: str,
@@ -198,8 +207,8 @@ def thread_function(request: Request,
                                                         slo_required = slo_required,
                                                         allocated_gpu_ids = allocated_gpu_ids)
                end_time = time.time()
-               with open(gpu_resources_pool.log_file_path, 'a') as file:
-                    file.write(f"request {request.id} ends at {end_time} with resolution {request.resolution}\n")
+               gpu_resources_pool.write_logs(request = request,
+                                             end_time = end_time)
 
 def fcfs_scheduler(gpu_resources_pool: Multi_GPU_Type_Resources_Pool, 
                    thread_dequeue: Deque[Request],
@@ -303,10 +312,10 @@ if __name__ == "__main__":
                                                         type2_slo = args.type2_slo,
                                                         type4_slo = args.type4_slo)
      
-     requests: Deque[Request] = []
+     requests: Deque[Request] = deque()
      add_time = time.time()
      for i in range(args.request_num):
-          resolution = random.choices(resolutions, [args.type1_num, args.type2_num, args.type3_num], k = 1)[0]
+          resolution = random.choices(resolutions, [args.type1_num, args.type2_num, args.type4_num], k = 1)[0]
           requests.append(Request(id = i, resolution = resolution, add_time = add_time))
      
      print(f"test starts at {add_time}")
