@@ -6,8 +6,10 @@ import random
 
 class Request:
      def __init__(self,
+                  id: int,
                   resolution: str,
                   add_time: float) -> None:
+                  self.id = id
                   self.resolution = resolution
                   self.add_time = add_time
 
@@ -60,28 +62,32 @@ class Multi_GPU_Type_Resources_Pool:
                          with self.type1_lock:
                               if self.gpu_types_num[opt_gpu_num] > 0:
                                    self.gpu_types_num[opt_gpu_num] -= 1
-                                   return (True, opt_gpu_num, self.dit_time_configs[request_type][opt_gpu_num] + self.vae_time_configs[request_type][opt_gpu_num])
+                                   return (True, opt_gpu_num, self.dit_time_configs[request_type][opt_gpu_num] + 
+                                   self.vae_time_configs[request_type][opt_gpu_num])
                               else:
                                    return (False, -1, -1)
                     elif opt_gpu_num == 2:
                          with self.type2_lock:
                               if self.gpu_types_num[opt_gpu_num] > 0:
                                    self.gpu_types_num[opt_gpu_num] -= 1
-                                   return (True, opt_gpu_num, self.dit_time_configs[request_type][opt_gpu_num] + self.vae_time_configs[request_type][opt_gpu_num])
+                                   return (True, opt_gpu_num, self.dit_time_configs[request_type][opt_gpu_num] + 
+                                   self.vae_time_configs[request_type][opt_gpu_num])
                               else:
                                    return (False, -1, -1)
                     else:
                          with self.type4_lock:
                               if self.gpu_types_num[opt_gpu_num] > 0:
                                    self.gpu_types_num[opt_gpu_num] -= 1
-                                   return (True, opt_gpu_num, self.dit_time_configs[request_type][opt_gpu_num] + self.vae_time_configs[request_type][opt_gpu_num])
+                                   return (True, opt_gpu_num, self.dit_time_configs[request_type][opt_gpu_num] + 
+                                   self.vae_time_configs[request_type][opt_gpu_num])
                               else:
                                    return (False, -1, -1)
                elif round_robin:
                     with self.all_type_lock:
                          if self.gpu_types_num[round_robin_gpu_num] > 0:
                               self.gpu_types_num[round_robin_gpu_num] -= 1
-                              return (True, round_robin_gpu_num, self.dit_time_configs[request_type][round_robin_gpu_num] + self.vae_time_configs[request_type][round_robin_gpu_num])
+                              return (True, round_robin_gpu_num, self.dit_time_configs[request_type][round_robin_gpu_num] + 
+                              self.vae_time_configs[request_type][round_robin_gpu_num])
                          else:
                               return (False, -1, -1)
                elif best_match:
@@ -90,28 +96,34 @@ class Multi_GPU_Type_Resources_Pool:
                          if opt_gpu_num == 1:
                               if self.gpu_types_num[opt_gpu_num] > 0:
                                    self.gpu_types_num[opt_gpu_num] -= 1
-                                   return (True, opt_gpu_num, self.dit_time_configs[request_type][opt_gpu_num] + self.vae_time_configs[request_type][opt_gpu_num])
+                                   return (True, opt_gpu_num, self.dit_time_configs[request_type][opt_gpu_num] + 
+                                   self.vae_time_configs[request_type][opt_gpu_num])
                               else:
                                    return (False, -1, -1)
                          elif opt_gpu_num == 2:
                               if self.gpu_types_num[opt_gpu_num] > 0:
                                    self.gpu_types_num[opt_gpu_num] -= 1
-                                   return (True, opt_gpu_num, self.dit_time_configs[request_type][opt_gpu_num] + self.vae_time_configs[request_type][opt_gpu_num])
+                                   return (True, opt_gpu_num, self.dit_time_configs[request_type][opt_gpu_num] + 
+                                   self.vae_time_configs[request_type][opt_gpu_num])
                               elif self.gpu_types_num[1] > 0:
                                    self.gpu_types_num[1] -= 1
-                                   return (True, 1, self.dit_time_configs[request_type][1] + self.vae_time_configs[request_type][1])
+                                   return (True, 1, self.dit_time_configs[request_type][1] + 
+                                   self.vae_time_configs[request_type][1])
                               else:
                                    return (False, -1, -1)
                          else:
                               if self.gpu_types_num[opt_gpu_num] > 0:
                                    self.gpu_types_num[opt_gpu_num] -= 1
-                                   return (True, opt_gpu_num, self.dit_time_configs[request_type][opt_gpu_num] + self.vae_time_configs[request_type][opt_gpu_num])
+                                   return (True, opt_gpu_num, self.dit_time_configs[request_type][opt_gpu_num] + 
+                                   self.vae_time_configs[request_type][opt_gpu_num])
                               elif self.gpu_types_num[2] > 0:
                                    self.gpu_types_num[2]  -= 1
-                                   return (True, 2, self.dit_time_configs[request_type][2] + self.vae_time_configs[request_type][2])
+                                   return (True, 2, self.dit_time_configs[request_type][2] + 
+                                   self.vae_time_configs[request_type][2])
                               elif self.gpu_types_num[1] > 0:
                                    self.gpu_types_num[1] -= 1
-                                   return (True, 1, self.dit_time_configs[request_type][1] + self.vae_time_configs[request_type][1])
+                                   return (True, 1, self.dit_time_configs[request_type][1] + 
+                                   self.vae_time_configs[request_type][1])
                               else:
                                    return (False, -1, -1)
                else:
@@ -167,7 +179,6 @@ class Multi_GPU_Type_Resources_Pool:
                     with self.gpu_status_lock:
                          for idx in allocated_gpu_ids:
                               self.gpu_status[idx] = 0
-                              self.gpu_free_time[idx] = 0.0
                else:
                     with self.all_type_lock:
                          self.gpu_types_num[release_gpu_num] += 1
@@ -207,13 +218,13 @@ def fcfs_scheduler(gpu_resources_pool: Multi_GPU_Type_Resources_Pool,
                               cur_thread = threading.Thread(target = thread_function, args = (gpu_resources_pool,
                                                                                                allocate_gpu_num,
                                                                                                cluster_isolated, 
-                                                                                               slo_required, None, expected_exe_time))
+                                                                                               slo_required, 
+                                                                                               None, 
+                                                                                               expected_exe_time))
                               cur_thread.start()
                               activate_threads.append(cur_thread)
                          else:
                               thread_dequeue.append(cur_request)
-                              # avoid busy waiting
-                              time.sleep(0.1)
                          count += 1
                     elif slo_required:
                          cur_request = thread_dequeue.popleft()
@@ -227,13 +238,13 @@ def fcfs_scheduler(gpu_resources_pool: Multi_GPU_Type_Resources_Pool,
                               cur_thread = threading.Thread(target = thread_function, args = (gpu_resources_pool, 
                                                                                                -1,
                                                                                                cluster_isolated, 
-                                                                                               slo_required, allocate_gpu_num_ids, expected_exe_time))
+                                                                                               slo_required, 
+                                                                                               allocate_gpu_num_ids, 
+                                                                                               expected_exe_time))
                               cur_thread.start()
                               activate_threads.append(cur_thread)
                          else:
                               thread_dequeue.append(cur_request)
-                              # avoid busy waiting
-                              time.sleep(0.1)
                     else:
                          cur_request = thread_dequeue.popleft()
                          can_exe, allocate_gpu_num, expected_exe_time = gpu_resources_pool.require_gpu_resources(request_type = cur_request.resolution,
@@ -246,23 +257,24 @@ def fcfs_scheduler(gpu_resources_pool: Multi_GPU_Type_Resources_Pool,
                               cur_thread = threading.Thread(target = thread_function, args = (gpu_resources_pool,
                                                                                                allocate_gpu_num,
                                                                                                cluster_isolated, 
-                                                                                               slo_required, None, expected_exe_time))
+                                                                                               slo_required, 
+                                                                                               None, 
+                                                                                               expected_exe_time))
                               cur_thread.start()
                               activate_threads.append(cur_thread)
                          else:
                               thread_dequeue.append(cur_request)
-                              # avoid busy waiting
-                              time.sleep(0.1)
                for thread in activate_threads:
                     thread.join()
 
 if __name__ == "__main__":
      parser = argparse.ArgumentParser()
+     parser.add_argument("--log", type = str, default = "/home/jovyan/hhy/VideoSys/examples/global_scheduler")
      parser.add_argument("--cluster-isolated", action = "store_true", default = False)
      parser.add_argument("--round-robin", action = "store_true", default = False)
      parser.add_argument("--best-match", action = "store_true", default = False)
      parser.add_argument("--slo-required", action = "store_true", default = False)
-     parser.add_argument("--request-num", type = int, default = 10)
+     parser.add_argument("--request-num", type = int, default = 20)
      parser.add_argument("--type1-num", type = int, default = 6)
      parser.add_argument("--type2-num", type = int, default = 3)
      parser.add_argument("--type4-num", type = int, default = 1)
@@ -274,7 +286,6 @@ if __name__ == "__main__":
      resolutions = ["144p", "240p", "360p"]
      resolutions_weights = [args.type1_num, args.type2_num, args.type4_num]
 
-    
      gpu_resources_pool = Multi_GPU_Type_Resources_Pool(type1_num = args.type1_num, 
                                                         type2_num = args.type2_num, 
                                                         type4_num = args.type4_num,
@@ -284,11 +295,12 @@ if __name__ == "__main__":
      
      requests: Deque[Request] = []
      add_time = time.time()
-     for _ in range(args.request_num):
+     for i in range(args.request_num):
           resolution = random.choices(resolutions, [args.type1_num, args.type2_num, args.type3_num], k = 1)[0]
-          requests.append(Request(resolution = resolution, add_time = add_time))
+          requests.append(Request(id = i, resolution = resolution, add_time = add_time))
      
-     fcfs_scheduler(gpu_resources_pool = gpu_resources_pool, thread_dequeue = requests,
+     fcfs_scheduler(gpu_resources_pool = gpu_resources_pool, 
+                    thread_dequeue = requests,
                     cluster_isolated = args.cluster_isolated,
                     round_robin = args.round_robin,
                     best_match = args.best_match,
