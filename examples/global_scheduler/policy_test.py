@@ -15,12 +15,14 @@ class Request:
 
 class Multi_GPU_Type_Resources_Pool:
      def __init__(self,
+                  log_file_path: str,
                   type1_num: int,
                   type2_num: int,
                   type4_num: int,
                   type1_slo: Optional[float] = None,
                   type2_slo: Optional[float] = None,
                   type4_slo: Optional[float] = None) -> None:
+                  self.log_file_path = log_file_path
                   self.gpu_types_num: Dict[int, int] = {1: type1_num, 2: type2_num, 4: type4_num}
                   self.gpu_status: List[int] = [0 for _ in range(sum(type1_num + type2_num * 2 + type4_num * 4))]
                   self.gpu_free_time: List[float] = [0.0 for _ in range(sum(type1_num + type2_num * 2 + type4_num * 4))]
@@ -183,7 +185,8 @@ class Multi_GPU_Type_Resources_Pool:
                     with self.all_type_lock:
                          self.gpu_types_num[release_gpu_num] += 1
      
-def thread_function(gpu_resources_pool: Multi_GPU_Type_Resources_Pool,
+def thread_function(request: Request,
+                    gpu_resources_pool: Multi_GPU_Type_Resources_Pool,
                     release_gpu_num: int, 
                     cluster_isolated: Optional[bool] = True,
                     slo_required: Optional[bool] = True,
@@ -194,6 +197,9 @@ def thread_function(gpu_resources_pool: Multi_GPU_Type_Resources_Pool,
                                                         cluster_isolated = cluster_isolated,
                                                         slo_required = slo_required,
                                                         allocated_gpu_ids = allocated_gpu_ids)
+               end_time = time.time()
+               with open(gpu_resources_pool.log_file_path, 'a') as file:
+                    file.write(f"request {request.id} ends at {end_time} with resolution {request.resolution}\n")
 
 def fcfs_scheduler(gpu_resources_pool: Multi_GPU_Type_Resources_Pool, 
                    thread_dequeue: Deque[Request],
@@ -215,7 +221,8 @@ def fcfs_scheduler(gpu_resources_pool: Multi_GPU_Type_Resources_Pool,
                                                                                                                  round_robin_gpu_num = cur_require_gpu,
                                                                                                                  best_match = best_match)
                          if can_exe:
-                              cur_thread = threading.Thread(target = thread_function, args = (gpu_resources_pool,
+                              cur_thread = threading.Thread(target = thread_function, args = (cur_request,
+                                                                                               gpu_resources_pool,
                                                                                                allocate_gpu_num,
                                                                                                cluster_isolated, 
                                                                                                slo_required, 
@@ -235,7 +242,8 @@ def fcfs_scheduler(gpu_resources_pool: Multi_GPU_Type_Resources_Pool,
                                                                                                                      round_robin_gpu_num = -1,
                                                                                                                      best_match = best_match)
                          if can_exe:
-                              cur_thread = threading.Thread(target = thread_function, args = (gpu_resources_pool, 
+                              cur_thread = threading.Thread(target = thread_function, args = (cur_request,
+                                                                                               gpu_resources_pool, 
                                                                                                -1,
                                                                                                cluster_isolated, 
                                                                                                slo_required, 
@@ -254,7 +262,8 @@ def fcfs_scheduler(gpu_resources_pool: Multi_GPU_Type_Resources_Pool,
                                                                                                                  round_robin_gpu_num = -1,
                                                                                                                  best_match = best_match)
                          if can_exe:
-                              cur_thread = threading.Thread(target = thread_function, args = (gpu_resources_pool,
+                              cur_thread = threading.Thread(target = thread_function, args = (cur_request,
+                                                                                               gpu_resources_pool,
                                                                                                allocate_gpu_num,
                                                                                                cluster_isolated, 
                                                                                                slo_required, 
@@ -286,7 +295,8 @@ if __name__ == "__main__":
      resolutions = ["144p", "240p", "360p"]
      resolutions_weights = [args.type1_num, args.type2_num, args.type4_num]
 
-     gpu_resources_pool = Multi_GPU_Type_Resources_Pool(type1_num = args.type1_num, 
+     gpu_resources_pool = Multi_GPU_Type_Resources_Pool(log_file_path = args.log,
+                                                        type1_num = args.type1_num, 
                                                         type2_num = args.type2_num, 
                                                         type4_num = args.type4_num,
                                                         type1_slo = args.type1_slo,
@@ -298,6 +308,8 @@ if __name__ == "__main__":
      for i in range(args.request_num):
           resolution = random.choices(resolutions, [args.type1_num, args.type2_num, args.type3_num], k = 1)[0]
           requests.append(Request(id = i, resolution = resolution, add_time = add_time))
+     
+     print(f"test starts at {add_time}")
      
      fcfs_scheduler(gpu_resources_pool = gpu_resources_pool, 
                     thread_dequeue = requests,
