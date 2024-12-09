@@ -39,8 +39,8 @@ class Multi_GPU_Type_Resources_Pool:
                   self.type2_lock = threading.Lock()
                   self.type4_lock = threading.Lock()
                   self.all_type_lock = threading.Lock()  
-                  self.gpu_status_lock = threading.Lock()   
-                  self.logs_lock = threading.Lock()
+                  self.gpu_status_lock = threading.Lock()
+                  self.logs_lock = threading.Lock()   
      
      def get_min_gpu_num(self,
                          waiting_time: float,
@@ -208,7 +208,7 @@ def thread_function(request: Request,
                                                         allocated_gpu_ids = allocated_gpu_ids)
                end_time = time.time()
                gpu_resources_pool.write_logs(request = request,
-                                             end_time = end_time)
+                                             end_time = end_time)            
 
 def fcfs_scheduler(gpu_resources_pool: Multi_GPU_Type_Resources_Pool, 
                    thread_dequeue: Deque[Request],
@@ -287,7 +287,7 @@ def fcfs_scheduler(gpu_resources_pool: Multi_GPU_Type_Resources_Pool,
 
 if __name__ == "__main__":
      parser = argparse.ArgumentParser()
-     parser.add_argument("--log", type = str, default = "/home/jovyan/hhy/VideoSys/examples/global_scheduler")
+     parser.add_argument("--log", type = str, default = "/home/jovyan/hhy/VideoSys/examples/global_scheduler/logs.txt")
      parser.add_argument("--cluster-isolated", action = "store_true", default = False)
      parser.add_argument("--round-robin", action = "store_true", default = False)
      parser.add_argument("--best-match", action = "store_true", default = False)
