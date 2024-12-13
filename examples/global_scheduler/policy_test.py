@@ -201,12 +201,14 @@ def thread_function(request: Request,
                     slo_required: Optional[bool] = True,
                     allocated_gpu_ids: Optional[List[int]] = None,
                     expected_exe_time: Optional[float] = None) -> None:
+               print(f"Request {request.id} Stars")
                time.sleep(expected_exe_time)
                gpu_resources_pool.release_gpu_resources(release_gpu_num = release_gpu_num,
                                                         cluster_isolated = cluster_isolated,
                                                         slo_required = slo_required,
                                                         allocated_gpu_ids = allocated_gpu_ids)
                end_time = time.time()
+               print(f"Request {request.id} Ends")
                gpu_resources_pool.write_logs(request = request,
                                              end_time = end_time)            
 
@@ -318,7 +320,9 @@ if __name__ == "__main__":
           resolution = random.choices(resolutions, [args.type1_num, args.type2_num, args.type4_num], k = 1)[0]
           requests.append(Request(id = i, resolution = resolution, add_time = add_time))
      
-     print(f"test starts at {add_time}")
+     print(f"Test Starts")
+     with open(args.log, 'a') as file:
+          file.write(f"Test Starts at {time.time()}\n")
      
      fcfs_scheduler(gpu_resources_pool = gpu_resources_pool, 
                     thread_dequeue = requests,
