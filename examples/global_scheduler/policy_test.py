@@ -295,12 +295,15 @@ if __name__ == "__main__":
      parser.add_argument("--best-match", action = "store_true", default = False)
      parser.add_argument("--slo-required", action = "store_true", default = False)
      parser.add_argument("--request-num", type = int, default = 20)
-     parser.add_argument("--type1-num", type = int, default = 6)
+     parser.add_argument("--type1-num", type = int, default = 4)
      parser.add_argument("--type2-num", type = int, default = 3)
-     parser.add_argument("--type4-num", type = int, default = 1)
+     parser.add_argument("--type4-num", type = int, default = 3)
      parser.add_argument("--type1-slo", type = float, default = -1.0)
      parser.add_argument("--type2-slo", type = float, default = -1.0)
      parser.add_argument("--type4-slo", type = float, default = -1.0)
+     parser.add_argument("--workload1-num", type = int, default = 6)
+     parser.add_argument("--workload2-num", type = int, default = 3)
+     parser.add_argument("--workload3-num", type = int, default = 1)
      args = parser.parse_args()
 
      resolutions = ["144p", "240p", "360p"]
@@ -317,7 +320,7 @@ if __name__ == "__main__":
      requests: Deque[Request] = deque()
      add_time = time.time()
      for i in range(args.request_num):
-          resolution = random.choices(resolutions, [args.type1_num, args.type2_num, args.type4_num], k = 1)[0]
+          resolution = random.choices(resolutions, [args.workload1_num, args.workload2_num, args.workload3_num], k = 1)[0]
           requests.append(Request(id = i, resolution = resolution, add_time = add_time))
      
      print(f"Test Starts")
