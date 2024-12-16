@@ -221,7 +221,7 @@ class RFLOW:
         dtype = model.x_embedder.proj.weight.dtype
         all_timesteps = [int(t.to(dtype).item()) for t in timesteps]
         for i, t in progress_wrap(list(enumerate(timesteps))):
-            print("rflow ", i , z)
+            print("rflow ", i , z.shape)
             # mask for adding noise
             if mask is not None:
                 mask_t = mask * self.num_timesteps
