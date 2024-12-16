@@ -7,7 +7,7 @@ with open("/home/jovyan/hhy/VideoSys/examples/global_scheduler/logs.txt", 'r') a
             continue
         else:
             data = line.strip().split(' ')
-            id = int(line[0])
+            id = int(line[1])
             end_time = float(line[4])
             resolution = str(line[-1])  
             datas.append((id,end_time-start_time,resolution))

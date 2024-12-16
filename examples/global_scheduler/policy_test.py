@@ -201,7 +201,7 @@ def thread_function(request: Request,
                     slo_required: Optional[bool] = True,
                     allocated_gpu_ids: Optional[List[int]] = None,
                     expected_exe_time: Optional[float] = None) -> None:
-               print(f"Request {request.id} Stars")
+               print(f"Request {request.id} Starts")
                time.sleep(expected_exe_time)
                gpu_resources_pool.release_gpu_resources(release_gpu_num = release_gpu_num,
                                                         cluster_isolated = cluster_isolated,
@@ -294,7 +294,10 @@ if __name__ == "__main__":
      parser.add_argument("--round-robin", action = "store_true", default = False)
      parser.add_argument("--best-match", action = "store_true", default = False)
      parser.add_argument("--slo-required", action = "store_true", default = False)
-     parser.add_argument("--request-num", type = int, default = 20)
+     parser.add_argument("--request-num", type = int, default = 128)
+     parser.add_argument("--type1-num", type = int, default = 10)
+     parser.add_argument("--type2-num", type = int, default = 9)
+     parser.add_argument("--type4-num", type = int, default = 9)
      parser.add_argument("--type1-slo", type = float, default = -1.0)
      parser.add_argument("--type2-slo", type = float, default = -1.0)
      parser.add_argument("--type4-slo", type = float, default = -1.0)
@@ -307,9 +310,9 @@ if __name__ == "__main__":
      resolutions_weights = [args.workload1_num, args.workload2_num, args.workload3_num]
 
      gpu_resources_pool = Multi_GPU_Type_Resources_Pool(log_file_path = args.log,
-                                                        type1_num = 10, 
-                                                        type2_num = 9, 
-                                                        type4_num = 9,
+                                                        type1_num = args.type1_num, 
+                                                        type2_num = args.type2_num, 
+                                                        type4_num = args.type4_num,
                                                         type1_slo = args.type1_slo,
                                                         type2_slo = args.type2_slo,
                                                         type4_slo = args.type4_slo)
