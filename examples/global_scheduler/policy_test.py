@@ -217,10 +217,13 @@ def fcfs_scheduler(gpu_resources_pool: Multi_GPU_Type_Resources_Pool,
                    cluster_isolated: Optional[bool] = True,
                    round_robin: Optional[bool] = True,
                    best_match: Optional[bool] = True,
-                   slo_required: Optional[bool] = True) -> None:
+                   slo_required: Optional[bool] = True,
+                   log_file_path: Optional[str] = None) -> None:
                activate_threads: List[threading.Thread] = []
                count = 0
                gpu_num = [1, 2, 4]
+               with open(log_file_path, 'a') as file:
+                    file.write(f"Test Starts at {time.time()}\n")
                while thread_dequeue:
                     if round_robin:
                          cur_require_gpu = gpu_num[count % 3]
@@ -289,7 +292,7 @@ def fcfs_scheduler(gpu_resources_pool: Multi_GPU_Type_Resources_Pool,
 
 if __name__ == "__main__":
      parser = argparse.ArgumentParser()
-     parser.add_argument("--log", type = str, default = "/home/jovyan/hhy/VideoSys/examples/global_scheduler/logs.txt")
+     parser.add_argument("--log", type = str, default = "/home/jovyan/hhy/VideoSys/examples/global_scheduler/logs_")
      parser.add_argument("--cluster-isolated", action = "store_true", default = False)
      parser.add_argument("--round-robin", action = "store_true", default = False)
      parser.add_argument("--best-match", action = "store_true", default = False)
@@ -306,30 +309,76 @@ if __name__ == "__main__":
      parser.add_argument("--workload3-num", type = int, default = 1)
      args = parser.parse_args()
 
+     random.seed(42)
      resolutions = ["144p", "240p", "360p"]
      resolutions_weights = [args.workload1_num, args.workload2_num, args.workload3_num]
+     requests_resolutions: List[str] = []
+     for _ in range(args.request_num):
+          cur_request_resolution = random.choices(resolutions, resolutions_weights, k = 1)[0]
+          requests_resolutions.append(cur_request_resolution)
+     schedule_policies = ["Cluster_Isolated", "Round_Robin", "Best_Match"]
 
-     gpu_resources_pool = Multi_GPU_Type_Resources_Pool(log_file_path = args.log,
-                                                        type1_num = args.type1_num, 
-                                                        type2_num = args.type2_num, 
-                                                        type4_num = args.type4_num,
-                                                        type1_slo = args.type1_slo,
-                                                        type2_slo = args.type2_slo,
-                                                        type4_slo = args.type4_slo)
-     
-     requests: Deque[Request] = deque()
-     add_time = time.time()
-     for i in range(args.request_num):
-          resolution = random.choices(resolutions, resolutions_weights, k = 1)[0]
-          requests.append(Request(id = i, resolution = resolution, add_time = add_time))
-     
-     print(f"Test Starts")
-     with open(args.log, 'a') as file:
-          file.write(f"Test Starts at {time.time()}\n")
-     
-     fcfs_scheduler(gpu_resources_pool = gpu_resources_pool, 
-                    thread_dequeue = requests,
-                    cluster_isolated = args.cluster_isolated,
-                    round_robin = args.round_robin,
-                    best_match = args.best_match,
-                    slo_required = args.slo_required)
+     for i, policy in enumerate(schedule_policies):
+          if i == 0:
+               log_file_path = args.log + policy + ".txt"
+               gpu_resources_pool = Multi_GPU_Type_Resources_Pool(log_file_path = log_file_path,
+                                                                 type1_num = args.type1_num, 
+                                                                 type2_num = args.type2_num, 
+                                                                 type4_num = args.type4_num,
+                                                                 type1_slo = args.type1_slo,
+                                                                 type2_slo = args.type2_slo,
+                                                                 type4_slo = args.type4_slo)
+               requests: Deque[Request] = deque()
+               add_time = time.time()
+               for i, resolution in enumerate(requests_resolutions):
+                    requests.append(Request(id = i, resolution = resolution, add_time = add_time))
+               print(f"{policy} Test Starts")
+               fcfs_scheduler(gpu_resources_pool = gpu_resources_pool, 
+                              thread_dequeue = requests,
+                              cluster_isolated = True,
+                              round_robin = False,
+                              best_match = False,
+                              slo_required = False,
+                              log_file_path = log_file_path)
+          elif i == 1:
+               log_file_path = args.log + policy + ".txt"
+               gpu_resources_pool = Multi_GPU_Type_Resources_Pool(log_file_path = log_file_path,
+                                                                 type1_num = args.type1_num, 
+                                                                 type2_num = args.type2_num, 
+                                                                 type4_num = args.type4_num,
+                                                                 type1_slo = args.type1_slo,
+                                                                 type2_slo = args.type2_slo,
+                                                                 type4_slo = args.type4_slo)
+               requests: Deque[Request] = deque()
+               add_time = time.time()
+               for i, resolution in enumerate(requests_resolutions):
+                    requests.append(Request(id = i, resolution = resolution, add_time = add_time))
+               print(f"{policy} Test Starts")
+               fcfs_scheduler(gpu_resources_pool = gpu_resources_pool, 
+                              thread_dequeue = requests,
+                              cluster_isolated = False,
+                              round_robin = True,
+                              best_match = False,
+                              slo_required = False,
+                              log_file_path = log_file_path)
+          else:
+               log_file_path = args.log + policy + ".txt"
+               gpu_resources_pool = Multi_GPU_Type_Resources_Pool(log_file_path = log_file_path,
+                                                                 type1_num = args.type1_num, 
+                                                                 type2_num = args.type2_num, 
+                                                                 type4_num = args.type4_num,
+                                                                 type1_slo = args.type1_slo,
+                                                                 type2_slo = args.type2_slo,
+                                                                 type4_slo = args.type4_slo)
+               requests: Deque[Request] = deque()
+               add_time = time.time()
+               for i, resolution in enumerate(requests_resolutions):
+                    requests.append(Request(id = i, resolution = resolution, add_time = add_time))
+               print(f"{policy} Test Starts")
+               fcfs_scheduler(gpu_resources_pool = gpu_resources_pool, 
+                              thread_dequeue = requests,
+                              cluster_isolated = False,
+                              round_robin = False,
+                              best_match = True,
+                              slo_required = False,
+                              log_file_path = log_file_path)
