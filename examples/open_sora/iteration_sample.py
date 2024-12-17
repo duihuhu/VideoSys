@@ -11,6 +11,8 @@ def run_base():
     # num frames: 2s, 4s, 8s, 16s
     # resolution: 144p, 240p, 360p, 480p, 720p
     # aspect ratio: 9:16, 16:9, 3:4, 4:3, 1:1
+    import time
+    t1 = time.time()
     engine.prepare_generate(
         prompt=prompt,
         resolution="480p",
@@ -19,12 +21,13 @@ def run_base():
     )
     
     # engine.iteration_generate()
-    for index in range(30):
+    for index in range(config.num_sampling_steps):
         engine.index_iteration_generate(i=index)
         
     video = engine.video_genereate(
     ).video[0]
-    
+    t2 = time.time()
+    print("t2-t1 ", t2-t1)
     engine.save_video(video, f"./outputs/{prompt}.mp4")
 
 

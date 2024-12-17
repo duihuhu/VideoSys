@@ -336,7 +336,6 @@ class RFLOW:
 
     def index_iteration_sample(self, model, z, i):
         t = self.timesteps[i]
-        self.progress_wrap(i)
             # mask for adding noise
         if self.mask is not None:
             mask_t = self.mask * self.num_timesteps

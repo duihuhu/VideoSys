@@ -11,12 +11,16 @@ def run_base():
     # num frames: 2s, 4s, 8s, 16s
     # resolution: 144p, 240p, 360p, 480p, 720p
     # aspect ratio: 9:16, 16:9, 3:4, 4:3, 1:1
+    import time
+    t1 = time.time()
     video = engine.generate(
         prompt=prompt,
         resolution="480p",
         aspect_ratio="9:16",
         num_frames="2s",
     ).video[0]
+    t2 = time.time()
+    print("t2-t1 ", t2-t1)
     engine.save_video(video, f"./outputs/{prompt}.mp4")
 
 
