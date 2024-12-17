@@ -102,6 +102,16 @@ class VideoSysEngine:
     def generate(self, *args, **kwargs):
         return self._run_workers("generate", *args, **kwargs)[0]
 
+    def prepare_generate(self, *args, **kwargs):
+        return self._run_workers("prepare_generate", *args, **kwargs)
+
+    def iteration_generate(self, *args, **kwargs):
+        return self._run_workers("iteration_generate", *args, **kwargs)
+    
+    def video_genereate(self, *args, **kwargs):
+        return self._run_workers("video_genereate", *args, **kwargs)[0]
+
+
     def stop_remote_worker_execution_loop(self) -> None:
         if self.parallel_worker_tasks is None:
             return
