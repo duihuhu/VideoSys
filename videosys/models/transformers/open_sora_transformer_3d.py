@@ -501,7 +501,7 @@ class STDiT3(PreTrainedModel):
     def forward(
         self, x, timestep, all_timesteps, y, mask=None, x_mask=None, fps=None, height=None, width=None, **kwargs
     ):
-        print("forward ", timestep, all_timesteps, y, mask, x_mask, fps, height, width, **kwargs)
+        print("forward ", timestep, all_timesteps, y, mask, x_mask, fps, height, width, kwargs)
         # === Split batch ===
         if get_cfg_parallel_size() > 1:
             x, timestep, y, x_mask, mask = batch_func(
