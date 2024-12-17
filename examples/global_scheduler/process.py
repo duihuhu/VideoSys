@@ -35,5 +35,5 @@ for j, policy in enumerate(schedule_policies):
             for key, value in res.items():
                 print(f"{key} appears {value} times")
         print(f"----------Durations----------")
-        for data in datas:
-            print(data[1])
+        avg_time = sum(datas) / len(datas)
+        print(avg_time)
