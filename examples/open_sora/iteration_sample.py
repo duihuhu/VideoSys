@@ -17,9 +17,8 @@ def run_base():
         aspect_ratio="9:16",
         num_frames="2s",
     )
-    engine.iteration_generate(
-    )
-    video = engine.iteration_generate(
+    engine.iteration_generate()
+    video = engine.video_genereate(
     ).video[0]
     
     engine.save_video(video, f"./outputs/{prompt}.mp4")
