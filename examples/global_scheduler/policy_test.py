@@ -35,9 +35,6 @@ class Multi_GPU_Type_Resources_Pool:
                                                                       "360p": {1: 0.87, 2: 0.87, 4: 0.87}}
                   self.opt_gpu_config: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 4}
                   self.slo_times: Dict[str, float] = {"144p": type1_slo, "240p": type2_slo, "360p": type4_slo}
-                  self.type1_lock = threading.Lock()
-                  self.type2_lock = threading.Lock()
-                  self.type4_lock = threading.Lock()
                   self.all_type_lock = threading.Lock()  
                   self.gpu_status_lock = threading.Lock()
                   self.logs_lock = threading.Lock()   
@@ -68,25 +65,23 @@ class Multi_GPU_Type_Resources_Pool:
                                round_robin_gpu_num: Optional[int] = 1,
                                best_match: Optional[bool] = True) -> Union[Tuple[bool, int, float], Tuple[bool, List[int], float]]:
                if cluster_isolated:
-                    opt_gpu_num = self.opt_gpu_config[request_type]
-                    if opt_gpu_num == 1:
-                         with self.type1_lock:
+                    with self.all_type_lock:
+                         opt_gpu_num = self.opt_gpu_config[request_type]
+                         if opt_gpu_num == 1:
                               if self.gpu_types_num[opt_gpu_num] > 0:
                                    self.gpu_types_num[opt_gpu_num] -= 1
                                    return (True, opt_gpu_num, self.dit_time_configs[request_type][opt_gpu_num] + 
                                    self.vae_time_configs[request_type][opt_gpu_num])
                               else:
                                    return (False, -1, -1)
-                    elif opt_gpu_num == 2:
-                         with self.type2_lock:
+                         elif opt_gpu_num == 2:
                               if self.gpu_types_num[opt_gpu_num] > 0:
                                    self.gpu_types_num[opt_gpu_num] -= 1
                                    return (True, opt_gpu_num, self.dit_time_configs[request_type][opt_gpu_num] + 
                                    self.vae_time_configs[request_type][opt_gpu_num])
                               else:
                                    return (False, -1, -1)
-                    else:
-                         with self.type4_lock:
+                         else:
                               if self.gpu_types_num[opt_gpu_num] > 0:
                                    self.gpu_types_num[opt_gpu_num] -= 1
                                    return (True, opt_gpu_num, self.dit_time_configs[request_type][opt_gpu_num] + 
@@ -173,20 +168,9 @@ class Multi_GPU_Type_Resources_Pool:
      
      def release_gpu_resources(self, 
                                release_gpu_num: int, 
-                               cluster_isolated: Optional[bool] = True,
                                slo_required: Optional[bool] = True,
                                allocated_gpu_ids: Optional[List[int]] = None) -> None:
-               if cluster_isolated:
-                    if release_gpu_num == 1:
-                         with self.type1_lock:
-                              self.gpu_types_num[release_gpu_num] += 1
-                    elif release_gpu_num == 2:
-                         with self.type2_lock:
-                              self.gpu_types_num[release_gpu_num] += 1
-                    else:
-                         with self.type4_lock:
-                              self.gpu_types_num[release_gpu_num] += 1
-               elif slo_required:
+               if slo_required:
                     with self.gpu_status_lock:
                          for idx in allocated_gpu_ids:
                               self.gpu_status[idx] = 0
@@ -204,7 +188,6 @@ def thread_function(request: Request,
                print(f"Request {request.id} Starts")
                time.sleep(expected_exe_time)
                gpu_resources_pool.release_gpu_resources(release_gpu_num = release_gpu_num,
-                                                        cluster_isolated = cluster_isolated,
                                                         slo_required = slo_required,
                                                         allocated_gpu_ids = allocated_gpu_ids)
                end_time = time.time()
@@ -311,11 +294,18 @@ if __name__ == "__main__":
 
      random.seed(42)
      resolutions = ["144p", "240p", "360p"]
-     resolutions_weights = [args.workload1_num, args.workload2_num, args.workload3_num]
      requests_resolutions: List[str] = []
-     for _ in range(args.request_num):
-          cur_request_resolution = random.choices(resolutions, resolutions_weights, k = 1)[0]
-          requests_resolutions.append(cur_request_resolution)
+     total_weights = args.workload1_num + args.workload2_num + args.workload3_num
+     resolution1_num = round(args.request_num * (args.workload1_num / total_weights))
+     resolution2_num = round(args.request_num * (args.workload2_num / total_weights))
+     resolution3_num = round(args.request_num * (args.workload3_num / total_weights))
+     for _ in range(resolution1_num):
+          requests_resolutions.append(resolutions[0])
+     for _ in range(resolution2_num):
+          requests_resolutions.append(resolutions[1])
+     for _ in range(resolution3_num):
+          requests_resolutions.append(resolutions[2])
+     random.shuffle(requests_resolutions)
      schedule_policies = ["Cluster_Isolated", "Round_Robin", "Best_Match"]
 
      for i, policy in enumerate(schedule_policies):
