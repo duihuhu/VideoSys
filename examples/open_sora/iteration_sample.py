@@ -17,7 +17,11 @@ def run_base():
         aspect_ratio="9:16",
         num_frames="2s",
     )
-    engine.iteration_generate()
+    
+    # engine.iteration_generate()
+    for index in range(30):
+        engine.index_iteration_generate(i=index)
+        
     video = engine.video_genereate(
     ).video[0]
     

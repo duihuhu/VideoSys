@@ -827,6 +827,16 @@ class OpenSoraPipeline(VideoSysPipeline):
             z=self.z,
         )
         self.samples = samples
+        
+    @torch.no_grad()        
+    def index_iteration_generate(self, i):
+        self.z = self.scheduler.index_iteration_sample(
+            self.transformer,
+            z=self.z,
+            i=i
+        )
+        self.samples = self.z
+        
     @torch.no_grad()     
     def video_genereate(self):
         video_clips = []

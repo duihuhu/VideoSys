@@ -299,7 +299,7 @@ class RFLOW:
         self.model_args = model_args
         self.guidance_scale = guidance_scale
         
-    def iteration_sample(self, model, z,):
+    def iteration_sample(self, model, z):
         for i, t in self.progress_wrap(list(enumerate(self.timesteps))):
             # mask for adding noise
             if self.mask is not None:
@@ -332,6 +332,42 @@ class RFLOW:
             if self.mask is not None:
                 z = torch.where(mask_t_upper[:, None, :, None, None], z, x0)
         return z
-    
+
+
+    def index_iteration_sample(self, model, z, i):
+        t = self.timesteps[i]
+        self.progress_wrap(i)
+            # mask for adding noise
+        if self.mask is not None:
+            mask_t = self.mask * self.num_timesteps
+            x0 = z.clone()
+            x_noise = self.scheduler.add_noise(x0, torch.randn_like(x0), t)
+
+            mask_t_upper = mask_t >= t.unsqueeze(1)
+            self.model_args["x_mask"] = mask_t_upper.repeat(2, 1)
+            mask_add_noise = mask_t_upper & ~self.noise_added
+
+            z = torch.where(mask_add_noise[:, None, :, None, None], x_noise, x0)
+            self.noise_added = mask_t_upper
+
+        # classifier-free guidance
+        z_in = torch.cat([z, z], 0)
+        t = torch.cat([t, t], 0)
+        # pred = model(z_in, t, **model_args).chunk(2, dim=1)[0]
+        output = model(z_in, t, self.all_timesteps, **self.model_args)
+
+        pred = output.chunk(2, dim=1)[0]
+        pred_cond, pred_uncond = pred.chunk(2, dim=0)
+        v_pred = pred_uncond + self.guidance_scale * (pred_cond - pred_uncond)
+
+        # update z
+        dt = self.timesteps[i] - self.timesteps[i + 1] if i < len(self.timesteps) - 1 else self.timesteps[i]
+        dt = dt / self.num_timesteps
+        z = z + v_pred * dt[:, None, None, None, None]
+
+        if self.mask is not None:
+            z = torch.where(mask_t_upper[:, None, :, None, None], z, x0)
+        return z
+        
     def training_losses(self, model, x_start, model_kwargs=None, noise=None, mask=None, weights=None, t=None):
         return self.scheduler.training_losses(model, x_start, model_kwargs, noise, mask, weights, t)

@@ -108,6 +108,9 @@ class VideoSysEngine:
     def iteration_generate(self, *args, **kwargs):
         return self._run_workers("iteration_generate", *args, **kwargs)
     
+    def index_iteration_generate(self, *args, **kwargs):
+        return self._run_workers("index_iteration_generate", *args, **kwargs)
+    
     def video_genereate(self, *args, **kwargs):
         return self._run_workers("video_genereate", *args, **kwargs)[0]
 
