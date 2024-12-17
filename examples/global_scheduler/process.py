@@ -2,7 +2,7 @@ schedule_policies = ["Cluster_Isolated", "Round_Robin", "Best_Match"]
 prefix_path = "/home/jovyan/hhy/VideoSys/examples/global_scheduler/logs_"
 suffix_path = ".txt"
 
-for i, policy in enumerate(schedule_policies):
+for j, policy in enumerate(schedule_policies):
     file_path = prefix_path + policy + suffix_path
     print(f"----------{policy}----------")
     with open(file_path, 'r') as file:
@@ -19,7 +19,7 @@ for i, policy in enumerate(schedule_policies):
                 resolution = str(data[-1])  
                 datas.append((id,end_time-start_time,resolution))
         datas.sort(key=lambda x:x[0])
-        if i == 0:
+        if j == 0:
             print(f"----------IDs----------")
             for data in datas:
                 print(data[0])
