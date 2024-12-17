@@ -820,7 +820,7 @@ class OpenSoraPipeline(VideoSysPipeline):
             progress=verbose,
             mask=masks,
         )
-        
+    @torch.no_grad()
     def iteration_generate(self):
         samples = self.scheduler.iteration_sample(
             self.transformer,
