@@ -827,7 +827,7 @@ class OpenSoraPipeline(VideoSysPipeline):
             z=self.z,
         )
         self.samples = samples
-        
+    @torch.no_grad()     
     def video_genereate(self):
         video_clips = []
         samples = self.vae.decode(self.samples.to(self._dtype), num_frames=self.num_frames)
