@@ -810,6 +810,7 @@ class OpenSoraPipeline(VideoSysPipeline):
         self.model_args = model_args
         self.align = align
         self.z = z
+        self.y_null = y_null
         self.scheduler.prepare_sample(
             self.transformer,
             z=self.z,
@@ -824,11 +825,6 @@ class OpenSoraPipeline(VideoSysPipeline):
         samples = self.scheduler.iteration_sample(
             self.transformer,
             z=self.z,
-            model_args=self.model_args,
-            y_null=self.y_null,
-            device=self._device,
-            progress=self.verbose,
-            mask=self.masks,
         )
         self.samples = samples
         
