@@ -253,7 +253,7 @@ class RFLOW:
             if mask is not None:
                 z = torch.where(mask_t_upper[:, None, :, None, None], z, x0)
             
-            print("rflow ", i , z)
+            # print("rflow ", i , z)
 
         return z
 
