@@ -237,7 +237,7 @@ class RFLOW:
             # classifier-free guidance
             z_in = torch.cat([z, z], 0)
             t = torch.cat([t, t], 0)
-
+            print("model_args ", model_args)
             # pred = model(z_in, t, **model_args).chunk(2, dim=1)[0]
             output = model(z_in, t, all_timesteps, **model_args)
 
