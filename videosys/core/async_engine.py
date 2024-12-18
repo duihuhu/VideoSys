@@ -683,9 +683,9 @@ class AsyncEngine:
             # new worker need execute prepare_generate
             #
             if request_id not in self.request_gpus:
-                print("no new gpus ")
+                print(request_id, "no new gpus ")
             else:
-                print("no new gpus ")
+                print("new gpus ")
             await self.video_engine.index_iteration_generate(worker_ids=worker_ids, i=index)
 
             
