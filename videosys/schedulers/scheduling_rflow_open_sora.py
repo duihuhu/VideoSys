@@ -255,5 +255,117 @@ class RFLOW:
 
         return z
 
+    def prepare_sample(self,
+        model,
+        z,
+        model_args,
+        y_null,
+        device,
+        mask=None,
+        guidance_scale=None,
+        progress=True,
+        verbose=False,
+    ):
+        # if no specific guidance scale is provided, use the default scale when initializing the scheduler
+        if guidance_scale is None:
+            guidance_scale = self.cfg_scale
+
+        # text encoding
+        model_args["y"] = torch.cat([model_args["y"], y_null], 0)
+
+        # prepare timesteps
+        timesteps = [(1.0 - i / self.num_sampling_steps) * self.num_timesteps for i in range(self.num_sampling_steps)]
+        if self.use_discrete_timesteps:
+            timesteps = [int(round(t)) for t in timesteps]
+        timesteps = [torch.tensor([t] * z.shape[0], device=device) for t in timesteps]
+        if self.use_timestep_transform:
+            timesteps = [timestep_transform(t, model_args, num_timesteps=self.num_timesteps) for t in timesteps]
+
+        if mask is not None:
+            noise_added = torch.zeros_like(mask, dtype=torch.bool)
+            noise_added = noise_added | (mask == 1)
+            self.noise_added = noise_added
+        progress_wrap = tqdm if progress and dist.get_rank() == 0 else (lambda x: x)
+
+        dtype = model.x_embedder.proj.weight.dtype
+        all_timesteps = [int(t.to(dtype).item()) for t in timesteps]
+        
+        #record
+        self.progress_wrap = progress_wrap 
+        self.mask = mask
+        self.timesteps = timesteps
+        self.all_timesteps = all_timesteps
+        self.model_args = model_args
+        self.guidance_scale = guidance_scale
+        
+    # def iteration_sample(self, model, z):
+    #     for i, t in self.progress_wrap(list(enumerate(self.timesteps))):
+    #         # mask for adding noise
+    #         if self.mask is not None:
+    #             mask_t = self.mask * self.num_timesteps
+    #             x0 = z.clone()
+    #             x_noise = self.scheduler.add_noise(x0, torch.randn_like(x0), t)
+
+    #             mask_t_upper = mask_t >= t.unsqueeze(1)
+    #             self.model_args["x_mask"] = mask_t_upper.repeat(2, 1)
+    #             mask_add_noise = mask_t_upper & ~self.noise_added
+
+    #             z = torch.where(mask_add_noise[:, None, :, None, None], x_noise, x0)
+    #             self.noise_added = mask_t_upper
+
+    #         # classifier-free guidance
+    #         z_in = torch.cat([z, z], 0)
+    #         t = torch.cat([t, t], 0)
+    #         # pred = model(z_in, t, **model_args).chunk(2, dim=1)[0]
+    #         output = model(z_in, t, self.all_timesteps, **self.model_args)
+
+    #         pred = output.chunk(2, dim=1)[0]
+    #         pred_cond, pred_uncond = pred.chunk(2, dim=0)
+    #         v_pred = pred_uncond + self.guidance_scale * (pred_cond - pred_uncond)
+
+    #         # update z
+    #         dt = self.timesteps[i] - self.timesteps[i + 1] if i < len(self.timesteps) - 1 else self.timesteps[i]
+    #         dt = dt / self.num_timesteps
+    #         z = z + v_pred * dt[:, None, None, None, None]
+
+    #         if self.mask is not None:
+    #             z = torch.where(mask_t_upper[:, None, :, None, None], z, x0)
+    #     return z
+
+
+    def index_iteration_sample(self, model, z, i):
+        t = self.timesteps[i]
+            # mask for adding noise
+        if self.mask is not None:
+            mask_t = self.mask * self.num_timesteps
+            x0 = z.clone()
+            x_noise = self.scheduler.add_noise(x0, torch.randn_like(x0), t)
+
+            mask_t_upper = mask_t >= t.unsqueeze(1)
+            self.model_args["x_mask"] = mask_t_upper.repeat(2, 1)
+            mask_add_noise = mask_t_upper & ~self.noise_added
+
+            z = torch.where(mask_add_noise[:, None, :, None, None], x_noise, x0)
+            self.noise_added = mask_t_upper
+
+        # classifier-free guidance
+        z_in = torch.cat([z, z], 0)
+        t = torch.cat([t, t], 0)
+        # pred = model(z_in, t, **model_args).chunk(2, dim=1)[0]
+        output = model(z_in, t, self.all_timesteps, **self.model_args)
+
+        pred = output.chunk(2, dim=1)[0]
+        pred_cond, pred_uncond = pred.chunk(2, dim=0)
+        v_pred = pred_uncond + self.guidance_scale * (pred_cond - pred_uncond)
+
+        # update z
+        dt = self.timesteps[i] - self.timesteps[i + 1] if i < len(self.timesteps) - 1 else self.timesteps[i]
+        dt = dt / self.num_timesteps
+        z = z + v_pred * dt[:, None, None, None, None]
+
+        if self.mask is not None:
+            z = torch.where(mask_t_upper[:, None, :, None, None], z, x0)
+        return z
+     
     def training_losses(self, model, x_start, model_kwargs=None, noise=None, mask=None, weights=None, t=None):
         return self.scheduler.training_losses(model, x_start, model_kwargs, noise, mask, weights, t)

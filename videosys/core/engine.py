@@ -239,11 +239,10 @@ class VideoSysEngine:
         return video[0]
 
     async def prepare_generate(self, worker_ids, *args, **kwargs):
-        await self._run_workers_dit_aync("prepare_generate", worker_ids, *args, **kwargs)
+        await self._run_workers_aync("prepare_generate", worker_ids, *args, **kwargs)
 
     async def index_iteration_generate(self, worker_ids, *args, **kwargs):
-        await self._run_workers_dit_aync("index_iteration_generate", worker_ids, *args, **kwargs)
-        
+        await self._run_workers_aync("index_iteration_generate", worker_ids, *args, **kwargs)
         
     async def async_generate_vae(self, worker_ids, *args, **kwargs):
         video = await self._run_workers_vae_aync("generate_vae", worker_ids, *args, **kwargs)

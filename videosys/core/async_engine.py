@@ -671,6 +671,7 @@ class AsyncEngine:
     
     async def worker_generate_dit(self, worker_ids, request_id, prompt, resolution, aspect_ratio, num_frames) -> None:
         await self.video_engine.prepare_generate(
+            worker_ids=worker_ids,
             prompt=prompt,
             resolution=resolution,
             aspect_ratio=aspect_ratio,
@@ -678,6 +679,8 @@ class AsyncEngine:
         )
 
         for index in range(self.video_engine.config.num_sampling_steps):
+            #check sched req to and get worker_ids, if true, need rebuild comm and trans data.
+            # new worker need execute prepare_generate
             await self.video_engine.index_iteration_generate(worker_ids=worker_ids, i=index)
 
             

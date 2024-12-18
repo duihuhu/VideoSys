@@ -1105,13 +1105,13 @@ class OpenSoraPipeline(VideoSysPipeline):
             progress=verbose,
             mask=masks,
         )
-    @torch.no_grad()
-    def iteration_generate(self):
-        samples = self.scheduler.iteration_sample(
-            self.transformer,
-            z=self.z,
-        )
-        self.samples = samples
+    # @torch.no_grad()
+    # def iteration_generate(self):
+    #     samples = self.scheduler.iteration_sample(
+    #         self.transformer,
+    #         z=self.z,
+    #     )
+    #     self.samples = samples
         
     @torch.no_grad()        
     def index_iteration_generate(self, i):
