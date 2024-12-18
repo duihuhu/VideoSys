@@ -565,6 +565,3 @@ if __name__ == "__main__":
                step_wise_sp_fcfs_scheduler(gpu_resources_pool = gpu_resources_pool,
                                            thread_dequeue = requests,
                                            log_file_path = log_file_path)
-               
-
-python3 policy_test.py --workload1-num 0 --workload2-num 0 --workload3-num 1
