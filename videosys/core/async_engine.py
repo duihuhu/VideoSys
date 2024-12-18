@@ -419,7 +419,7 @@ class AsyncEngine:
         
         self.background_loop = None
         self._errored_with: Optional[BaseException] = None
-
+        self.request_gpus = {}
     async def run_engine_loop(self):
         has_requests_in_progress = False
         print("run_engine_loop ")
@@ -681,6 +681,11 @@ class AsyncEngine:
         for index in range(self.video_engine.config.num_sampling_steps):
             #use request_id check sched req to and get worker_ids, if true, need rebuild comm and trans data.
             # new worker need execute prepare_generate
+            #
+            if request_id not in self.request_gpus:
+                print("no new gpus ")
+            else:
+                print("no new gpus ")
             await self.video_engine.index_iteration_generate(worker_ids=worker_ids, i=index)
 
             
