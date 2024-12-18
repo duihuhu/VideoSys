@@ -327,7 +327,7 @@ def step_wise_sp_fcfs_scheduler(gpu_resources_pool: Multi_GPU_Type_Resources_Poo
           cur_request = thread_dequeue.popleft()
           allocated_gpu_num, hunger_event = gpu_resources_pool.step_wise_sp_require_gpu_resources(request_type = cur_request.resolution, 
                                                                        request_id = cur_request.id)
-          if allocated_gpu_num:
+          if allocated_gpu_num >= 1:
                cur_thread = threading.Thread(target = step_wise_sp_thread_function, args = (cur_request,
                                                                                             allocated_gpu_num,
                                                                                             gpu_resources_pool,
@@ -439,6 +439,7 @@ if __name__ == "__main__":
      parser.add_argument("--workload2-num", type = int, default = 1)
      parser.add_argument("--workload3-num", type = int, default = 1)
      args = parser.parse_args()
+     print(args) # add for debug
 
      random.seed(42)
      resolutions = ["144p", "240p", "360p"]
@@ -564,3 +565,6 @@ if __name__ == "__main__":
                step_wise_sp_fcfs_scheduler(gpu_resources_pool = gpu_resources_pool,
                                            thread_dequeue = requests,
                                            log_file_path = log_file_path)
+               
+
+python3 policy_test.py --workload1-num 0 --workload2-num 0 --workload3-num 1
