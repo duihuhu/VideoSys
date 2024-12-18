@@ -419,7 +419,7 @@ class AsyncEngine:
         
         self.background_loop = None
         self._errored_with: Optional[BaseException] = None
-        self.request_gpus = {}
+        self.request_workers = {}
     async def run_engine_loop(self):
         has_requests_in_progress = False
         print("run_engine_loop ")
@@ -682,7 +682,7 @@ class AsyncEngine:
             #use request_id check sched req to and get worker_ids, if true, need rebuild comm and trans data.
             # new worker need execute prepare_generate
             #
-            if request_id not in self.request_gpus:
+            if request_id not in self.request_workers:
                 print(request_id, "no new gpus ")
             else:
                 print("new gpus ")
@@ -699,6 +699,9 @@ class AsyncEngine:
     
     async def worker_generate_vae_step(self, worker_ids, request_id) -> None:
         await self.video_engine.worker_generate_vae_step(worker_ids=worker_ids)
+        
+    async def update_request_workers(self, request_id, worker_ids) -> None:
+        self.request_workers[request_id] = worker_ids
         
     async def destory_worker_comm(self, worker_ids):
         await self.video_engine.destory_worker_comm(worker_ids)

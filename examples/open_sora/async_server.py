@@ -175,7 +175,7 @@ async def async_generate_dit(request: Request) -> Response:
     resolution = request_dict.pop("resolution")
     aspect_ratio = request_dict.pop("aspect_ratio")
     num_frames = request_dict.pop("num_frames")
-    print("async_generate")
+    print("async_generate", request_id)
     worker_ids = request_dict.pop("worker_ids")
     await engine.build_worker_comm(worker_ids)
     if len(worker_ids) > 1:
@@ -201,6 +201,13 @@ async def async_generate_vae_step(request: Request) -> Response:
     await engine.build_worker_comm(worker_ids)
     await engine.worker_generate_vae_step(worker_ids=worker_ids, request_id=request_id)
     await engine.destory_worker_comm(worker_ids)
+    
+@app.post("/request_workers")
+async def request_workers(request: Request) -> Response:
+    request_dict = await request.json()
+    request_id = request_dict.pop("request_id")
+    worker_ids = request_dict.pop("worker_ids")
+    await engine.update_request_workers(request_id=request_id, worker_ids=worker_ids)
 
 if __name__ == "__main__":
     # run_base()
