@@ -5,7 +5,6 @@ suffix_path = ".txt"
 count = 0
 for policy in schedule_policies:
     file_path = prefix_path + policy + suffix_path
-    print(f"----------{policy}----------")
     try:
         with open(file_path, 'r') as file:
             lines = file.readlines()
@@ -37,7 +36,7 @@ for policy in schedule_policies:
                 for key, value in res.items():
                     print(f"{key} appears {value} times")
                 count += 1
-            print(f"----------Durations----------")
+            print(f"----------{policy} Durations----------")
             avg_time = sum([data for _, data, _ in datas]) / len([data for _, data, _ in datas])
             print(avg_time)
     except TypeError:
