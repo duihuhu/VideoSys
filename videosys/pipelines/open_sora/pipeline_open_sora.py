@@ -1105,14 +1105,7 @@ class OpenSoraPipeline(VideoSysPipeline):
             progress=verbose,
             mask=masks,
         )
-    # @torch.no_grad()
-    # def iteration_generate(self):
-    #     samples = self.scheduler.iteration_sample(
-    #         self.transformer,
-    #         z=self.z,
-    #     )
-    #     self.samples = samples
-        
+
     @torch.no_grad()        
     def index_iteration_generate(self, i):
         self.z = self.scheduler.index_iteration_sample(
@@ -1123,7 +1116,29 @@ class OpenSoraPipeline(VideoSysPipeline):
         print("index_iteration_generate ", self.z.shape)
         self.samples = self.z
 
-    
+    @torch.no_grad()     
+    def video_genereate(self):
+        video_clips = []
+        samples = self.vae.decode(self.samples.to(self._dtype), num_frames=self.num_frames)
+        video_clips.append(samples)
+
+        for i in range(1, self.loop):
+            video_clips[i] = video_clips[i][:, dframe_to_frame(self.condition_frame_length) :]
+        video = torch.cat(video_clips, dim=1)
+
+        low, high = -1, 1
+        video.clamp_(min=low, max=high)
+        video.sub_(low).div_(max(high - low, 1e-5))
+        video = video.mul(255).add_(0.5).clamp_(0, 255).permute(0, 2, 3, 4, 1).to("cpu", torch.uint8)
+
+        # Offload all models
+        self.maybe_free_model_hooks()
+
+        # if not return_dict:
+            # return (video,)
+
+        return VideoSysPipelineOutput(video=video)
+ 
     def get_nccl_id(self, dst_channel, worker_type):
         nccl_id = self.trans_manager.get_nccl_id(dst_channel, worker_type)
         return nccl_id
