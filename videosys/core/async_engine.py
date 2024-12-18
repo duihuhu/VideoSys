@@ -670,6 +670,17 @@ class AsyncEngine:
                     num_frames=num_frames,)
     
     async def worker_generate_dit(self, worker_ids, request_id, prompt, resolution, aspect_ratio, num_frames) -> None:
+        await self.video_engine.prepare_generate(
+            prompt=prompt,
+            resolution=resolution,
+            aspect_ratio=aspect_ratio,
+            num_frames=num_frames,
+        )
+
+        for index in range(self.video_engine.config.num_sampling_steps):
+            await self.video_engine.index_iteration_generate(worker_ids=worker_ids, i=index)
+
+            
         await self.video_engine.async_generate_dit(worker_ids=worker_ids, request_id=request_id, prompt=prompt,
                     resolution=resolution,
                     aspect_ratio=aspect_ratio,
