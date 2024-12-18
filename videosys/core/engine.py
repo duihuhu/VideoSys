@@ -247,7 +247,11 @@ class VideoSysEngine:
     async def async_generate_vae(self, worker_ids, *args, **kwargs):
         video = await self._run_workers_vae_aync("generate_vae", worker_ids, *args, **kwargs)
         return video[0]
-    
+
+    async def worker_generate_vae_step(self, worker_ids, *args, **kwargs):
+        video = await self._run_workers_vae_aync("video_generate", worker_ids, *args, **kwargs)
+        return video[0]
+  
     def generate(self, *args, **kwargs):
         return self._run_workers("generate", *args, **kwargs)[0]
 

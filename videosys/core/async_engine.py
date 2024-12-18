@@ -691,8 +691,10 @@ class AsyncEngine:
 
     async def worker_generate_vae(self, worker_ids, request_id) -> None:
         await self.video_engine.async_generate_vae(worker_ids=worker_ids, request_id=request_id)
-        
     
+    async def worker_generate_vae_step(self, worker_ids, request_id) -> None:
+        await self.video_engine.worker_generate_vae_step(worker_ids=worker_ids, request_id=request_id)
+        
     async def destory_worker_comm(self, worker_ids):
         await self.video_engine.destory_worker_comm(worker_ids)
 

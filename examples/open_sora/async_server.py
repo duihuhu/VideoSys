@@ -1,3 +1,4 @@
+# python3 async_server.py --num-gpus 2
 #python3 async_server.py --port 8001 --rank 1 --dworld-size 2
 # python3 client.py --rank 0 --world-size 2 --group-name g1 --op create --dport 8000
 import argparse
@@ -183,13 +184,22 @@ async def async_generate_dit(request: Request) -> Response:
         await engine.worker_generate(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
     await engine.destory_worker_comm(worker_ids)
     
+# @app.post("/async_generate_vae")
+# async def async_generate_vae(request: Request) -> Response:
+#     request_dict = await request.json()
+#     request_id = request_dict.pop("request_id")
+#     worker_ids = request_dict.pop("worker_ids")
+#     await engine.build_worker_comm(worker_ids)
+#     await engine.worker_generate_vae(worker_ids=worker_ids, request_id=request_id)
+#     await engine.destory_worker_comm(worker_ids)
+    
 @app.post("/async_generate_vae")
-async def async_generate_vae(request: Request) -> Response:
+async def async_generate_vae_step(request: Request) -> Response:
     request_dict = await request.json()
     request_id = request_dict.pop("request_id")
     worker_ids = request_dict.pop("worker_ids")
     await engine.build_worker_comm(worker_ids)
-    await engine.worker_generate_vae(worker_ids=worker_ids, request_id=request_id)
+    await engine.worker_generate_vae_step(worker_ids=worker_ids, request_id=request_id)
     await engine.destory_worker_comm(worker_ids)
 
 if __name__ == "__main__":
