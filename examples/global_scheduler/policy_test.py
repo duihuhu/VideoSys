@@ -40,6 +40,8 @@ class Multi_GPU_Type_Resources_Pool:
                   self.gpu_status_lock = threading.Lock()
                   self.free_gpu_lock = threading.Lock()
                   self.logs_lock = threading.Lock()   
+                  self.hunger_lock = threading.Lock()
+                  self.hunger_events: Dict[int, threading.Event] = {}
      
      def get_min_gpu_num(self,
                          waiting_time: float,
@@ -58,6 +60,47 @@ class Multi_GPU_Type_Resources_Pool:
                with self.logs_lock:
                     with open(self.log_file_path, 'a') as file:
                          file.write(f"request {request.id} ends at {end_time} with resolution {request.resolution}\n")
+     
+     def awake_hunger_events(self) -> None:
+          with self.hunger_lock:
+               for _, event in self.hunger_events.items():
+                    if event and (not event.is_set()):
+                         event.set()
+
+     def step_wise_sp_require_gpu_resources(self, request_type: str, request_id: int) -> Tuple[int, Optional[threading.Event]]:
+          with self.free_gpu_lock:
+               opt_gpu_num = self.opt_gpu_config[request_type]
+               event = threading.Event()
+               if opt_gpu_num == 1:
+                    if self.free_gpu_num >= opt_gpu_num: 
+                         self.free_gpu_num -= opt_gpu_num
+                         return (opt_gpu_num, None)
+                    else:
+                         return (-1, None)
+               elif opt_gpu_num == 2:
+                    if self.free_gpu_num >= opt_gpu_num: 
+                         self.free_gpu_num -= opt_gpu_num
+                         return (opt_gpu_num, None)
+                    elif self.free_gpu_num >= 1: 
+                         self.free_gpu_num -= 1
+                         self.hunger_events[request_id] = event
+                         return (1, self.hunger_events[request_id])
+                    else:
+                         return (-1, None)
+               else:
+                    if self.free_gpu_num >= opt_gpu_num: 
+                         self.free_gpu_num -= opt_gpu_num
+                         return (opt_gpu_num, None)
+                    elif self.free_gpu_num >= 2: 
+                         self.free_gpu_num -= 2
+                         self.hunger_events[request_id] = event
+                         return (2, self.hunger_events[request_id])
+                    elif self.free_gpu_num >= 1: 
+                         self.free_gpu_num -= 1
+                         self.hunger_events[request_id] = event
+                         return (1, self.hunger_events[request_id])
+                    else:
+                         return (-1, None)
 
      def require_gpu_resources(self, 
                                request_type: str,
@@ -205,7 +248,57 @@ class Multi_GPU_Type_Resources_Pool:
                else:
                     with self.all_type_lock:
                          self.gpu_types_num[release_gpu_num] += 1
-     
+
+def step_wise_sp_thread_function(request: Request, 
+                                 allocated_gpu_num: int,
+                                 gpu_resources_pool: Multi_GPU_Type_Resources_Pool,
+                                 trigger: Optional[threading.Event] = None) -> None:
+     cur_denoising_steps = 30 # default set
+     cur_dit_sleep_time = gpu_resources_pool.dit_time_configs[request.resolution][allocated_gpu_num] / cur_denoising_steps
+     cur_vae_sleep_time = gpu_resources_pool.vae_time_configs[request.resolution][allocated_gpu_num]
+     cur_allocated_gpu_num = allocated_gpu_num
+     step_num = 0
+     print(f"Request {request.id} Starts")
+     while step_num < cur_denoising_steps:
+          if trigger and trigger.is_set():
+               if cur_allocated_gpu_num == 1 and gpu_resources_pool.opt_gpu_config[request.resolution] == 2:
+                    with gpu_resources_pool.free_gpu_lock:
+                         if gpu_resources_pool.free_gpu_num >= 1:
+                              gpu_resources_pool.free_gpu_num -= 1
+                              cur_allocated_gpu_num = 2
+                              cur_dit_sleep_time = gpu_resources_pool.dit_time_configs[request.resolution][2] / cur_denoising_steps
+                              with gpu_resources_pool.hunger_lock:
+                                   gpu_resources_pool.hunger_events[request.id] = None
+               elif cur_allocated_gpu_num == 1 and gpu_resources_pool.opt_gpu_config[request.resolution] == 4:
+                    with gpu_resources_pool.free_gpu_lock:
+                         if gpu_resources_pool.free_gpu_num >= 3:
+                              gpu_resources_pool.free_gpu_num -= 3
+                              cur_allocated_gpu_num = 4
+                              cur_dit_sleep_time = gpu_resources_pool.dit_time_configs[request.resolution][4] / cur_denoising_steps
+                              with gpu_resources_pool.hunger_lock:
+                                   gpu_resources_pool.hunger_events[request.id] = None
+                         elif gpu_resources_pool.free_gpu_num >= 1:
+                              gpu_resources_pool.free_gpu_num -= 1
+                              cur_allocated_gpu_num = 2
+                              cur_dit_sleep_time = gpu_resources_pool.dit_time_configs[request.resolution][2] / cur_denoising_steps
+               elif cur_allocated_gpu_num == 2 and gpu_resources_pool.opt_gpu_config[request.resolution] == 4:
+                    with gpu_resources_pool.free_gpu_lock:
+                         if gpu_resources_pool.free_gpu_num >= 2:
+                              gpu_resources_pool.free_gpu_num -= 2
+                              cur_allocated_gpu_num = 4
+                              cur_dit_sleep_time = gpu_resources_pool.dit_time_configs[request.resolution][4] / cur_denoising_steps
+                              with gpu_resources_pool.hunger_lock:
+                                   gpu_resources_pool.hunger_events[request.id] = None
+          time.sleep(cur_dit_sleep_time)
+          step_num += 1
+     time.sleep(cur_vae_sleep_time)
+     with gpu_resources_pool.free_gpu_lock:
+          gpu_resources_pool.free_gpu_num += cur_allocated_gpu_num
+     gpu_resources_pool.awake_hunger_events()
+     end_time = time.time()
+     print(f"Request {request.id} Ends")
+     gpu_resources_pool.write_logs(request = request, end_time = end_time)
+          
 def thread_function(request: Request,
                     gpu_resources_pool: Multi_GPU_Type_Resources_Pool,
                     release_gpu_num: int, 
@@ -223,6 +316,28 @@ def thread_function(request: Request,
                print(f"Request {request.id} Ends")
                gpu_resources_pool.write_logs(request = request,
                                              end_time = end_time)            
+
+def step_wise_sp_fcfs_scheduler(gpu_resources_pool: Multi_GPU_Type_Resources_Pool, 
+                                thread_dequeue: Deque[Request],
+                                log_file_path: str) -> None:
+     activate_threads: List[threading.Thread] = []
+     with open(log_file_path, 'a') as file:
+          file.write(f"Test Starts at {time.time()}\n")
+     while thread_dequeue:
+          cur_request = thread_dequeue.popleft()
+          allocated_gpu_num, hunger_event = gpu_resources_pool.step_wise_sp_require_gpu_resources(request_type = cur_request.resolution, 
+                                                                       request_id = cur_request.id)
+          if allocated_gpu_num:
+               cur_thread = threading.Thread(target = step_wise_sp_thread_function, args = (cur_request,
+                                                                                            allocated_gpu_num,
+                                                                                            gpu_resources_pool,
+                                                                                            hunger_event))
+               cur_thread.start()
+               activate_threads.append(cur_thread)
+          else:
+               thread_dequeue.append(cur_request)
+     for thread in activate_threads:
+          thread.join()
 
 def fcfs_scheduler(gpu_resources_pool: Multi_GPU_Type_Resources_Pool, 
                    thread_dequeue: Deque[Request],
@@ -339,9 +454,11 @@ if __name__ == "__main__":
      for _ in range(resolution3_num):
           requests_resolutions.append(resolutions[2])
      random.shuffle(requests_resolutions)
-     schedule_policies = ["Cluster_Isolated", "Round_Robin", "Best_Match", "Best_Match_Dynamic"]
+     schedule_policies = ["Cluster_Isolated", "Round_Robin", "Best_Match", "Best_Match_Dynamic", "Step_Wise_SP"]
 
      for i, policy in enumerate(schedule_policies):
+          if i <= 2: # add for debug
+               continue
           if i == 0:
                log_file_path = args.log + policy + ".txt"
                gpu_resources_pool = Multi_GPU_Type_Resources_Pool(log_file_path = log_file_path,
@@ -408,7 +525,7 @@ if __name__ == "__main__":
                               slo_required = False,
                               best_match_dynamic = False,
                               log_file_path = log_file_path)
-          else:
+          elif i == 3:
                log_file_path = args.log + policy + ".txt"
                gpu_resources_pool = Multi_GPU_Type_Resources_Pool(log_file_path = log_file_path,
                                                                  type1_num = args.type1_num, 
@@ -430,3 +547,20 @@ if __name__ == "__main__":
                               slo_required = False,
                               best_match_dynamic = True,
                               log_file_path = log_file_path)
+          else:
+               log_file_path = args.log + policy + ".txt"
+               gpu_resources_pool = Multi_GPU_Type_Resources_Pool(log_file_path = log_file_path,
+                                                                 type1_num = args.type1_num, 
+                                                                 type2_num = args.type2_num, 
+                                                                 type4_num = args.type4_num,
+                                                                 type1_slo = args.type1_slo,
+                                                                 type2_slo = args.type2_slo,
+                                                                 type4_slo = args.type4_slo)
+               requests: Deque[Request] = deque()
+               add_time = time.time()
+               for i, resolution in enumerate(requests_resolutions):
+                    requests.append(Request(id = i, resolution = resolution, add_time = add_time))
+               print(f"{policy} Test Starts")
+               step_wise_sp_fcfs_scheduler(gpu_resources_pool = gpu_resources_pool,
+                                           thread_dequeue = requests,
+                                           log_file_path = log_file_path)
