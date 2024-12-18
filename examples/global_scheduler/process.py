@@ -1,4 +1,4 @@
-schedule_policies = ["Cluster_Isolated", "Round_Robin", "Best_Match", "Best_Match_Dynamic"]
+schedule_policies = ["Cluster_Isolated", "Round_Robin", "Best_Match", "Best_Match_Dynamic", "Step_Wise_SP"]
 prefix_path = "/home/jovyan/hhy/VideoSys/examples/global_scheduler/logs_"
 suffix_path = ".txt"
 
