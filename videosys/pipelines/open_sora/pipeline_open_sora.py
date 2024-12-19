@@ -1096,14 +1096,18 @@ class OpenSoraPipeline(VideoSysPipeline):
         self.align = align
         self.z = z
         self.y_null = y_null
+        self.verbose = verbose
+        self.masks = masks
+        
+    # def prepare_sample(self):
         self.scheduler.prepare_sample(
             self.transformer,
             z=self.z,
             model_args=self.model_args,
-            y_null=y_null,
+            y_null=self.y_null,
             device=self._device,
-            progress=verbose,
-            mask=masks,
+            progress=self.verbose,
+            mask=self.masks,
         )
 
     @torch.no_grad()        

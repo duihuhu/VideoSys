@@ -285,13 +285,13 @@ class RFLOW:
             noise_added = torch.zeros_like(mask, dtype=torch.bool)
             noise_added = noise_added | (mask == 1)
             self.noise_added = noise_added
-        progress_wrap = tqdm if progress and dist.get_rank() == 0 else (lambda x: x)
+        # progress_wrap = tqdm if progress and dist.get_rank() == 0 else (lambda x: x)
 
         dtype = model.x_embedder.proj.weight.dtype
         all_timesteps = [int(t.to(dtype).item()) for t in timesteps]
         
         #record
-        self.progress_wrap = progress_wrap 
+        # self.progress_wrap = progress_wrap 
         self.mask = mask
         self.timesteps = timesteps
         self.all_timesteps = all_timesteps
