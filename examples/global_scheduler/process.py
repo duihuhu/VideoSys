@@ -37,10 +37,11 @@ for x, y, z in ratios:
                     print(f"----------Resolutions----------")
                     for data in datas:
                         print(data[2])'''
-                print(f"----------Check----------")
-                for key, value in res.items():
-                    print(f"{key} appears {value} times")
-                    #count += 1
+                if j == 0:
+                    print(f"----------Check----------")
+                    for key, value in res.items():
+                        print(f"{key} appears {value} times")
+                        #count += 1
                 print(f"----------{policy} Durations----------")
                 avg_time = sum([data for _, data, _ in datas]) / len([data for _, data, _ in datas])
                 print(avg_time)
