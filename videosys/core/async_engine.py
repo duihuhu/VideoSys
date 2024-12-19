@@ -716,6 +716,8 @@ class AsyncEngine:
             num_frames=num_frames,
         )
 
+        t1 = time.time()
+
         for index in range(self.video_engine.config.num_sampling_steps):
             #use request_id check sched req to and get worker_ids, if true, need rebuild comm and trans data.
             # new worker need execute prepare_generate
@@ -725,7 +727,9 @@ class AsyncEngine:
             else:
                 print("new gpus ", request_id, self.request_workers[request_id])
             await self.video_engine.index_iteration_generate(worker_ids=worker_ids, i=index)
-
+        t2 = time.time()
+        print("t2-t1 " , t2-t1)
+            
             
         # await self.video_engine.async_generate_dit(worker_ids=worker_ids, request_id=request_id, prompt=prompt,
         #             resolution=resolution,
