@@ -5,10 +5,11 @@ ratios = [(1,1,8),(2,2,6),(3,3,4),(1,8,1),(2,6,2),(3,4,3),(8,1,1),(6,2,2),(4,3,3
 
 #count = 0
 for x, y, z in ratios:
-    for policy in schedule_policies:
+    for j, policy in enumerate(schedule_policies):
+        if j == 0:
+            print(f"----------Ratio----------")
+            print(f"144p: 240p: 360p = {x}: {y}: {z}")
         file_path = prefix_path + str(x) + "_" + str(y) + "_" + str(z) + "_" + policy + suffix_path
-        print(f"----------Ratio----------")
-        print(f"144p: 240p: 360p = {x}: {y}: {z}")
         try:
             with open(file_path, 'r') as file:
                 lines = file.readlines()
