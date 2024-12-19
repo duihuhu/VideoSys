@@ -269,6 +269,7 @@ def step_wise_sp_thread_function(request: Request,
                               cur_dit_sleep_time = gpu_resources_pool.dit_time_configs[request.resolution][2] / cur_denoising_steps
                               with gpu_resources_pool.hunger_lock:
                                    gpu_resources_pool.hunger_events[request.id] = None
+                              print(f"Request {request.id} scale out")
                elif cur_allocated_gpu_num == 1 and gpu_resources_pool.opt_gpu_config[request.resolution] == 4:
                     with gpu_resources_pool.free_gpu_lock:
                          if gpu_resources_pool.free_gpu_num >= 3:
@@ -277,10 +278,12 @@ def step_wise_sp_thread_function(request: Request,
                               cur_dit_sleep_time = gpu_resources_pool.dit_time_configs[request.resolution][4] / cur_denoising_steps
                               with gpu_resources_pool.hunger_lock:
                                    gpu_resources_pool.hunger_events[request.id] = None
+                              print(f"Request {request.id} scale out")
                          elif gpu_resources_pool.free_gpu_num >= 1:
                               gpu_resources_pool.free_gpu_num -= 1
                               cur_allocated_gpu_num = 2
                               cur_dit_sleep_time = gpu_resources_pool.dit_time_configs[request.resolution][2] / cur_denoising_steps
+                              print(f"Request {request.id} scale out")
                elif cur_allocated_gpu_num == 2 and gpu_resources_pool.opt_gpu_config[request.resolution] == 4:
                     with gpu_resources_pool.free_gpu_lock:
                          if gpu_resources_pool.free_gpu_num >= 2:
@@ -289,6 +292,7 @@ def step_wise_sp_thread_function(request: Request,
                               cur_dit_sleep_time = gpu_resources_pool.dit_time_configs[request.resolution][4] / cur_denoising_steps
                               with gpu_resources_pool.hunger_lock:
                                    gpu_resources_pool.hunger_events[request.id] = None
+                              print(f"Request {request.id} scale out")
           time.sleep(cur_dit_sleep_time)
           step_num += 1
      time.sleep(cur_vae_sleep_time)
@@ -458,7 +462,7 @@ if __name__ == "__main__":
      schedule_policies = ["Cluster_Isolated", "Round_Robin", "Best_Match", "Best_Match_Dynamic", "Step_Wise_SP"]
 
      for i, policy in enumerate(schedule_policies):
-          if i <= 2: # add for debug
+          if i <= 3: # add for debug
                continue
           if i == 0:
                log_file_path = args.log + policy + ".txt"
