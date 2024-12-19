@@ -689,7 +689,15 @@ class AsyncEngine:
             else:
                 print("new gpus ", request_id, self.request_workers[request_id])
                 await self.destory_worker_comm(worker_ids=worker_ids)
-                worker_ids = self.request_workers[request_id]
+                new_worker_ids = self.request_workers[request_id]
+                worker_ids = list(set(new_worker_ids) - set(worker_ids))
+                self.video_engine.prepare_generate(
+                    worker_ids=worker_ids,
+                    prompt=prompt,
+                    resolution=resolution,
+                    aspect_ratio=aspect_ratio,
+                    num_frames=num_frames,
+                )
                 await self.build_worker_comm(worker_ids)
                 del self.request_workers[request_id]
                 
