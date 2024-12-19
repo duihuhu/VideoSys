@@ -433,9 +433,9 @@ if __name__ == "__main__":
      parser.add_argument("--best-match", action = "store_true", default = False)
      parser.add_argument("--slo-required", action = "store_true", default = False)
      parser.add_argument("--request-num", type = int, default = 128)
-     parser.add_argument("--type1-num", type = int, default = 10)
-     parser.add_argument("--type2-num", type = int, default = 9)
-     parser.add_argument("--type4-num", type = int, default = 9)
+     parser.add_argument("--type1-num", type = int, default = 8)
+     parser.add_argument("--type2-num", type = int, default = 8)
+     parser.add_argument("--type4-num", type = int, default = 8)
      parser.add_argument("--type1-slo", type = float, default = -1.0)
      parser.add_argument("--type2-slo", type = float, default = -1.0)
      parser.add_argument("--type4-slo", type = float, default = -1.0)
@@ -462,8 +462,8 @@ if __name__ == "__main__":
      schedule_policies = ["Cluster_Isolated", "Round_Robin", "Best_Match", "Best_Match_Dynamic", "Step_Wise_SP"]
 
      for i, policy in enumerate(schedule_policies):
-          if i <= 2: # add for debug
-               continue
+          #if i <= 2: # add for debug
+          #     continue
           if i == 0:
                log_file_path = args.log + policy + ".txt"
                gpu_resources_pool = Multi_GPU_Type_Resources_Pool(log_file_path = log_file_path,
