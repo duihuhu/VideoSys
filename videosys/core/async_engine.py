@@ -688,9 +688,11 @@ class AsyncEngine:
                 print("no new gpus ", request_id)
             else:
                 print("new gpus ", request_id, self.request_workers[request_id])
-                if len(worker_ids) > 1:
-                    await self.build_worker_comm(worker_ids)
-                    del self.request_workers[request_id]
+                await self.destory_worker_comm(worker_ids=worker_ids)
+                worker_ids = self.request_workers[request_id]
+                await self.build_worker_comm(worker_ids)
+                del self.request_workers[request_id]
+                
             await self.video_engine.index_iteration_generate(worker_ids=worker_ids, i=index)
 
             
