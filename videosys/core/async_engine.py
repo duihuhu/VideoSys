@@ -662,6 +662,10 @@ class AsyncEngine:
     
     async def build_worker_comm(self, worker_ids):
         await self.video_engine.build_worker_comm(worker_ids)
+
+    async def build_worker_comm_data(self, worker_ids):
+        await self.video_engine.build_worker_comm_data(worker_ids)
+        
         
     async def worker_generate(self, worker_ids, request_id, prompt, resolution, aspect_ratio, num_frames) -> None:
         # await self.video_engine.async_generate(worker_ids=worker_ids, prompt=prompt,
@@ -684,6 +688,9 @@ class AsyncEngine:
                 print("no new gpus ", request_id)
             else:
                 print("new gpus ", request_id, self.request_workers[request_id])
+                if len(worker_ids) > 1:
+                    await self.build_worker_comm(worker_ids)
+                    del self.request_workers[request_id]
             await self.video_engine.index_iteration_generate(worker_ids=worker_ids, i=index)
 
             

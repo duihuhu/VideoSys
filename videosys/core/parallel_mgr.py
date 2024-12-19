@@ -123,6 +123,17 @@ def initialize_postposition(
     if seed is not None:
         set_seed(seed + get_data_parallel_rank())
 
+
+def send(self, z, rank):
+    print("send data")
+    dist.send(tensor=z, dst=1)
+    
+def recv(self, z, rank):
+    print("recv data")
+
+    dist.recv(tensor=z, src=0)
+    
+    
 def destroy():
     if dist.is_initialized():
         dist.destroy_process_group()
