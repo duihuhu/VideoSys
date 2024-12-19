@@ -458,8 +458,8 @@ if __name__ == "__main__":
      schedule_policies = ["Cluster_Isolated", "Round_Robin", "Best_Match", "Best_Match_Dynamic", "Step_Wise_SP"]
 
      for i, policy in enumerate(schedule_policies):
-          #if i <= 2: # add for debug
-          #     continue
+          if i <= 2: # add for debug
+               continue
           if i == 0:
                log_file_path = args.log + policy + ".txt"
                gpu_resources_pool = Multi_GPU_Type_Resources_Pool(log_file_path = log_file_path,
