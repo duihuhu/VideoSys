@@ -208,6 +208,8 @@ async def request_workers(request: Request) -> Response:
     request_id = request_dict.pop("request_id")
     worker_ids = request_dict.pop("worker_ids")
     await engine.update_request_workers(request_id=request_id, worker_ids=worker_ids)
+    ret = {'ret': 'success'}
+    return JSONResponse(ret)
 
 if __name__ == "__main__":
     # run_base()
