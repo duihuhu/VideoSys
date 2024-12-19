@@ -691,7 +691,7 @@ class AsyncEngine:
                 await self.destory_worker_comm(worker_ids=worker_ids)
                 new_worker_ids = self.request_workers[request_id]
                 worker_ids = list(set(new_worker_ids) - set(worker_ids))
-                self.video_engine.prepare_generate(
+                await self.video_engine.prepare_generate(
                     worker_ids=worker_ids,
                     prompt=prompt,
                     resolution=resolution,
