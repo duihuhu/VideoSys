@@ -321,23 +321,30 @@ def thread_function(request: Request,
                     expected_vae_time: Optional[float] = None,
                     decouple: Optional[bool] = False) -> None:
                print(f"Request {request.id} Starts")
-               if decouple:
-                    time.sleep(expected_dit_time)
-                    gpu_resources_pool.release_gpu_resources(release_gpu_num = release_gpu_num - 1,
-                                                            slo_required = slo_required,
-                                                            allocated_gpu_ids = allocated_gpu_ids,
-                                                            best_match_dynamic = best_match_dynamic)
-                    time.sleep(expected_vae_time)
-                    gpu_resources_pool.release_gpu_resources(release_gpu_num = 1,
-                                                            slo_required = slo_required,
-                                                            allocated_gpu_ids = allocated_gpu_ids,
-                                                            best_match_dynamic = best_match_dynamic)
+               if best_match_dynamic:
+                    if decouple:
+                         time.sleep(expected_dit_time)
+                         gpu_resources_pool.release_gpu_resources(release_gpu_num = release_gpu_num - 1,
+                                                                 slo_required = slo_required,
+                                                                 allocated_gpu_ids = allocated_gpu_ids,
+                                                                 best_match_dynamic = best_match_dynamic)
+                         time.sleep(expected_vae_time)
+                         gpu_resources_pool.release_gpu_resources(release_gpu_num = 1,
+                                                                 slo_required = slo_required,
+                                                                 allocated_gpu_ids = allocated_gpu_ids,
+                                                                 best_match_dynamic = best_match_dynamic)
+                    else:
+                         time.sleep(expected_dit_time + expected_vae_time)
+                         gpu_resources_pool.release_gpu_resources(release_gpu_num = release_gpu_num,
+                                                                 slo_required = slo_required,
+                                                                 allocated_gpu_ids = allocated_gpu_ids,
+                                                                 best_match_dynamic = best_match_dynamic)
                else:
                     time.sleep(expected_dit_time + expected_vae_time)
                     gpu_resources_pool.release_gpu_resources(release_gpu_num = release_gpu_num,
-                                                            slo_required = slo_required,
-                                                            allocated_gpu_ids = allocated_gpu_ids,
-                                                            best_match_dynamic = best_match_dynamic)
+                                                                 slo_required = slo_required,
+                                                                 allocated_gpu_ids = allocated_gpu_ids,
+                                                                 best_match_dynamic = best_match_dynamic)
                end_time = time.time()
                print(f"Request {request.id} Ends")
                gpu_resources_pool.write_logs(request = request,
