@@ -10,4 +10,4 @@ for x, y, z in ratios:
     #command = base_command.format(x = x, y = y, z = z)
     command = base_command2.format(x = x, y = y, z = z)
     os.system(command)
-    time.sleep(3)
+    time.sleep(1)
