@@ -17,6 +17,7 @@ from videosys.schedulers.scheduling_rflow_open_sora import RFLOW
 from videosys.utils.utils import save_video
 
 from .data_process import get_image_size, get_num_frames, prepare_multi_resolution_info, read_from_path
+import time
 
 os.environ["TOKENIZERS_PARALLELISM"] = "true"
 
@@ -205,16 +206,25 @@ class OpenSoraPipeline(VideoSysPipeline):
 
         # initialize the model if not provided
         if text_encoder is None:
+            t1 = time.time()
             text_encoder = T5EncoderModel.from_pretrained(config.text_encoder).to(dtype)
+            torch.cuda.synchronize() 
+            t2 = time.time()
+            print("encoder load time: ", t2-t1)
         if tokenizer is None:
             tokenizer = AutoTokenizer.from_pretrained(config.text_encoder)
         if vae is None:
+            t1 = time.time()   
             vae = OpenSoraVAE_V1_2(
                 from_pretrained=config.vae,
                 micro_frame_size=17,
                 micro_batch_size=config.tiling_size,
             ).to(dtype)
+            torch.cuda.synchronize() 
+            t2 = time.time()
+            print("vae load time: ", t2-t1)
         if transformer is None:
+            t1 = time.time()
             transformer = STDiT3_XL_2(
                 from_pretrained=config.transformer,
                 qk_norm=True,
@@ -223,6 +233,9 @@ class OpenSoraPipeline(VideoSysPipeline):
                 caption_channels=text_encoder.config.d_model,
                 model_max_length=300,
             ).to(device, dtype)
+            torch.cuda.synchronize()
+            t2 = time.time()
+            print("dit load time: ", t2-t1)
         if scheduler is None:
             scheduler = RFLOW(
                 use_timestep_transform=True, num_sampling_steps=config.num_sampling_steps, cfg_scale=config.cfg_scale
