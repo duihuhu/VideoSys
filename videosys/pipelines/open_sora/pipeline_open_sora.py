@@ -212,7 +212,11 @@ class OpenSoraPipeline(VideoSysPipeline):
             t2 = time.time()
             print("encoder load time: ", t2-t1)
         if tokenizer is None:
+            t1 = time.time()
             tokenizer = AutoTokenizer.from_pretrained(config.text_encoder)
+            torch.cuda.synchronize() 
+            t2 = time.time()
+            print("encoder load time: ", t2-t1)
         if vae is None:
             t1 = time.time()   
             vae = OpenSoraVAE_V1_2(
