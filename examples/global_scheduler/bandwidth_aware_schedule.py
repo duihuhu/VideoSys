@@ -149,7 +149,7 @@ def thread_function(request: Request, resource_pool: Resources, allocated_gpu_li
 
 def ddit_schedule(resource_pool: Resources) -> None:
     activate_threads: List[threading.Thread] = []
-    global_scheduler = threading.Thread(target = global_schedule ,args = (resource_pool))
+    global_scheduler = threading.Thread(target = global_schedule ,args = (resource_pool,))
     global_scheduler.start()
     activate_threads.append(global_scheduler)
     resource_pool.write_logs(log_time = time.time(), id = -1)
