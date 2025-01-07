@@ -106,6 +106,7 @@ class Resources:
     
     def release_resources(self, allocated_gpu_list: List[Tuple[int, int]]) -> None:
         with self.free_gpus_lock:
+            print(allocated_gpu_list)
             for i, j in allocated_gpu_list:
                 self.free_gpus_list[i][j] = 0
             with self.new_gpus_lock:
