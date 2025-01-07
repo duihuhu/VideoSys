@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple, Deque
+from typing import Dict, List, Tuple, Deque, Optional
 import threading
 import copy
 import time
@@ -11,7 +11,7 @@ class Request:
         self.resolution = resolution
 
 class Resources:
-    def __init__(self, instances_num: int, gpus_per_instance: int, log_path: str) -> None:
+    def __init__(self, instances_num: int, gpus_per_instance: int, log_path: str, per_group_num: Optional[int]) -> None:
         self.free_gpus_list = [[0 for _ in range(gpus_per_instance)] for _ in range(instances_num)]
         self.free_gpus_lock = threading.Lock()
         self.file_lock = threading.Lock()
@@ -32,19 +32,30 @@ class Resources:
         self.log_path = log_path
         self.waiting_requests: Deque[Request] = Deque()
         self.helper_requests: List[Request] = []
+        self.groups = instances_num * gpus_per_instance // per_group_num
+        self.groups_lock = threading.Lock()
+        self.per_group_num = per_group_num
     
     def write_logs(self, log_time: float, id: int) -> None:
         with self.file_lock:
             with open(self.log_path, 'a') as file:
                 if id >= 0:
-                    file.write(f"request {id} ends at {log_time}")
+                    file.write(f"request {id} ends at {log_time}\n")
                 else:
-                    file.write(f"requests start at {log_time}")
+                    file.write(f"requests start at {log_time}\n")
 
     def add_request(self, request: Request) -> None:
         self.waiting_requests.append(request)
         self.helper_requests.append(request)
-
+    
+    def allocate_resources(self, request: Request) -> Tuple[bool, float, float]:
+        with self.groups_lock:
+            if self.groups >= 1:
+                self.groups -= 1
+                return (True, self.dit_times[request.resolution][self.per_group_num], self.vae_times[request.resolution][self.per_group_num])
+            else:
+                return (False, None, None)
+   
     def try_best_allocate(self, request: Request, allocated_gpu_num: int, 
                           allocated_gpu_list: List[Tuple[int, int]]) -> Tuple[bool, List[Tuple[int, int]], float, float]:
         cur_opt_gpu_num = self.opt_gpu_nums[request.resolution]
@@ -116,6 +127,10 @@ class Resources:
             with self.new_gpus_lock:
                 if not self.new_gpus.is_set():
                     self.new_gpus.set()
+    
+    def group_release_resources(self) -> None:
+        with self.groups_lock:
+            self.groups += 1
 
 def global_schedule(resource_pool: Resources) -> None:
     while resource_pool.hungry_requests or resource_pool.waiting_requests:
@@ -155,25 +170,46 @@ def thread_function(request: Request, resource_pool: Resources, allocated_gpu_li
     print(f"Request {request.id} Ends")
     resource_pool.write_logs(log_time = end_time, id = request.id)
 
-def ddit_schedule(resource_pool: Resources) -> None:
+def group_thread_function(request: Request, resource_pool: Resources, total_time: float) -> None:
+    print(f"Request {request.id} Starts")
+    time.sleep(total_time)
+    resource_pool.group_release_resources()
+    end_time = time.time()
+    print(f"Request {request.id} Ends")
+    resource_pool.write_logs(log_time = end_time, id = request.id)
+
+def ddit_schedule(resource_pool: Resources, group: Optional[bool] = False) -> None:
     activate_threads: List[threading.Thread] = []
-    global_scheduler = threading.Thread(target = global_schedule, args = (resource_pool,))
-    global_scheduler.start()
-    activate_threads.append(global_scheduler)
-    resource_pool.write_logs(log_time = time.time(), id = -1)
-    print(f"Test Starts!")
-    while resource_pool.waiting_requests:
-        cur_request = resource_pool.waiting_requests.popleft()
-        can_start, allocated_gpu_list, dit_time, vae_time = resource_pool.try_best_allocate(request = cur_request,
-                                                                                                          allocated_gpu_num = 0,
-                                                                                                          allocated_gpu_list = [])
-        if can_start:
-            cur_thread = threading.Thread(target = thread_function, args = (cur_request, resource_pool, allocated_gpu_list, 
-                                                                            dit_time / resource_pool.denoise_steps, vae_time))
-            cur_thread.start()
-            activate_threads.append(cur_thread)
-        else:
-            resource_pool.waiting_requests.append(cur_request)
+    if group:
+        resource_pool.write_logs(log_time = time.time(), id = -1)
+        print(f"Test Starts!")
+        while resource_pool.waiting_requests:
+            cur_request = resource_pool.waiting_requests.popleft()
+            can_start, dit_time, vae_time = resource_pool.allocate_resources(request = cur_request)
+            if can_start:
+                cur_thread = threading.Thread(target = group_thread_function, args = (cur_request, resource_pool, dit_time + vae_time))
+                cur_thread.start()
+                activate_threads.append(cur_thread)
+            else:
+                resource_pool.waiting_requests.append(cur_request)
+    else:
+        global_scheduler = threading.Thread(target = global_schedule, args = (resource_pool,))
+        global_scheduler.start()
+        activate_threads.append(global_scheduler)
+        resource_pool.write_logs(log_time = time.time(), id = -1)
+        print(f"Test Starts!")
+        while resource_pool.waiting_requests:
+            cur_request = resource_pool.waiting_requests.popleft()
+            can_start, allocated_gpu_list, dit_time, vae_time = resource_pool.try_best_allocate(request = cur_request,
+                                                                                                            allocated_gpu_num = 0,
+                                                                                                            allocated_gpu_list = [])
+            if can_start:
+                cur_thread = threading.Thread(target = thread_function, args = (cur_request, resource_pool, allocated_gpu_list, 
+                                                                                dit_time / resource_pool.denoise_steps, vae_time))
+                cur_thread.start()
+                activate_threads.append(cur_thread)
+            else:
+                resource_pool.waiting_requests.append(cur_request)
     for cur_thread in activate_threads:
         cur_thread.join()
 
@@ -186,6 +222,8 @@ if __name__ == "__main__":
     parser.add_argument("--weight2", type = int, default = 1)
     parser.add_argument("--weight3", type = int, default = 1)
     parser.add_argument("--num", type = int, default = 128)
+    parser.add_argument("--gnum", type = int, default = 4)
+    parser.add_argument("--group", action = 'store_true', default = False)
     args = parser.parse_args()
     random.seed(42)
     resolutions = ["144p", "240p", "360p"]
@@ -198,7 +236,7 @@ if __name__ == "__main__":
     for _ in range(round((args.weight3 / total_weight) * args.num)):
          requests_resolutions.append(resolutions[2])
     random.shuffle(requests_resolutions)
-    resource_pool = Resources(instances_num = args.instances, gpus_per_instance = args.gpus, log_path = args.log)
+    resource_pool = Resources(instances_num = args.instances, gpus_per_instance = args.gpus, log_path = args.log, per_group_num = args.gnum)
     for i, resolution in enumerate(requests_resolutions):
         resource_pool.add_request(request = Request(id = i, resolution = resolution))
-    ddit_schedule(resource_pool = resource_pool)
+    ddit_schedule(resource_pool = resource_pool, group = args.group)
