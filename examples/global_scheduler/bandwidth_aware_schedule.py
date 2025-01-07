@@ -104,11 +104,15 @@ class Resources:
                                 self.vae_times[request.resolution][len(allocated_gpu_list)])
             return (False, None, None, None)
     
-    def release_resources(self, allocated_gpu_list: List[Tuple[int, int]]) -> None:
+    def release_resources(self, allocated_gpu_list: List[Tuple[int, int]], last: bool) -> None:
         with self.free_gpus_lock:
-            print(allocated_gpu_list)
-            for i, j in allocated_gpu_list:
+            if last:
+                i, j = allocated_gpu_list[-1]
                 self.free_gpus_list[i][j] = 0
+            else:
+                for i in range(0, len(allocated_gpu_list) - 1):
+                    m, n = allocated_gpu_list[i]
+                    self.free_gpus_list[m][n] = 0
             with self.new_gpus_lock:
                 if not self.new_gpus.is_set():
                     self.new_gpus.set()
@@ -144,9 +148,9 @@ def thread_function(request: Request, resource_pool: Resources, allocated_gpu_li
             time.sleep(dit_step_time)
             cur_step += 1
     if len(allocated_gpu_list) >= 2:
-        resource_pool.release_resources(allocated_gpu_list = allocated_gpu_list[0: -2])
+        resource_pool.release_resources(allocated_gpu_list = allocated_gpu_list, last = False)
     time.sleep(vae_time)
-    resource_pool.release_resources(allocated_gpu_list = allocated_gpu_list[-1])
+    resource_pool.release_resources(allocated_gpu_list = allocated_gpu_list, last = True)
     end_time = time.time()
     print(f"Request {request.id} Ends")
     resource_pool.write_logs(log_time = end_time, id = request.id)
