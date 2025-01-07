@@ -129,7 +129,7 @@ def thread_function(request: Request, resource_pool: Resources, allocated_gpu_li
     print(f"Request {request.id} Starts")
     cur_step = 0
     while cur_step < resource_pool.denoise_steps:
-        if resource_pool.hungry_requests[request.id] is not None and resource_pool.hungry_requests[request.id].is_set():
+        if resource_pool.hungry_requests[request] is not None and resource_pool.hungry_requests[request].is_set():
             allocated_gpu_list = resource_pool.cur_allocated_gpus[request.id]
             dit_step_time = resource_pool.dit_times[request.resolution][len(allocated_gpu_list)] / resource_pool.denoise_steps
             cur_step += 1
