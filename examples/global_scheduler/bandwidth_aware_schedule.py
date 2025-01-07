@@ -53,9 +53,9 @@ class Resources:
             cur_opt_gpu_num //= 2
         with self.free_gpus_lock:
             max_allocated_gpu_list: List[Tuple[int, int]] = []
-            for instance_id in len(self.free_gpus_list):
+            for instance_id in range(len(self.free_gpus_list)):
                 cur_allocated_gpu_list: List[Tuple[int, int]] = []
-                for gpu_id in len(self.free_gpus_list[instance_id]):
+                for gpu_id in range(len(self.free_gpus_list[instance_id])):
                     if self.free_gpus_list[instance_id][gpu_id] == 0:
                         cur_allocated_gpu_list.append((instance_id, gpu_id))
                 if len(cur_allocated_gpu_list) > len(max_allocated_gpu_list):
