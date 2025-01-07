@@ -142,7 +142,8 @@ def thread_function(request: Request, resource_pool: Resources, allocated_gpu_li
         else:
             time.sleep(dit_step_time)
             cur_step += 1
-    resource_pool.release_resources(allocated_gpu_list = allocated_gpu_list[0: -2])
+    if len(allocated_gpu_list) >= 2:
+        resource_pool.release_resources(allocated_gpu_list = allocated_gpu_list[0: -2])
     time.sleep(vae_time)
     resource_pool.release_resources(allocated_gpu_list = allocated_gpu_list[-1])
     end_time = time.time()
