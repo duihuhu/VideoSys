@@ -6,6 +6,14 @@ import argparse
 import random
 
 class Request:
+    def __hash__(self):
+        return hash((self.id, self.resolution))
+
+    def __eq__(self, other):
+        if isinstance(other, Request):
+            return self.id == other.id and self.resolution == other.resolution
+        return False
+    
     def __init__(self, id: int, resolution: str) -> None:
         self.id = id
         self.resolution = resolution
