@@ -296,13 +296,13 @@ def ddit_schedule(resource_pool: Resources, group: Optional[bool] = False, unify
             else:
                 resource_pool.waiting_requests.append(cur_request)
     for cur_thread in activate_threads:
-        cur_thread.join()
+        cur_thread.join(timeout = 60)
     durations = []
     for _, duration in resource_pool.end_times.items():
         #print(f"ID: {id}, Duration: {duration}")
         durations.append(duration - start_time)
     with open(resource_pool.log_path, 'a') as file:
-        file.write(f"{policy} Average Duration: {sum(durations) / len(durations)}\n")
+        file.write(f"Total {len(durations)} Requests, {policy} Average Duration: {sum(durations) / len(durations)}\n")
     #for cur_thread in activate_threads:
     #    cur_thread.join()
         #print(threading.enumerate())
