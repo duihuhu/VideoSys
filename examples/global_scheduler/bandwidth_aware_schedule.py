@@ -332,10 +332,10 @@ if __name__ == "__main__":
     for _ in range(round((args.weight3 / total_weight) * args.num)):
          requests_resolutions.append(resolutions[2])
     random.shuffle(requests_resolutions)
-    resource_pool = Resources(instances_num = args.instances, gpus_per_instance = args.gpus, log_path = args.log, per_group_num = args.gnum)
+    
     policies = ["Bandwidth", "Unify", "Group"]
     for policy in policies:
-        resource_pool.waiting_requests.clear()
+        resource_pool = Resources(instances_num = args.instances, gpus_per_instance = args.gpus, log_path = args.log, per_group_num = args.gnum)
         for i, resolution in enumerate(requests_resolutions):
             resource_pool.add_request(request = Request(id = i, resolution = resolution))
         if policy == "bandwidth":
@@ -344,4 +344,3 @@ if __name__ == "__main__":
             ddit_schedule(resource_pool = resource_pool, group = False, unify = True, policy = policy)
         else:
             ddit_schedule(resource_pool = resource_pool, group = True, unify = False, policy = policy)
-        
