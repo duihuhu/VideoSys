@@ -307,6 +307,7 @@ if __name__ == "__main__":
     parser.add_argument("--unify", action = 'store_true', default = False)
     args = parser.parse_args()
     print(args)
+    
     random.seed(42)
     resolutions = ["144p", "240p", "360p"]
     requests_resolutions: List[str] = []
@@ -318,7 +319,17 @@ if __name__ == "__main__":
     for _ in range(round((args.weight3 / total_weight) * args.num)):
          requests_resolutions.append(resolutions[2])
     random.shuffle(requests_resolutions)
-    resource_pool = Resources(instances_num = args.instances, gpus_per_instance = args.gpus, log_path = args.log, per_group_num = args.gnum)
-    for i, resolution in enumerate(requests_resolutions):
-        resource_pool.add_request(request = Request(id = i, resolution = resolution))
-    ddit_schedule(resource_pool = resource_pool, group = args.group, unify = args.unify)
+    
+    policies = ["bandwidth", "unify", "group"]
+    for policy in policies:
+        log_file_path = args.log + policy + ".txt"
+        resource_pool = Resources(instances_num = args.instances, gpus_per_instance = args.gpus, log_path = log_file_path, per_group_num = args.gnum)
+        for i, resolution in enumerate(requests_resolutions):
+            resource_pool.add_request(request = Request(id = i, resolution = resolution))
+        if policy == "bandwidth":
+            ddit_schedule(resource_pool = resource_pool, group = False, unify = False)
+        elif policy == "unify":
+            ddit_schedule(resource_pool = resource_pool, group = False, unify = True)
+        else:
+            ddit_schedule(resource_pool = resource_pool, group = True, unify = False)
+        
