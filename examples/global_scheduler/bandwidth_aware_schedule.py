@@ -247,9 +247,11 @@ def thread_function(request: Request, resource_pool: Resources, allocated_gpu_li
         del resource_pool.hungry_requests[request.id]
     #resource_pool.write_logs(log_time = end_time, id = request.id)
 
-def group_thread_function(request: Request, resource_pool: Resources, total_time: float) -> None:
+def group_thread_function(request: Request, resource_pool: Resources, dit_time: float, vae_time: float) -> None:
     print(f"Request {request.id} Starts")
-    time.sleep(total_time)
+    for _ in range(resource_pool.denoise_steps):
+        time.sleep(dit_time / resource_pool.denoise_steps)
+    time.sleep(vae_time)
     resource_pool.group_release_resources()
     end_time = time.time()
     print(f"Request {request.id} Ends")
@@ -267,7 +269,7 @@ def ddit_schedule(resource_pool: Resources, group: Optional[bool] = False, unify
             cur_request = resource_pool.waiting_requests.popleft()
             can_start, dit_time, vae_time = resource_pool.allocate_resources(request = cur_request)
             if can_start:
-                cur_thread = threading.Thread(target = group_thread_function, args = (cur_request, resource_pool, dit_time + vae_time))
+                cur_thread = threading.Thread(target = group_thread_function, args = (cur_request, resource_pool, dit_time, vae_time))
                 cur_thread.start()
                 activate_threads.append(cur_thread)
             else:
