@@ -296,11 +296,12 @@ def ddit_schedule(resource_pool: Resources, group: Optional[bool] = False, unify
                 resource_pool.waiting_requests.append(cur_request)
     for cur_thread in activate_threads:
         cur_thread.join()
-    durations = []
-    for _, duration in resource_pool.end_times.items():
-        durations.append(duration - start_time)
-    with open(resource_pool.log_path, 'a') as file:
-        file.write(f"{policy} Average Duration: {sum(durations) / len(durations)}\n")
+    #durations = []
+    for id, duration in resource_pool.end_times.items():
+        print(f"ID: {id}, Duration: {duration}")
+        #durations.append(duration - start_time)
+    #with open(resource_pool.log_path, 'a') as file:
+        #file.write(f"{policy} Average Duration: {sum(durations) / len(durations)}\n")
     #for cur_thread in activate_threads:
     #    cur_thread.join()
         #print(threading.enumerate())
@@ -331,10 +332,10 @@ if __name__ == "__main__":
     for _ in range(round((args.weight3 / total_weight) * args.num)):
          requests_resolutions.append(resolutions[2])
     random.shuffle(requests_resolutions)
-    
+    resource_pool = Resources(instances_num = args.instances, gpus_per_instance = args.gpus, log_path = args.log, per_group_num = args.gnum)
     policies = ["Bandwidth", "Unify", "Group"]
     for policy in policies:
-        resource_pool = Resources(instances_num = args.instances, gpus_per_instance = args.gpus, log_path = args.log, per_group_num = args.gnum)
+        resource_pool.waiting_requests.clear()
         for i, resolution in enumerate(requests_resolutions):
             resource_pool.add_request(request = Request(id = i, resolution = resolution))
         if policy == "bandwidth":
