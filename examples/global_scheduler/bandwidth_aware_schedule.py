@@ -250,7 +250,8 @@ def group_thread_function(request: Request, resource_pool: Resources, total_time
     resource_pool.group_release_resources()
     end_time = time.time()
     print(f"Request {request.id} Ends")
-    resource_pool.write_logs(log_time = end_time, id = request.id)
+    resource_pool.end_times[request.id] = end_time
+    #resource_pool.write_logs(log_time = end_time, id = request.id)
 
 def ddit_schedule(resource_pool: Resources, group: Optional[bool] = False, unify: Optional[bool] = False,
                   policy: Optional[str] = "Non-Policy") -> None:
@@ -296,12 +297,12 @@ def ddit_schedule(resource_pool: Resources, group: Optional[bool] = False, unify
                 resource_pool.waiting_requests.append(cur_request)
     for cur_thread in activate_threads:
         cur_thread.join()
-    #durations = []
-    for id, duration in resource_pool.end_times.items():
-        print(f"ID: {id}, Duration: {duration}")
-        #durations.append(duration - start_time)
-    #with open(resource_pool.log_path, 'a') as file:
-        #file.write(f"{policy} Average Duration: {sum(durations) / len(durations)}\n")
+    durations = []
+    for _, duration in resource_pool.end_times.items():
+        #print(f"ID: {id}, Duration: {duration}")
+        durations.append(duration - start_time)
+    with open(resource_pool.log_path, 'a') as file:
+        file.write(f"{policy} Average Duration: {sum(durations) / len(durations)}\n")
     #for cur_thread in activate_threads:
     #    cur_thread.join()
         #print(threading.enumerate())
@@ -338,9 +339,9 @@ if __name__ == "__main__":
         resource_pool = Resources(instances_num = args.instances, gpus_per_instance = args.gpus, log_path = args.log, per_group_num = args.gnum)
         for i, resolution in enumerate(requests_resolutions):
             resource_pool.add_request(request = Request(id = i, resolution = resolution))
-        if policy == "bandwidth":
+        if policy == "Bandwidth":
             ddit_schedule(resource_pool = resource_pool, group = False, unify = False, policy = policy)
-        elif policy == "unify":
+        elif policy == "Unify":
             ddit_schedule(resource_pool = resource_pool, group = False, unify = True, policy = policy)
         else:
             ddit_schedule(resource_pool = resource_pool, group = True, unify = False, policy = policy)
