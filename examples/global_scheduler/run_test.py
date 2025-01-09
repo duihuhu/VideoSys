@@ -7,11 +7,13 @@ base_command = "python3 policy_test.py --workload1-num {x} --workload2-num {y} -
 base_command2 = "python3 policy_test.py --decouple --workload1-num {x} --workload2-num {y} --workload3-num {z} --log /home/jovyan/hhy/VideoSys/examples/global_scheduler/logs_{x}_{y}_{z}_"
 base_command3 = "python3 bandwidth_aware_schedule.py --weight1 {x} --weight2 {y} --weight3 {z} --log /home/jovyan/hhy/VideoSys/examples/global_scheduler/logs_{x}_{y}_{z}.txt"
 base_command4 = "python3 bandwidth_aware_schedule.py --weight1 {x} --weight2 {y} --weight3 {z} --group --log /home/jovyan/hhy/VideoSys/examples/global_scheduler/logs_{x}_{y}_{z}.txt"
+base_command5 = "python3 bandwidth_aware_schedule.py --weight1 {x} --weight2 {y} --weight3 {z} --unify --log /home/jovyan/hhy/VideoSys/examples/global_scheduler/logs_{x}_{y}_{z}.txt"
 
 for x, y, z in ratios:
     #command = base_command.format(x = x, y = y, z = z)
     #command = base_command2.format(x = x, y = y, z = z)
-    command = base_command3.format(x = x, y = y, z = z)
+    #command = base_command3.format(x = x, y = y, z = z)
     #command = base_command4.format(x = x, y = y, z = z)
+    command = base_command5.format(x = x, y = y, z = z)
     os.system(command)
     time.sleep(1)

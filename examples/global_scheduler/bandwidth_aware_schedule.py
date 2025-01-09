@@ -315,4 +315,4 @@ if __name__ == "__main__":
     resource_pool = Resources(instances_num = args.instances, gpus_per_instance = args.gpus, log_path = args.log, per_group_num = args.gnum)
     for i, resolution in enumerate(requests_resolutions):
         resource_pool.add_request(request = Request(id = i, resolution = resolution))
-    ddit_schedule(resource_pool = resource_pool, group = args.group)
+    ddit_schedule(resource_pool = resource_pool, group = args.group, unify = args.unify)
