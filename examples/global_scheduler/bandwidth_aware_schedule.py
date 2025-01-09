@@ -67,7 +67,8 @@ class Resources:
             cur_opt_gpu_num //= 2
         with self.free_gpus_lock:
             if self.free_gpus_num >= cur_demand_gpu_nums[0]:
-                self.free_gpus_num -= cur_demand_gpu_nums[0]    
+                self.free_gpus_num -= cur_demand_gpu_nums[0]
+                cur_allocated_gpus_num = cur_demand_gpu_nums[0] + demand_gpu_num    
                 if request.id in self.hungry_requests:
                     with self.hungry_requests_lock:
                         if not self.hungry_requests[request.id].is_set():
@@ -76,21 +77,20 @@ class Resources:
                         del self.last_step[request.id]
                         del self.cur_step[request.id]
                         del self.cur_starv_time[request.id]
-                        cur_allocated_gpus_num = cur_demand_gpu_nums[0] + demand_gpu_num
                         self.unify_network_cur_allocated_gpus[request.id] = cur_allocated_gpus_num
                 return (True, cur_allocated_gpus_num, self.dit_times[request.resolution][cur_allocated_gpus_num], 
                 self.vae_times[request.resolution][cur_allocated_gpus_num])
             for cur_demand_gpu_num in cur_demand_gpu_nums[1: ]:
                 if self.free_gpus_num >= cur_demand_gpu_num:
                     self.free_gpus_num -= cur_demand_gpu_num
+                    cur_allocated_gpus_num = cur_demand_gpu_num + demand_gpu_num
                     if request.id not in self.hungry_requests:
                         with self.hungry_requests_lock:
                             self.hungry_requests[request.id] = threading.Event()
                             self.last_step[request.id] = 0
                             self.cur_step[request.id] = 0
-                            self.cur_starv_time[request.id] = (self.dit_times[request.resolution][cur_demand_gpu_num] 
+                            self.cur_starv_time[request.id] = (self.dit_times[request.resolution][cur_allocated_gpus_num] 
                                                             - self.dit_times[request.resolution][self.opt_gpu_nums[request.resolution]]) / self.denoise_steps
-                            cur_allocated_gpus_num = cur_demand_gpu_num + demand_gpu_num
                             self.unify_network_cur_allocated_gpus[request.id] = cur_allocated_gpus_num                              
                         return (True, cur_allocated_gpus_num, self.dit_times[request.resolution][cur_allocated_gpus_num], 
                                 self.vae_times[request.resolution][cur_allocated_gpus_num])
@@ -99,9 +99,8 @@ class Resources:
                             if not self.hungry_requests[request.id].is_set():
                                 self.hungry_requests[request.id].set()
                             self.last_step[request.id] = self.cur_step[request.id]
-                            self.cur_starv_time[request.id] = (self.dit_times[request.resolution][cur_demand_gpu_num]
+                            self.cur_starv_time[request.id] = (self.dit_times[request.resolution][cur_allocated_gpus_num]
                                                             - self.dit_times[request.resolution][self.opt_gpu_nums[request.resolution]]) / self.denoise_steps
-                            cur_allocated_gpus_num = cur_demand_gpu_num + demand_gpu_num
                             self.unify_network_cur_allocated_gpus[request.id] = cur_allocated_gpus_num
                         return (True, cur_allocated_gpus_num, self.dit_times[request.resolution][cur_allocated_gpus_num], 
                                 self.vae_times[request.resolution][cur_allocated_gpus_num])
