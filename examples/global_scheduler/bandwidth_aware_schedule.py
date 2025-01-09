@@ -270,6 +270,7 @@ def ddit_schedule(resource_pool: Resources, group: Optional[bool] = False, unify
         print(f"Test Starts!")
         while resource_pool.waiting_requests:
             cur_request = resource_pool.waiting_requests.popleft()
+            allocated_gpu_num = 0
             if unify:
                 can_start, allocated_gpu_num, dit_time, vae_time = resource_pool.unify_network_allocate(request = cur_request, 
                 demand_gpu_num = 0)
