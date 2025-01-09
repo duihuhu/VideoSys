@@ -37,6 +37,7 @@ class Resources:
         self.groups = instances_num * gpus_per_instance // per_group_num
         self.groups_lock = threading.Lock()
         self.per_group_num = per_group_num
+        self.end_times: Dict[int, float] = {}
     
     def write_logs(self, log_time: float, id: int) -> None:
         with self.file_lock:
@@ -240,7 +241,8 @@ def thread_function(request: Request, resource_pool: Resources, allocated_gpu_li
         resource_pool.release_resources(allocated_gpu_list = allocated_gpu_list, last = True)
     end_time = time.time()
     print(f"Request {request.id} Ends")
-    resource_pool.write_logs(log_time = end_time, id = request.id)
+    resource_pool.end_times[request.id] = end_time
+    #resource_pool.write_logs(log_time = end_time, id = request.id)
 
 def group_thread_function(request: Request, resource_pool: Resources, total_time: float) -> None:
     print(f"Request {request.id} Starts")
@@ -253,7 +255,8 @@ def group_thread_function(request: Request, resource_pool: Resources, total_time
 def ddit_schedule(resource_pool: Resources, group: Optional[bool] = False, unify: Optional[bool] = False) -> None:
     activate_threads: List[threading.Thread] = []
     if group:
-        resource_pool.write_logs(log_time = time.time(), id = -1)
+        start_time = time.time()
+        #resource_pool.write_logs(log_time = time.time(), id = -1)
         print(f"Test Starts!")
         while resource_pool.waiting_requests:
             cur_request = resource_pool.waiting_requests.popleft()
@@ -268,7 +271,8 @@ def ddit_schedule(resource_pool: Resources, group: Optional[bool] = False, unify
         global_scheduler = threading.Thread(target = global_schedule, args = (resource_pool, unify), name = "global_scheduler")
         global_scheduler.start()
         activate_threads.append(global_scheduler)
-        resource_pool.write_logs(log_time = time.time(), id = -1)
+        start_time = time.time()    
+        #resource_pool.write_logs(log_time = time.time(), id = -1)
         print(f"Test Starts!")
         while resource_pool.waiting_requests:
             cur_request = resource_pool.waiting_requests.popleft()
@@ -289,13 +293,18 @@ def ddit_schedule(resource_pool: Resources, group: Optional[bool] = False, unify
                 activate_threads.append(cur_thread)
             else:
                 resource_pool.waiting_requests.append(cur_request)
-    for cur_thread in activate_threads:
-        cur_thread.join()
-        print(threading.enumerate())
+    durations = []
+    for _, duration in resource_pool.end_times.items():
+        durations.append(duration - start_time)
+    with open(resource_pool.log_path, 'a') as file:
+        file.write(f"Average Duration: {sum(durations) / len(durations)}\n")
+    #for cur_thread in activate_threads:
+    #    cur_thread.join()
+        #print(threading.enumerate())
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--log", type = str, default = "/home/jovyan/hhy/VideoSys/examples/global_scheduler/logs_temp.txt")
+    parser.add_argument("--log", type = str, default = "/home/jovyan/hhy/VideoSys/examples/global_scheduler/logs_")
     parser.add_argument("--instances", type = int, default = 8)
     parser.add_argument("--gpus", type = int, default = 8)
     parser.add_argument("--weight1", type = int, default = 1)
