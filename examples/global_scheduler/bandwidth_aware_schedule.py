@@ -271,6 +271,7 @@ def ddit_schedule(resource_pool: Resources, group: Optional[bool] = False, unify
         while resource_pool.waiting_requests:
             cur_request = resource_pool.waiting_requests.popleft()
             allocated_gpu_num = 0
+            allocated_gpu_list: List[Tuple[int, int]] = []
             if unify:
                 can_start, allocated_gpu_num, dit_time, vae_time = resource_pool.unify_network_allocate(request = cur_request, 
                 demand_gpu_num = 0)
