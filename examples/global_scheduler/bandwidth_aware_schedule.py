@@ -252,8 +252,9 @@ def group_thread_function(request: Request, resource_pool: Resources, total_time
     print(f"Request {request.id} Ends")
     resource_pool.write_logs(log_time = end_time, id = request.id)
 
-def ddit_schedule(resource_pool: Resources, group: Optional[bool] = False, unify: Optional[bool] = False) -> None:
-    activate_threads: List[threading.Thread] = []
+def ddit_schedule(resource_pool: Resources, group: Optional[bool] = False, unify: Optional[bool] = False,
+                  policy: Optional[str] = "Non-Policy") -> None:
+    #activate_threads: List[threading.Thread] = []
     if group:
         start_time = time.time()
         #resource_pool.write_logs(log_time = time.time(), id = -1)
@@ -264,13 +265,13 @@ def ddit_schedule(resource_pool: Resources, group: Optional[bool] = False, unify
             if can_start:
                 cur_thread = threading.Thread(target = group_thread_function, args = (cur_request, resource_pool, dit_time + vae_time))
                 cur_thread.start()
-                activate_threads.append(cur_thread)
+                #activate_threads.append(cur_thread)
             else:
                 resource_pool.waiting_requests.append(cur_request)
     else:
         global_scheduler = threading.Thread(target = global_schedule, args = (resource_pool, unify), name = "global_scheduler")
         global_scheduler.start()
-        activate_threads.append(global_scheduler)
+        #activate_threads.append(global_scheduler)
         start_time = time.time()    
         #resource_pool.write_logs(log_time = time.time(), id = -1)
         print(f"Test Starts!")
@@ -290,21 +291,21 @@ def ddit_schedule(resource_pool: Resources, group: Optional[bool] = False, unify
                                                                                 dit_time / resource_pool.denoise_steps, vae_time,
                                                                                 allocated_gpu_num, unify), name = f"request_{cur_request.id}")
                 cur_thread.start()
-                activate_threads.append(cur_thread)
+                #activate_threads.append(cur_thread)
             else:
                 resource_pool.waiting_requests.append(cur_request)
     durations = []
     for _, duration in resource_pool.end_times.items():
         durations.append(duration - start_time)
     with open(resource_pool.log_path, 'a') as file:
-        file.write(f"Average Duration: {sum(durations) / len(durations)}\n")
+        file.write(f"{policy} Average Duration: {sum(durations) / len(durations)}\n")
     #for cur_thread in activate_threads:
     #    cur_thread.join()
         #print(threading.enumerate())
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--log", type = str, default = "/home/jovyan/hhy/VideoSys/examples/global_scheduler/logs_")
+    parser.add_argument("--log", type = str, default = "/home/jovyan/hhy/VideoSys/examples/global_scheduler/logs_temp.txt")
     parser.add_argument("--instances", type = int, default = 8)
     parser.add_argument("--gpus", type = int, default = 8)
     parser.add_argument("--weight1", type = int, default = 1)
@@ -329,16 +330,16 @@ if __name__ == "__main__":
          requests_resolutions.append(resolutions[2])
     random.shuffle(requests_resolutions)
     
-    policies = ["bandwidth", "unify", "group"]
+    policies = ["Bandwidth", "Unify", "Group"]
     for policy in policies:
         log_file_path = args.log + policy + ".txt"
         resource_pool = Resources(instances_num = args.instances, gpus_per_instance = args.gpus, log_path = log_file_path, per_group_num = args.gnum)
         for i, resolution in enumerate(requests_resolutions):
             resource_pool.add_request(request = Request(id = i, resolution = resolution))
         if policy == "bandwidth":
-            ddit_schedule(resource_pool = resource_pool, group = False, unify = False)
+            ddit_schedule(resource_pool = resource_pool, group = False, unify = False, policy = policy)
         elif policy == "unify":
-            ddit_schedule(resource_pool = resource_pool, group = False, unify = True)
+            ddit_schedule(resource_pool = resource_pool, group = False, unify = True, policy = policy)
         else:
-            ddit_schedule(resource_pool = resource_pool, group = True, unify = False)
+            ddit_schedule(resource_pool = resource_pool, group = True, unify = False, policy = policy)
         

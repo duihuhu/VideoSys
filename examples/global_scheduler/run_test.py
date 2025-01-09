@@ -6,7 +6,7 @@ policies = ["bandwidth", "unify", "group"]
 
 base_command = "python3 policy_test.py --workload1-num {x} --workload2-num {y} --workload3-num {z} --log /home/jovyan/hhy/VideoSys/examples/global_scheduler/logs_{x}_{y}_{z}_"
 base_command2 = "python3 policy_test.py --decouple --workload1-num {x} --workload2-num {y} --workload3-num {z} --log /home/jovyan/hhy/VideoSys/examples/global_scheduler/logs_{x}_{y}_{z}_"
-base_command3 = "python3 bandwidth_aware_schedule.py --weight1 {x} --weight2 {y} --weight3 {z} --log /home/jovyan/hhy/VideoSys/examples/global_scheduler/logs_{x}_{y}_{z}_"
+base_command3 = "python3 bandwidth_aware_schedule.py --weight1 {x} --weight2 {y} --weight3 {z} --log /home/jovyan/hhy/VideoSys/examples/global_scheduler/logs_{x}_{y}_{z}.txt"
 base_command4 = "python3 bandwidth_aware_schedule.py --weight1 {x} --weight2 {y} --weight3 {z} --log /home/jovyan/hhy/VideoSys/examples/global_scheduler/logs_{p}_{x}_{y}_{z}.txt --unify"
 base_command5 = "python3 bandwidth_aware_schedule.py --weight1 {x} --weight2 {y} --weight3 {z} --log /home/jovyan/hhy/VideoSys/examples/global_scheduler/logs_{p}_{x}_{y}_{z}.txt --group"
 
