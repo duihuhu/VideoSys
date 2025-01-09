@@ -254,7 +254,7 @@ def group_thread_function(request: Request, resource_pool: Resources, total_time
 
 def ddit_schedule(resource_pool: Resources, group: Optional[bool] = False, unify: Optional[bool] = False,
                   policy: Optional[str] = "Non-Policy") -> None:
-    #activate_threads: List[threading.Thread] = []
+    activate_threads: List[threading.Thread] = []
     if group:
         start_time = time.time()
         #resource_pool.write_logs(log_time = time.time(), id = -1)
@@ -265,13 +265,13 @@ def ddit_schedule(resource_pool: Resources, group: Optional[bool] = False, unify
             if can_start:
                 cur_thread = threading.Thread(target = group_thread_function, args = (cur_request, resource_pool, dit_time + vae_time))
                 cur_thread.start()
-                #activate_threads.append(cur_thread)
+                activate_threads.append(cur_thread)
             else:
                 resource_pool.waiting_requests.append(cur_request)
     else:
         global_scheduler = threading.Thread(target = global_schedule, args = (resource_pool, unify), name = "global_scheduler")
         global_scheduler.start()
-        #activate_threads.append(global_scheduler)
+        activate_threads.append(global_scheduler)
         start_time = time.time()    
         #resource_pool.write_logs(log_time = time.time(), id = -1)
         print(f"Test Starts!")
@@ -291,9 +291,11 @@ def ddit_schedule(resource_pool: Resources, group: Optional[bool] = False, unify
                                                                                 dit_time / resource_pool.denoise_steps, vae_time,
                                                                                 allocated_gpu_num, unify), name = f"request_{cur_request.id}")
                 cur_thread.start()
-                #activate_threads.append(cur_thread)
+                activate_threads.append(cur_thread)
             else:
                 resource_pool.waiting_requests.append(cur_request)
+    for cur_thread in activate_threads:
+        cur_thread.join()
     durations = []
     for _, duration in resource_pool.end_times.items():
         durations.append(duration - start_time)
@@ -332,8 +334,7 @@ if __name__ == "__main__":
     
     policies = ["Bandwidth", "Unify", "Group"]
     for policy in policies:
-        log_file_path = args.log + policy + ".txt"
-        resource_pool = Resources(instances_num = args.instances, gpus_per_instance = args.gpus, log_path = log_file_path, per_group_num = args.gnum)
+        resource_pool = Resources(instances_num = args.instances, gpus_per_instance = args.gpus, log_path = args.log, per_group_num = args.gnum)
         for i, resolution in enumerate(requests_resolutions):
             resource_pool.add_request(request = Request(id = i, resolution = resolution))
         if policy == "bandwidth":
