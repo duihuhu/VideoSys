@@ -200,8 +200,8 @@ def global_schedule(resource_pool: Resources, unify: Optional[bool] = False) -> 
                         demand_gpu_num = resource_pool.unify_network_cur_allocated_gpus[id])
                     else:
                         _, _, _, _ = resource_pool.try_best_allocate(request = resource_pool.helper_requests[id], 
-                                                                        allocated_gpu_num = len(resource_pool.cur_allocated_gpus[id]),
-                                                                        allocated_gpu_list = resource_pool.cur_allocated_gpus[id])
+                                                                     allocated_gpu_num = len(resource_pool.cur_allocated_gpus[id]),
+                                                                     allocated_gpu_list = resource_pool.cur_allocated_gpus[id])
             with resource_pool.new_gpus_lock:
                 resource_pool.new_gpus.clear()
 
@@ -263,7 +263,7 @@ def ddit_schedule(resource_pool: Resources, group: Optional[bool] = False, unify
             else:
                 resource_pool.waiting_requests.append(cur_request)
     else:
-        global_scheduler = threading.Thread(target = global_schedule, args = (resource_pool,))
+        global_scheduler = threading.Thread(target = global_schedule, args = (resource_pool, unify))
         global_scheduler.start()
         activate_threads.append(global_scheduler)
         resource_pool.write_logs(log_time = time.time(), id = -1)
@@ -302,6 +302,7 @@ if __name__ == "__main__":
     parser.add_argument("--group", action = 'store_true', default = False)
     parser.add_argument("--unify", action = 'store_true', default = False)
     args = parser.parse_args()
+    print(args)
     random.seed(42)
     resolutions = ["144p", "240p", "360p"]
     requests_resolutions: List[str] = []
