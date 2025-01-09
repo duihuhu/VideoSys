@@ -11,7 +11,7 @@ base_command4 = "python3 bandwidth_aware_schedule.py --weight1 {x} --weight2 {y}
 for x, y, z in ratios:
     #command = base_command.format(x = x, y = y, z = z)
     #command = base_command2.format(x = x, y = y, z = z)
-    #command = base_command3.format(x = x, y = y, z = z)
-    command = base_command4.format(x = x, y = y, z = z)
+    command = base_command3.format(x = x, y = y, z = z)
+    #command = base_command4.format(x = x, y = y, z = z)
     os.system(command)
     time.sleep(1)

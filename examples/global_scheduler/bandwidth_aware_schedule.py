@@ -14,6 +14,7 @@ class Resources:
     def __init__(self, instances_num: int, gpus_per_instance: int, log_path: str, per_group_num: Optional[int]) -> None:
         self.free_gpus_list = [[0 for _ in range(gpus_per_instance)] for _ in range(instances_num)]
         self.free_gpus_lock = threading.Lock()
+        self.free_gpus_num = instances_num * gpus_per_instance
         self.file_lock = threading.Lock()
         self.new_gpus = threading.Event()
         self.new_gpus_lock = threading.Lock()
@@ -28,6 +29,7 @@ class Resources:
         self.cur_step: Dict[int, int] = {}
         self.cur_starv_time: Dict[int, float] = {}
         self.cur_allocated_gpus: Dict[int, List[Tuple[int, int]]] = {}
+        self.unify_network_cur_allocated_gpus: Dict[int, int] = {}
         self.denoise_steps = 30
         self.log_path = log_path
         self.waiting_requests: Deque[Request] = Deque()
@@ -55,7 +57,53 @@ class Resources:
                 return (True, self.dit_times[request.resolution][self.per_group_num], self.vae_times[request.resolution][self.per_group_num])
             else:
                 return (False, None, None)
-   
+    
+    def unify_network_allocate(self, request: Request, demand_gpu_num) -> Tuple[bool, int, float, float]:
+        cur_opt_gpu_num = self.opt_gpu_nums[request.resolution]
+        cur_demand_gpu_nums: List[int] = []
+        while cur_opt_gpu_num > 0:
+            if cur_opt_gpu_num - demand_gpu_num > 0:
+                cur_demand_gpu_nums.append(cur_opt_gpu_num - demand_gpu_num)
+            cur_opt_gpu_num //= 2
+        with self.free_gpus_lock:
+            if self.free_gpus_num >= cur_demand_gpu_nums[0]:
+                self.free_gpus_num -= cur_demand_gpu_nums[0]    
+                if request.id in self.hungry_requests:
+                    with self.hungry_requests_lock:
+                        if not self.hungry_requests[request.id].is_set():
+                            self.hungry_requests[request.id].set()
+                        del self.hungry_requests[request.id]
+                        del self.last_step[request.id]
+                        del self.cur_step[request.id]
+                        del self.cur_starv_time[request.id]
+                        self.unify_network_cur_allocated_gpus[request.id] = cur_demand_gpu_nums[0]
+                return (True, cur_demand_gpu_nums[0], self.dit_times[request.resolution][cur_demand_gpu_nums[0]], 
+                self.vae_times[request.resolution][cur_demand_gpu_nums[0]])
+            for cur_demand_gpu_num in cur_demand_gpu_nums[1: ]:
+                if self.free_gpus_num >= cur_demand_gpu_num:
+                    self.free_gpus_num -= cur_demand_gpu_num
+                    if request.id not in self.hungry_requests:
+                        with self.hungry_requests_lock:
+                            self.hungry_requests[request.id] = threading.Event()
+                            self.last_step[request.id] = 0
+                            self.cur_step[request.id] = 0
+                            self.cur_starv_time[request.id] = (self.dit_times[request.resolution][cur_demand_gpu_num] 
+                                                            - self.dit_times[request.resolution][self.opt_gpu_nums[request.resolution]]) / self.denoise_steps
+                            self.unify_network_cur_allocated_gpus[request.id] = cur_demand_gpu_num                               
+                        return (True, cur_demand_gpu_num, self.dit_times[request.resolution][cur_demand_gpu_num], 
+                                self.vae_times[request.resolution][cur_demand_gpu_num])
+                    else:
+                        with self.hungry_requests_lock:
+                            if not self.hungry_requests[request.id].is_set():
+                                self.hungry_requests[request.id].set()
+                            self.last_step[request.id] = self.cur_step[request.id]
+                            self.cur_starv_time[request.id] = (self.dit_times[request.resolution][cur_demand_gpu_num]
+                                                            - self.dit_times[request.resolution][self.opt_gpu_nums[request.resolution]]) / self.denoise_steps
+                            self.unify_network_cur_allocated_gpus[request.id] = cur_demand_gpu_num
+                        return (True, cur_demand_gpu_num, self.dit_times[request.resolution][cur_demand_gpu_num], 
+                                self.vae_times[request.resolution][cur_demand_gpu_num])
+            return (False, None, None, None)
+
     def try_best_allocate(self, request: Request, allocated_gpu_num: int, 
                           allocated_gpu_list: List[Tuple[int, int]]) -> Tuple[bool, List[Tuple[int, int]], float, float]:
         cur_opt_gpu_num = self.opt_gpu_nums[request.resolution]
@@ -85,10 +133,10 @@ class Resources:
                                 del self.last_step[request.id]
                                 del self.cur_step[request.id]
                                 del self.cur_starv_time[request.id]
-                                #self.cur_allocated_gpus[request.id] = allocated_gpu_list
+                                self.cur_allocated_gpus[request.id] = allocated_gpu_list
                         return (True, allocated_gpu_list, self.dit_times[request.resolution][len(allocated_gpu_list)], 
-                                        self.vae_times[request.resolution][len(allocated_gpu_list)])
-            for demand_gpu_num in wanted_gpu_num_list[1: -1]:
+                        self.vae_times[request.resolution][len(allocated_gpu_list)])
+            for demand_gpu_num in wanted_gpu_num_list[1: ]:
                 if len(max_allocated_gpu_list) >= demand_gpu_num:
                     for i, j in max_allocated_gpu_list[0: demand_gpu_num]:
                         self.free_gpus_list[i][j] = 1
@@ -110,7 +158,7 @@ class Resources:
                             self.last_step[request.id] = self.cur_step[request.id]
                             self.cur_starv_time[request.id] = (self.dit_times[request.resolution][len(allocated_gpu_list)]
                                                             - self.dit_times[request.resolution][self.opt_gpu_nums[request.resolution]]) / self.denoise_steps
-                            #self.cur_allocated_gpus[request.id] = allocated_gpu_list
+                            self.cur_allocated_gpus[request.id] = allocated_gpu_list
                         return (True, allocated_gpu_list, self.dit_times[request.resolution][len(allocated_gpu_list)], 
                                 self.vae_times[request.resolution][len(allocated_gpu_list)])
             return (False, None, None, None)
@@ -128,11 +176,18 @@ class Resources:
                 if not self.new_gpus.is_set():
                     self.new_gpus.set()
     
+    def unify_network_release(self, allocated_gpu_num: int) -> None:
+        with self.free_gpus_lock:
+            self.free_gpus_num += allocated_gpu_num
+            with self.new_gpus_lock:
+                if not self.new_gpus.is_set():
+                    self.new_gpus.set()
+    
     def group_release_resources(self) -> None:
         with self.groups_lock:
             self.groups += 1
 
-def global_schedule(resource_pool: Resources) -> None:
+def global_schedule(resource_pool: Resources, unify: Optional[bool] = False) -> None:
     while resource_pool.hungry_requests or resource_pool.waiting_requests:
         if resource_pool.new_gpus.is_set():
             if resource_pool.hungry_requests:
@@ -140,20 +195,28 @@ def global_schedule(resource_pool: Resources) -> None:
                 requests_ids.sort(key = lambda x: resource_pool.cur_starv_time[x] * (resource_pool.cur_step[x] 
                                                                                     - resource_pool.last_step[x]), reverse = True)
                 for id in requests_ids:
-                    _, _, _, _ = resource_pool.try_best_allocate(request = resource_pool.helper_requests[id], 
-                                                                    allocated_gpu_num = len(resource_pool.cur_allocated_gpus[id]),
-                                                                    allocated_gpu_list = resource_pool.cur_allocated_gpus[id])
+                    if unify:
+                        _, _, _, _ = resource_pool.unify_network_allocate(request = resource_pool.helper_requests[id], 
+                        demand_gpu_num = resource_pool.unify_network_cur_allocated_gpus[id])
+                    else:
+                        _, _, _, _ = resource_pool.try_best_allocate(request = resource_pool.helper_requests[id], 
+                                                                        allocated_gpu_num = len(resource_pool.cur_allocated_gpus[id]),
+                                                                        allocated_gpu_list = resource_pool.cur_allocated_gpus[id])
             with resource_pool.new_gpus_lock:
                 resource_pool.new_gpus.clear()
 
 def thread_function(request: Request, resource_pool: Resources, allocated_gpu_list: List[Tuple[int, int]],
-                    dit_step_time: float, vae_time: float) -> None:
+                    dit_step_time: float, vae_time: float, allocated_gpu_num: Optional[int], unify: Optional[bool] = False) -> None:
     print(f"Request {request.id} Starts")
     cur_step = 0
     while cur_step < resource_pool.denoise_steps:
         if request.id in resource_pool.hungry_requests and resource_pool.hungry_requests[request.id].is_set():
-            allocated_gpu_list = resource_pool.cur_allocated_gpus[request.id]
-            dit_step_time = resource_pool.dit_times[request.resolution][len(allocated_gpu_list)] / resource_pool.denoise_steps
+            if unify:
+                allocated_gpu_num = resource_pool.unify_network_cur_allocated_gpus[request.id]
+                dit_step_time = resource_pool.dit_times[request.resolution][allocated_gpu_num] / resource_pool.denoise_steps
+            else:
+                allocated_gpu_list = resource_pool.cur_allocated_gpus[request.id]
+                dit_step_time = resource_pool.dit_times[request.resolution][len(allocated_gpu_list)] / resource_pool.denoise_steps
             cur_step += 1
             with resource_pool.hungry_requests_lock:
                 resource_pool.cur_step[request.id] = cur_step
@@ -162,10 +225,17 @@ def thread_function(request: Request, resource_pool: Resources, allocated_gpu_li
         else:
             time.sleep(dit_step_time)
             cur_step += 1
-    if len(allocated_gpu_list) >= 2:
-        resource_pool.release_resources(allocated_gpu_list = allocated_gpu_list, last = False)
+    
+    if len(allocated_gpu_list) >= 2 or allocated_gpu_num >= 2:
+        if unify:
+            resource_pool.unify_network_release(allocated_gpu_num - 1)
+        else:
+            resource_pool.release_resources(allocated_gpu_list = allocated_gpu_list, last = False)
     time.sleep(vae_time)
-    resource_pool.release_resources(allocated_gpu_list = allocated_gpu_list, last = True)
+    if unify:
+        resource_pool.unify_network_release(1)
+    else:
+        resource_pool.release_resources(allocated_gpu_list = allocated_gpu_list, last = True)
     end_time = time.time()
     print(f"Request {request.id} Ends")
     resource_pool.write_logs(log_time = end_time, id = request.id)
@@ -178,7 +248,7 @@ def group_thread_function(request: Request, resource_pool: Resources, total_time
     print(f"Request {request.id} Ends")
     resource_pool.write_logs(log_time = end_time, id = request.id)
 
-def ddit_schedule(resource_pool: Resources, group: Optional[bool] = False) -> None:
+def ddit_schedule(resource_pool: Resources, group: Optional[bool] = False, unify: Optional[bool] = False) -> None:
     activate_threads: List[threading.Thread] = []
     if group:
         resource_pool.write_logs(log_time = time.time(), id = -1)
@@ -200,12 +270,16 @@ def ddit_schedule(resource_pool: Resources, group: Optional[bool] = False) -> No
         print(f"Test Starts!")
         while resource_pool.waiting_requests:
             cur_request = resource_pool.waiting_requests.popleft()
-            can_start, allocated_gpu_list, dit_time, vae_time = resource_pool.try_best_allocate(request = cur_request,
-                                                                                                            allocated_gpu_num = 0,
-                                                                                                            allocated_gpu_list = [])
+            if unify:
+                can_start, allocated_gpu_num, dit_time, vae_time = resource_pool.unify_network_allocate(request = cur_request, 
+                demand_gpu_num = 0)
+            else:
+                can_start, allocated_gpu_list, dit_time, vae_time = resource_pool.try_best_allocate(request = cur_request,allocated_gpu_num = 0,
+                                                                                                                allocated_gpu_list = [])
             if can_start:
                 cur_thread = threading.Thread(target = thread_function, args = (cur_request, resource_pool, allocated_gpu_list, 
-                                                                                dit_time / resource_pool.denoise_steps, vae_time))
+                                                                                dit_time / resource_pool.denoise_steps, vae_time,
+                                                                                allocated_gpu_num, unify))
                 cur_thread.start()
                 activate_threads.append(cur_thread)
             else:
@@ -224,6 +298,7 @@ if __name__ == "__main__":
     parser.add_argument("--num", type = int, default = 128)
     parser.add_argument("--gnum", type = int, default = 4)
     parser.add_argument("--group", action = 'store_true', default = False)
+    parser.add_argument("--unify", action = 'store_true', default = False)
     args = parser.parse_args()
     random.seed(42)
     resolutions = ["144p", "240p", "360p"]
