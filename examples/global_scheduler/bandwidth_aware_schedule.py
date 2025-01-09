@@ -265,7 +265,7 @@ def ddit_schedule(resource_pool: Resources, group: Optional[bool] = False, unify
             else:
                 resource_pool.waiting_requests.append(cur_request)
     else:
-        global_scheduler = threading.Thread(target = global_schedule, args = (resource_pool, unify))
+        global_scheduler = threading.Thread(target = global_schedule, args = (resource_pool, unify), name = "global_scheduler")
         global_scheduler.start()
         activate_threads.append(global_scheduler)
         resource_pool.write_logs(log_time = time.time(), id = -1)
@@ -284,13 +284,14 @@ def ddit_schedule(resource_pool: Resources, group: Optional[bool] = False, unify
             if can_start:
                 cur_thread = threading.Thread(target = thread_function, args = (cur_request, resource_pool, allocated_gpu_list, 
                                                                                 dit_time / resource_pool.denoise_steps, vae_time,
-                                                                                allocated_gpu_num, unify))
+                                                                                allocated_gpu_num, unify), name = f"request_{cur_request.id}")
                 cur_thread.start()
                 activate_threads.append(cur_thread)
             else:
                 resource_pool.waiting_requests.append(cur_request)
     for cur_thread in activate_threads:
         cur_thread.join()
+        print(threading.enumerate())
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
