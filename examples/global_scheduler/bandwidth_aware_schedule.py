@@ -267,7 +267,7 @@ def ddit_schedule(resource_pool: Resources, group: Optional[bool] = False, unify
     else:
         global_scheduler = threading.Thread(target = global_schedule, args = (resource_pool, unify))
         global_scheduler.start()
-        activate_threads.append(global_scheduler)
+        #activate_threads.append(global_scheduler)
         resource_pool.write_logs(log_time = time.time(), id = -1)
         print(f"Test Starts!")
         while resource_pool.waiting_requests:
