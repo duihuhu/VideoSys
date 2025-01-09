@@ -14,6 +14,7 @@ class Resources:
     def __init__(self, instances_num: int, gpus_per_instance: int, log_path: str, per_group_num: Optional[int]) -> None:
         self.free_gpus_list = [[0 for _ in range(gpus_per_instance)] for _ in range(instances_num)]
         self.free_gpus_lock = threading.Lock()
+        self.unify_free_gpus_lock = threading.Lock()
         self.free_gpus_num = instances_num * gpus_per_instance
         self.file_lock = threading.Lock()
         self.new_gpus = threading.Event()
@@ -66,7 +67,7 @@ class Resources:
             if cur_opt_gpu_num - demand_gpu_num > 0:
                 cur_demand_gpu_nums.append(cur_opt_gpu_num - demand_gpu_num)
             cur_opt_gpu_num //= 2
-        with self.free_gpus_lock:
+        with self.unify_free_gpus_lock:
             if self.free_gpus_num >= cur_demand_gpu_nums[0]:
                 self.free_gpus_num -= cur_demand_gpu_nums[0]
                 cur_allocated_gpus_num = cur_demand_gpu_nums[0] + demand_gpu_num    
@@ -180,7 +181,7 @@ class Resources:
             self.new_gpus.set()
     
     def unify_network_release(self, allocated_gpu_num: int) -> None:
-        with self.free_gpus_lock:
+        with self.unify_free_gpus_lock:
             self.free_gpus_num += allocated_gpu_num
             #with self.new_gpus_lock:
                 #if not self.new_gpus.is_set():
@@ -242,6 +243,8 @@ def thread_function(request: Request, resource_pool: Resources, allocated_gpu_li
     end_time = time.time()
     print(f"Request {request.id} Ends")
     resource_pool.end_times[request.id] = end_time
+    if request.id in resource_pool.hungry_requests:
+        del resource_pool.hungry_requests[request.id]
     #resource_pool.write_logs(log_time = end_time, id = request.id)
 
 def group_thread_function(request: Request, resource_pool: Resources, total_time: float) -> None:
@@ -296,7 +299,7 @@ def ddit_schedule(resource_pool: Resources, group: Optional[bool] = False, unify
             else:
                 resource_pool.waiting_requests.append(cur_request)
     for cur_thread in activate_threads:
-        cur_thread.join(timeout = 60)
+        cur_thread.join()
     durations = []
     for _, duration in resource_pool.end_times.items():
         #print(f"ID: {id}, Duration: {duration}")
@@ -314,7 +317,7 @@ if __name__ == "__main__":
     parser.add_argument("--gpus", type = int, default = 8)
     parser.add_argument("--weight1", type = int, default = 1)
     parser.add_argument("--weight2", type = int, default = 1)
-    parser.add_argument("--weight3", type = int, default = 1)
+    parser.add_argument("--weight3", type = int, default = 8)
     parser.add_argument("--num", type = int, default = 128)
     parser.add_argument("--gnum", type = int, default = 4)
     parser.add_argument("--group", action = 'store_true', default = False)
