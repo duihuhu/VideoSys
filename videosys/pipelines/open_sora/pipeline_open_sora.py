@@ -127,9 +127,9 @@ class OpenSoraConfig:
 
     def __init__(
         self,
-        transformer: str = "/home/jovyan/hcch/models/OpenSora-STDiT-v3/models/snapshots/9a8583918505ee93bd9fae8dd5ce32e1f9334c71/",
-        vae: str = "/home/jovyan/hcch/models/OpenSora-VAE-v1.2/models/snapshots/33d153e9b5a9f771a8a84f98bd3f46458a8ed0bf/",
-        text_encoder: str = "/home/jovyan/hcch/models/t5-v1_1-xxl/models/snapshots/c9c625d2ec93667ec579ede125fd3811d1f81d37/",
+        transformer: str = "/data/home/scyb091/model/OpenSora-STDiT-v3/models/snapshots/9a8583918505ee93bd9fae8dd5ce32e1f9334c71/",
+        vae: str = "/data/home/scyb091/model/OpenSora-VAE-v1.2/models/snapshots/33d153e9b5a9f771a8a84f98bd3f46458a8ed0bf/",
+        text_encoder: str = "/data/home/scyb091/model/t5-v1_1-xxl/models/snapshots/c9c625d2ec93667ec579ede125fd3811d1f81d37/",
         # ======== distributed ========
         num_gpus: int = 1,
         # ======== scheduler ========
