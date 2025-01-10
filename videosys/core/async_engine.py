@@ -8,7 +8,7 @@ from videosys.utils.logging import logger
 from videosys.core.outputs import RequestOutput, KvPreparedResponse
 from videosys import OpenSoraConfig
 from videosys.utils.config import DeployConfig
-from videosys.pipelines.open_sora.video_ops import trans_ops
+# from videosys.pipelines.open_sora.video_ops import trans_ops
 from videosys.core.engine import VideoSched
 import threading
 import aiohttp
@@ -508,16 +508,16 @@ class AsyncEngine:
             for worker_finished_task in finished_tasks:
                 send_finished_tasks = []
                 recv_finished_tasks = []
-                for finished_task in worker_finished_task[0]:
-                    send_finished_tasks.append(trans_ops.TransferTaskMeta.deserialize(finished_task))
-                for finished_task in worker_finished_task[1]:
-                    recv_finished_tasks.append(trans_ops.TransferTaskMeta.deserialize(finished_task))
-                real_send_finished_req_ids = self.video_engine.send_kv_trans_scheduler.add_finished_tasks(send_finished_tasks)
-                real_recv_finished_req_ids = self.video_engine.recv_kv_trans_scheduler.add_finished_tasks(recv_finished_tasks)
-                if real_send_finished_req_ids:
-                    self.video_engine.scheduler.add_send_finished(real_send_finished_req_ids)
-                if real_recv_finished_req_ids:
-                    self.video_engine.scheduler.add_recv_finished(real_recv_finished_req_ids)
+                # for finished_task in worker_finished_task[0]:
+                    # send_finished_tasks.append(trans_ops.TransferTaskMeta.deserialize(finished_task))
+                # for finished_task in worker_finished_task[1]:
+                    # recv_finished_tasks.append(trans_ops.TransferTaskMeta.deserialize(finished_task))
+                # real_send_finished_req_ids = self.video_engine.send_kv_trans_scheduler.add_finished_tasks(send_finished_tasks)
+                # real_recv_finished_req_ids = self.video_engine.recv_kv_trans_scheduler.add_finished_tasks(recv_finished_tasks)
+                # if real_send_finished_req_ids:
+                #     self.video_engine.scheduler.add_send_finished(real_send_finished_req_ids)
+                # if real_recv_finished_req_ids:
+                #     self.video_engine.scheduler.add_recv_finished(real_recv_finished_req_ids)
 
         send_tasks = self.video_engine.send_kv_trans_scheduler.schedule()
         recv_tasks = self.video_engine.recv_kv_trans_scheduler.schedule()
@@ -752,6 +752,7 @@ class AsyncEngine:
             }
             api_url = "http://127.0.0.1:8001/update_cur_step"
             self.post_http_request(pload=pload, api_url=api_url)
+            
         t2 = time.time()
         print("t2-t1 " , t2-t1)
             

@@ -18,7 +18,7 @@ from videosys.utils.utils import save_video
 
 from .data_process import get_image_size, get_num_frames, prepare_multi_resolution_info, read_from_path
 
-from .video_ops import trans_ops
+# from .video_ops import trans_ops
 import time
 import videosys
 os.environ["TOKENIZERS_PARALLELISM"] = "true"
@@ -257,10 +257,10 @@ class OpenSoraPipeline(VideoSysPipeline):
         
         self.dit_video_data = {}
         self.vae_record_data = {}
-        if config.enable_separate:
-            print("trans manager ", config.rank, config.worker_type)
-            if config.rank == 0:
-                self.trans_manager = trans_ops.TransManager(config.rank, config.local_rank, config.worker_type)
+        # if config.enable_separate:
+            # print("trans manager ", config.rank, config.worker_type)
+            # if config.rank == 0:
+            #     self.trans_manager = trans_ops.TransManager(config.rank, config.local_rank, config.worker_type)
 
     def get_text_embeddings(self, texts):
         text_tokens_and_mask = self.tokenizer(
@@ -1144,12 +1144,12 @@ class OpenSoraPipeline(VideoSysPipeline):
         return VideoSysPipelineOutput(video=video)
  
     def get_nccl_id(self, dst_channel, worker_type):
-        nccl_id = self.trans_manager.get_nccl_id(dst_channel, worker_type)
-        return nccl_id
+        # nccl_id = self.trans_manager.get_nccl_id(dst_channel, worker_type)
+        return
     
     def create_comm(self, nccl_id, dst_channel, worker_type):
-        self.trans_manager.create_comm(nccl_id, dst_channel, worker_type)
-
+        # self.trans_manager.create_comm(nccl_id, dst_channel, worker_type)
+        return 
     def transfer_dit(self, request_id):
         samples = self.dit_video_data[request_id]
         print("transfer_dit ", type(samples), samples.shape, samples.device)
@@ -1180,16 +1180,18 @@ class OpenSoraPipeline(VideoSysPipeline):
                 self.dit_video_data[request_id].numel() * self.dit_video_data[request_id].element_size()
         
     def trans_blocks(self,         
-                     send_tasks: List[trans_ops.TransferTask],
-                     recv_tasks: List[trans_ops.TransferTask]):
-        if send_tasks:
-            self.trans_manager.add_tasks(send_tasks)
-        if recv_tasks:
-            self.trans_manager.add_tasks(recv_tasks)  
+                     send_tasks,
+                     recv_tasks):
+        # if send_tasks:
+        #     self.trans_manager.add_tasks(send_tasks)
+        # if recv_tasks:
+        #     self.trans_manager.add_tasks(recv_tasks) 
+        return  
         
     def get_finished_transfer_tasks(self):
-        return self.trans_manager.get_finished_transfer_tasks()
-    
+        # return self.trans_manager.get_finished_transfer_tasks()
+        return  
+
     def save_video(self, video, output_path):
         save_video(video, output_path, fps=24)
 

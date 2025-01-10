@@ -1,7 +1,7 @@
 from typing import Dict, List, Tuple
 import enum
 import heapq
-from videosys.pipelines.open_sora.video_ops import trans_ops
+# from videosys.pipelines.open_sora.video_ops import trans_ops
 
 class TaskType(enum.Enum):
     TRANSFER_SEND_BLOCKS = enum.auto()
@@ -96,27 +96,27 @@ class SendKvTransferScheduler:
         heapq.heappush(self.channel_request_ids[channel], (transfer_tag, request_id))
     
     
-    def _get_task_for_send_blocks(self) -> List[trans_ops.TransferTask]:
-        scheduled_transfer_tasks: List[trans_ops.TransferTask] = []
-        for channel, priority_request in self.channel_request_ids.items():
-            while priority_request:
-                head_req_tag = priority_request[0][0]
-                if head_req_tag == self.channel_transfer_tag[channel]:
-                    request: PriorityRequest = heapq.heappop(priority_request)
-                    request_id = request[1]
-                    scheduled_transfer_tasks.append(trans_ops.TransferTask(trans_ops.TransferTaskMeta(channel, request_id), self.video_addrs[request_id], self.video_sizes[request_id], trans_ops.TaskType.TRANSFER_SEND).serialize())
-                    self.channel_transfer_tag[channel] += 1
-                else:
-                    break
+    def _get_task_for_send_blocks(self):
+        scheduled_transfer_tasks = []
+        # for channel, priority_request in self.channel_request_ids.items():
+        #     while priority_request:
+        #         head_req_tag = priority_request[0][0]
+        #         if head_req_tag == self.channel_transfer_tag[channel]:
+        #             request: PriorityRequest = heapq.heappop(priority_request)
+        #             request_id = request[1]
+        #             scheduled_transfer_tasks.append(trans_ops.TransferTask(trans_ops.TransferTaskMeta(channel, request_id), self.video_addrs[request_id], self.video_sizes[request_id], trans_ops.TaskType.TRANSFER_SEND).serialize())
+        #             self.channel_transfer_tag[channel] += 1
+        #         else:
+                    # break
         
         return scheduled_transfer_tasks
 
-    def schedule(self) -> List[trans_ops.TransferTask]:
+    def schedule(self):
         return self._get_task_for_send_blocks()
     
     def _process_send_blocks_finished(
         self,
-        send_finished_taks: List[trans_ops.TransferTaskMeta]
+        send_finished_taks,
     ) -> List[str]:
         real_finished_req_ids = []
         for task_meta in send_finished_taks:
@@ -131,7 +131,7 @@ class SendKvTransferScheduler:
     
     def add_finished_tasks(
         self,
-        send_finished_tasks: List[trans_ops.TransferTaskMeta],
+        send_finished_tasks,
     ) -> List[str]:
         return self._process_send_blocks_finished(send_finished_tasks)
     
@@ -170,21 +170,21 @@ class RecvKvTransScheduler:
         self.channel_transfer_tag[channel] += 1
         return current_transfer_tag
     
-    def _get_task_for_recv_blocks(self) -> List[trans_ops.TransferTask]:
-        scheduled_transfer_tasks: List[trans_ops.TransferTask] = []
+    def _get_task_for_recv_blocks(self):
+        scheduled_transfer_tasks = []
         for channel, request_ids in self.channel_request_ids.items():
             while request_ids:
                 request_id = request_ids.pop(0)
-                scheduled_transfer_tasks.append(trans_ops.TransferTask(trans_ops.TransferTaskMeta(channel, request_id), self.video_addrs[request_id], self.video_sizes[request_id], trans_ops.TaskType.TRANSFER_RECV).serialize())
+                # scheduled_transfer_tasks.append(trans_ops.TransferTask(trans_ops.TransferTaskMeta(channel, request_id), self.video_addrs[request_id], self.video_sizes[request_id], trans_ops.TaskType.TRANSFER_RECV).serialize())
                 
         return scheduled_transfer_tasks 
 
-    def schedule(self) -> List[trans_ops.TransferTask]:
+    def schedule(self):
         return self._get_task_for_recv_blocks()
     
     def _process_recv_blocks_finished(
         self,
-        recv_finished_tasks: List[trans_ops.TransferTaskMeta]
+        recv_finished_tasks,
     ) -> List[str]:
         real_finished_req_ids = []
         for task_meta in recv_finished_tasks:
@@ -199,6 +199,6 @@ class RecvKvTransScheduler:
     
     def add_finished_tasks(
         self,
-        recv_finished_tasks: List[trans_ops.TransferTaskMeta],
+        recv_finished_tasks,
     ) -> List[str]:
         return self._process_recv_blocks_finished(recv_finished_tasks)
