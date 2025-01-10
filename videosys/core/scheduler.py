@@ -52,7 +52,7 @@ class VideoScheduler:
         for _, seq_group in self.hungry_requests.items():
             temp_sorted_requests.append(seq_group)
         temp_sorted_requests.sort(key = lambda x: (self.requests_cur_steps[x.request_id] - self.requests_last_steps[x.request_id]) 
-                                  * (self.dit_times[x.resolution][len(x.worker_ids)] - self.dit_times[x.resolution][self.opt_gps_num[x.resolution]])
+                                  * (self.dit_times[x.resolution][len(x.worker_ids)] - self.dit_times[x.resolution][self.opt_gps_num[x.resolution]]) / self.denoising_steps
                                   , reverse = True)
         
         free_gpu_num = len(cur_free_gpus_list)
@@ -120,32 +120,50 @@ class VideoScheduler:
             cur_workers_num = len(self.requests_workers_ids[seq_group.request_id])
             if self.opt_gps_num[seq_group.request_id] == 4:
                 if cur_workers_num + free_gpu_num >= 4:
-                    for j in range(4 - cur_workers_num):
-                        self.gpu_status[cur_free_gpus_list[j]] = 1
-                        self.requests_workers_ids[seq_group.request_id].append(cur_free_gpus_list[j])
-                        seq_group.worker_ids.append(cur_free_gpus_list[j])
-                    free_gpu_num -= 4
+                    count = 4 - cur_workers_num
+                    j = 0
+                    for id in cur_free_gpus_list:
+                        if j >= count:
+                            break
+                        if self.gpu_status[id] == 0:
+                            self.gpu_status[id] = 1
+                            self.requests_workers_ids[seq_group.request_id].append(id)
+                            seq_group.worker_ids.append(id)
+                            j += 1
+                    free_gpu_num -= count
                     remove_groups.append(seq_group.request_id)
                     update_groups.append(seq_group.request_id)
                     del self.requests_cur_steps[seq_group.request_id]
                     del self.requests_last_steps[seq_group.request_id]
                 
                 elif cur_workers_num + free_gpu_num == 2 or cur_workers_num + free_gpu_num == 3:
-                    for j in range(2 - cur_workers_num):
-                        self.gpu_status[cur_free_gpus_list[j]] = 1
-                        self.requests_workers_ids[seq_group.request_id].append(cur_free_gpus_list[j])
-                        seq_group.worker_ids.append(cur_free_gpus_list[j])
-                    free_gpu_num -= 2
+                    count = 2 - cur_workers_num
+                    j = 0
+                    for id in cur_free_gpus_list:
+                        if j >= count:
+                            break
+                        if self.gpu_status[id] == 0:
+                            self.gpu_status[id] = 1
+                            self.requests_workers_ids[seq_group.request_id].append(id)
+                            seq_group.worker_ids.append(id)
+                            j += 1
+                    free_gpu_num -= count
                     update_groups.append(seq_group.request_id)
                     self.requests_last_steps[seq_group.request_id] = self.requests_cur_steps[seq_group.request_id]
             
             elif self.opt_gps_num[seq_group.request_id] == 2:
                 if cur_workers_num + free_gpu_num >= 2:
-                    for j in range(2 - cur_workers_num):
-                        self.gpu_status[cur_free_gpus_list[j]] = 1
-                        self.requests_workers_ids[seq_group.request_id].append(cur_free_gpus_list[j])
-                        seq_group.worker_ids.append(cur_free_gpus_list[j])
-                    free_gpu_num -= 2
+                    count = 2 - cur_workers_num
+                    j = 0
+                    for id in cur_free_gpus_list:
+                        if j >= count:
+                            break
+                        if self.gpu_status[id] == 0:
+                            self.gpu_status[id] = 1
+                            self.requests_workers_ids[seq_group.request_id].append(id)
+                            seq_group.worker_ids.append(id)
+                            j += 1
+                    free_gpu_num -= count
                     remove_groups.append(seq_group.request_id)
                     update_groups.append(seq_group.request_id)
                     del self.requests_cur_steps[seq_group.request_id]
