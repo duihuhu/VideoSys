@@ -285,7 +285,6 @@ class AsyncSched:
 
     async def run_engine_loop(self):
         has_requests_in_progress = False
-        print("AsyncSched run_engine_loop ")
         while True:
             if (not has_requests_in_progress 
                 and not self.video_sched.scheduler.waiting 
@@ -297,6 +296,7 @@ class AsyncSched:
             try:
                 has_requests_in_progress = await asyncio.wait_for(
                     self.engine_step(), ENGINE_ITERATION_TIMEOUT_S)
+                print("AsyncSched run_engine_loop ", len(self.video_sched.scheduler.waiting))
             except asyncio.TimeoutError as exc:
                 raise
             await asyncio.sleep(0)
