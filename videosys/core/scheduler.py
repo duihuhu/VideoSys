@@ -35,14 +35,15 @@ class VideoScheduler:
             self.requests_cur_steps[request_id] = cur_step
 
     def update_and_schedule(self, last: bool, free_gpus_list: List[int]):
-        cur_free_gpus_list = []
+        #cur_free_gpus_list = []
         if last:
             self.gpu_status[free_gpus_list[-1]] = 0
-            cur_free_gpus_list.append(free_gpus_list[-1])
+            #cur_free_gpus_list.append(free_gpus_list[-1])ß
         else:
             for i in range(0, len(free_gpus_list) - 1):
                 self.gpu_status[free_gpus_list[i]] = 0
-                cur_free_gpus_list.append(free_gpus_list[i])
+                #cur_free_gpus_list.append(free_gpus_list[i])
+        cur_free_gpus_list = [i for i in range(len(self.gpu_status)) if self.gpu_status[i] == 0]
         
         if not self.hungry_requests:
             return
@@ -60,32 +61,50 @@ class VideoScheduler:
         temp_sorted_requests = []
         temp_requests_cur_steps: Dict[str, int] = {}
         for _, seq_group in self.hungry_requests.items():
-            temp_sorted_requests.append(seq_group)
-            temp_requests_cur_steps[seq_group.request_id] = self.requests_cur_steps[seq_group.request_id]
             cur_workers_num = len(self.requests_workers_ids[seq_group.request_id])
             if self.opt_gps_num[seq_group.resolution] == 4:
                 if cur_workers_num + free_gpu_num >= 4:
                     temp_max_gpus_num[seq_group.request_id] = 4
+                    temp_sorted_requests.append(seq_group)
+                    temp_requests_cur_steps[seq_group.request_id] = self.requests_cur_steps[seq_group.request_id]
                 elif cur_workers_num + free_gpu_num == 2 or cur_workers_num + free_gpu_num == 3:
                     temp_max_gpus_num[seq_group.request_id] = 2
+                    temp_sorted_requests.append(seq_group)
+                    temp_requests_cur_steps[seq_group.request_id] = self.requests_cur_steps[seq_group.request_id]
             elif self.opt_gps_num[seq_group.resolution] == 2:
                 if cur_workers_num + free_gpu_num >= 2:
                     temp_max_gpus_num[seq_group.request_id] = 2
+                    temp_sorted_requests.append(seq_group)
+                    temp_requests_cur_steps[seq_group.request_id] = self.requests_cur_steps[seq_group.request_id]
         
-        for seq_group in self.waiting:
-            temp_sorted_requests.append(seq_group)
-            temp_requests_cur_steps[seq_group.request_id] = 0  
+        for seq_group in self.waiting:  
             if self.opt_gps_num[seq_group.resolution] == 4:
                 if free_gpu_num >= 4:
                     temp_max_gpus_num[seq_group.request_id] = 4
+                    temp_sorted_requests.append(seq_group)
+                    temp_requests_cur_steps[seq_group.request_id] = 0
                 elif free_gpu_num == 2 or free_gpu_num == 3:
                     temp_max_gpus_num[seq_group.request_id] = 2
+                    temp_sorted_requests.append(seq_group)
+                    temp_requests_cur_steps[seq_group.request_id] = 0
+                elif free_gpu_num == 1:
+                    temp_max_gpus_num[seq_group.request_id] = 1
+                    temp_sorted_requests.append(seq_group)
+                    temp_requests_cur_steps[seq_group.request_id] = 0
             elif self.opt_gps_num[seq_group.resolution] == 2:
                 if free_gpu_num >= 2:
                     temp_max_gpus_num[seq_group.request_id] = 2
+                    temp_sorted_requests.append(seq_group)
+                    temp_requests_cur_steps[seq_group.request_id] = 0
+                elif free_gpu_num == 1:
+                    temp_max_gpus_num[seq_group.request_id] = 1
+                    temp_sorted_requests.append(seq_group)
+                    temp_requests_cur_steps[seq_group.request_id] = 0
             elif self.opt_gps_num[seq_group.resolution] == 1:
                 if free_gpu_num >= 1:
                     temp_max_gpus_num[seq_group.request_id] = 1
+                    temp_sorted_requests.append(seq_group)
+                    temp_requests_cur_steps[seq_group.request_id] = 0
         
         temp_sorted_requests.sort(key = lambda x: (1 - temp_requests_cur_steps[x.request_id] / self.denoising_steps)
                                   * self.dit_times[x.resolution][temp_max_gpus_num[x.request_id]])
