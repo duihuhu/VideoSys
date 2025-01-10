@@ -15,7 +15,7 @@ samples = torch.load('tensor_396913.pt').cuda()
 print("samples ", samples.shape())
 tdtype=torch.bfloat16
 vae = OpenSoraVAE_V1_2(
-    from_pretrained="/data/home/scyb091/modelOpenSora-VAE-v1.2/models/snapshots/33d153e9b5a9f771a8a84f98bd3f46458a8ed0bf",
+    from_pretrained="/data/home/scyb091/model/OpenSora-VAE-v1.2/models/snapshots/33d153e9b5a9f771a8a84f98bd3f46458a8ed0bf",
     micro_frame_size=17,
     micro_batch_size=4,
 ).to(device='cuda:0', dtype=tdtype)
