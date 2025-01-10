@@ -169,6 +169,8 @@ class VideoScheduler:
                     del self.requests_cur_steps[seq_group.request_id]
                     del self.requests_last_steps[seq_group.request_id]
 
+        if update_groups:
+            print("update_groups ", len(update_groups))
         for group_id in update_groups:
             pload = {
                 "request_id": group_id,
