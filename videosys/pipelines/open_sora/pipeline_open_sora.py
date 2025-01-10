@@ -1117,7 +1117,7 @@ class OpenSoraPipeline(VideoSysPipeline):
             z=self.z,
             i=i
         )
-        print("index_iteration_generate ", self.z.shape)
+        # print("index_iteration_generate ", self.z.shape)
         self.samples = self.z
 
     @torch.no_grad()     

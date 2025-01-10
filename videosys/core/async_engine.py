@@ -267,7 +267,8 @@ class AsyncSched:
                 }
                 response = self.post_http_request(pload=pload, api_url=api_url)
                 self.video_sched.scheduler.update_and_schedule(last = True, free_gpus_list = task.worker_ids)
-            self.video_sched.scheduler.update_and_schedule(last = True, free_gpus_list = task.worker_ids)
+            else:
+                self.video_sched.scheduler.update_and_schedule(last = True, free_gpus_list = task.worker_ids)
         return 
     
     def create_consumer(self, instances_num: int):
@@ -698,10 +699,10 @@ class AsyncEngine:
             #use request_id check sched req to and get worker_ids, if true, need rebuild comm and trans data.
             # new worker need execute prepare_generate
             #
-            if request_id not in self.request_workers:
-                print("no new gpus ", request_id)
-            else:
-                print("new gpus ", request_id, self.request_workers[request_id])
+            if request_id in self.request_workers:
+            #     print("no new gpus ", request_id)
+            # else:
+                # print("new gpus ", request_id, self.request_workers[request_id])
                 await self.destory_worker_comm(worker_ids=worker_ids)
                 new_worker_ids = self.request_workers[request_id]
                 pre_worker_ids = list(set(new_worker_ids) - set(worker_ids))

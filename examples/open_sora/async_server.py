@@ -201,6 +201,7 @@ async def async_generate_vae_step(request: Request) -> Response:
     await engine.build_worker_comm(worker_ids)
     await engine.worker_generate_vae_step(worker_ids=worker_ids, request_id=request_id)
     await engine.destory_worker_comm(worker_ids)
+    print(request_id, "vae end")
     
 @app.post("/request_workers")
 async def request_workers(request: Request) -> Response:
