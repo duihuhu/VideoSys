@@ -216,8 +216,9 @@ class RequestTracker:
 
 class AsyncSched:
     def __init__(self, 
-                 start_engine_loop: bool = True,):
-        self.video_sched = VideoSched()
+                 instances_num: int,
+                 start_engine_loop: bool = True):
+        self.video_sched = VideoSched(instances_num = instances_num)
         self.start_engine_loop = start_engine_loop
         
         self.background_loop = None
@@ -232,6 +233,8 @@ class AsyncSched:
         response = requests.post(api_url, headers=headers, json=pload)
         return response
 
+    def update_requests_cur_steps(self, request_id, cur_step):
+        self.video_sched.update_requests_cur_steps(request_id, cur_step)
     
     def process(self,):
         while True:
@@ -251,19 +254,23 @@ class AsyncSched:
             
             if len(task.worker_ids) > 1:
                 print("to update ", self.video_sched.scheduler.gpu_status)
-                self.video_sched.scheduler.gpu_status[task.worker_ids[-1]] = 0
+                #for i in range(1, len(task.worker_ids)):
+                    #self.video_sched.scheduler.gpu_status[task.worker_ids[i]] = 0
+                #self.video_sched.scheduler.gpu_status[task.worker_ids[-1]] = 0
+                self.video_sched.scheduler.update_and_schedule(last = False, free_gpus_list = task.worker_ids)
                 print("to update ", self.video_sched.scheduler.gpu_status)
                 api_url = "http://127.0.0.1:8000/async_generate_vae"
                 pload = {
                     "request_id": task.request_id,
-                    "worker_ids": [task.worker_ids[0]],
+                    "worker_ids": [task.worker_ids[-1]],
                 }
                 response = self.post_http_request(pload=pload, api_url=api_url)
-            
+                self.video_sched.scheduler.update_and_schedule(last = True, free_gpus_list = task.worker_ids)
+            self.video_sched.scheduler.update_and_schedule(last = True, free_gpus_list = task.worker_ids)
         return 
     
-    def create_consumer(self):
-        for i in range(2):
+    def create_consumer(self, instances_num: int):
+        for _ in range(instances_num):
             consumer = threading.Thread(target=self.process)
             consumer.start()
             self.consumers.append(consumer)
@@ -420,6 +427,12 @@ class AsyncEngine:
         self.background_loop = None
         self._errored_with: Optional[BaseException] = None
         self.request_workers = {}
+    
+    def post_http_request(self, pload, api_url) -> requests.Response:
+        headers = {"User-Agent": "Test Client"}
+        response = requests.post(api_url, headers=headers, json=pload)
+        return response
+    
     async def run_engine_loop(self):
         has_requests_in_progress = False
         print("run_engine_loop ")
@@ -703,6 +716,12 @@ class AsyncEngine:
                 del self.request_workers[request_id]
                 
             await self.video_engine.index_iteration_generate(worker_ids=worker_ids, i=index)
+            pload = {
+                "request_id": request_id,
+                "cur_step": index + 1,
+            }
+            api_url = "http://127.0.0.1:8001/update_cur_step"
+            self.post_http_request(pload=pload, api_url=api_url)
         t2 = time.time()
         print("t2-t1 " , t2-t1)
             
@@ -727,6 +746,12 @@ class AsyncEngine:
             else:
                 print("new gpus ", request_id, self.request_workers[request_id])
             await self.video_engine.index_iteration_generate(worker_ids=worker_ids, i=index)
+            pload = {
+                "request_id": request_id,
+                "cur_step": index + 1,
+            }
+            api_url = "http://127.0.0.1:8001/update_cur_step"
+            self.post_http_request(pload=pload, api_url=api_url)
         t2 = time.time()
         print("t2-t1 " , t2-t1)
             

@@ -15,8 +15,8 @@ import asyncio
 T = TypeVar("T")
 
 class VideoSched:
-    def __init__(self):
-        self.scheduler = VideoScheduler()
+    def __init__(self, instances_num: int):
+        self.scheduler = VideoScheduler(instances_num = instances_num)
         
     def add_request(self, 
                 request_id,
@@ -27,6 +27,9 @@ class VideoSched:
         seq_group = SequenceGroup(request_id=request_id, prompt=prompt, resolution=resolution,\
             aspect_ratio=aspect_ratio, num_frames=num_frames)
         self.scheduler.add_seq_group(seq_group)
+    
+    def update_requests_cur_steps(self, request_id, cur_step):
+        self.scheduler.update_requests_cur_steps(request_id, cur_step)
         
 class VideoSysEngine:
     """

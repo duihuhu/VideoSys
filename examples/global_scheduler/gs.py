@@ -48,20 +48,27 @@ async def recv_request(request: Request) -> Response:
     num_frames = request_dict.pop("num_frames")
     results_generator = await sched.generate(request_id = request_id, prompt = prompt, \
         resolution = resolution, aspect_ratio = aspect_ratio,num_frames = num_frames)
-    
-    
+
+@app.get("/update_cur_step")
+async def update_cur_step(request: Request) -> Response:
+    request_dict = await request.json()
+    request_id = request_dict.pop("request_id")
+    cur_step = request_dict.pop("cur_step")
+    sched.update_requests_cur_steps(request_id = request_id, cur_step = cur_step)
+    return JSONResponse(content={"status": "success"})
+        
 if __name__ == "__main__":
     
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", type=str, default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8001)
+    parser.add_argument("--instances-num", type = int, default = 8)
 
     args = parser.parse_args()
-    sched = AsyncSched()
-    sched.create_consumer()
+    sched = AsyncSched(instances_num = args.instances_num) 
+    sched.create_consumer(instances_num = args.instances_num)
     uvicorn.run(app,
                 host=args.host,
                 port=args.port,
                 log_level="debug",
                 timeout_keep_alive=TIMEOUT_KEEP_ALIVE)
-
