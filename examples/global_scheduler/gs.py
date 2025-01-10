@@ -49,7 +49,7 @@ async def recv_request(request: Request) -> Response:
     results_generator = await sched.generate(request_id = request_id, prompt = prompt, \
         resolution = resolution, aspect_ratio = aspect_ratio,num_frames = num_frames)
 
-@app.get("/update_cur_step")
+@app.post("/update_cur_step")
 async def update_cur_step(request: Request) -> Response:
     request_dict = await request.json()
     request_id = request_dict.pop("request_id")
