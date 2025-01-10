@@ -118,7 +118,7 @@ class VideoScheduler:
             #    free_gpu_num -= temp_max_gpus_num[seq_group.request_id]
             #    continue
             cur_workers_num = len(self.requests_workers_ids[seq_group.request_id])
-            if self.opt_gps_num[seq_group.request_id] == 4:
+            if self.opt_gps_num[seq_group.resolution] == 4:
                 if cur_workers_num + free_gpu_num >= 4:
                     count = 4 - cur_workers_num
                     j = 0
@@ -151,7 +151,7 @@ class VideoScheduler:
                     update_groups.append(seq_group.request_id)
                     self.requests_last_steps[seq_group.request_id] = self.requests_cur_steps[seq_group.request_id]
             
-            elif self.opt_gps_num[seq_group.request_id] == 2:
+            elif self.opt_gps_num[seq_group.resolution] == 2:
                 if cur_workers_num + free_gpu_num >= 2:
                     count = 2 - cur_workers_num
                     j = 0
