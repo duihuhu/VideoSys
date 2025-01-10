@@ -213,7 +213,7 @@ class VideoSysEngine:
         async_run_tensor_parallel_workers_only: bool = False,
         max_concurrent_workers: Optional[int] = None,
         **kwargs,):
-        print("run_worker_vae aync")
+        # print("run_worker_vae aync")
         worker_outputs = [self.workers[worker_id].execute_method_async(method, *args, **kwargs) for worker_id in worker_ids]
 
         if async_run_tensor_parallel_workers_only:

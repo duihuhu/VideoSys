@@ -97,7 +97,7 @@ def initialize_postposition(
             dist.destroy_process_group()
         except Exception:
             pass
-        print("initialize_postposition method ", init_method)
+        # print("initialize_postposition method ", init_method)
         dist.init_process_group(backend="nccl", init_method=init_method, world_size=world_size, rank=rank)
         # torch.cuda.set_device(local_rank)
         init_dist_logger()
