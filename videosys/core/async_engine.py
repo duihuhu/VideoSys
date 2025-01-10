@@ -317,8 +317,9 @@ class AsyncSched:
         
     async def step_async(self):
         seq_group = self.video_sched.scheduler.schedule()
-        print("add to task_queue ", seq_group.request_id)
-        self.task_queue.put(seq_group)
+        if seq_group:
+            print("add to task_queue ", seq_group.request_id)
+            self.task_queue.put(seq_group)
         return None
      
     async def engine_step(self) -> bool:
