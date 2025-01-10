@@ -26,6 +26,7 @@ class VideoSched:
                 num_frames: Optional[str] = None):
         seq_group = SequenceGroup(request_id=request_id, prompt=prompt, resolution=resolution,\
             aspect_ratio=aspect_ratio, num_frames=num_frames)
+        print("add_request ")
         self.scheduler.add_seq_group(seq_group)
     
     def update_requests_cur_steps(self, request_id, cur_step):
