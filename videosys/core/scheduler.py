@@ -48,16 +48,16 @@ class VideoScheduler:
         if not self.hungry_requests:
             return
         
-        '''temp_sorted_requests = []
+        temp_sorted_requests = []
         for _, seq_group in self.hungry_requests.items():
             temp_sorted_requests.append(seq_group)
         temp_sorted_requests.sort(key = lambda x: (self.requests_cur_steps[x.request_id] - self.requests_last_steps[x.request_id]) 
                                   * (self.dit_times[x.resolution][len(x.worker_ids)] - self.dit_times[x.resolution][self.opt_gps_num[x.resolution]])
-                                  , reverse = True)'''
+                                  , reverse = True)
         
         free_gpu_num = len(cur_free_gpus_list)
         
-        temp_max_gpus_num: Dict[str, int] = {}
+        '''temp_max_gpus_num: Dict[str, int] = {}
         temp_sorted_requests = []
         temp_requests_cur_steps: Dict[str, int] = {}
         for _, seq_group in self.hungry_requests.items():
@@ -107,16 +107,16 @@ class VideoScheduler:
                     temp_requests_cur_steps[seq_group.request_id] = 0
         
         temp_sorted_requests.sort(key = lambda x: (1 - temp_requests_cur_steps[x.request_id] / self.denoising_steps)
-                                  * self.dit_times[x.resolution][temp_max_gpus_num[x.request_id]])
+                                  * self.dit_times[x.resolution][temp_max_gpus_num[x.request_id]])'''
 
         remove_groups = []
         update_groups = []
         for seq_group in temp_sorted_requests:
             if free_gpu_num < 1:
                 continue
-            if seq_group not in self.hungry_requests:
-                free_gpu_num -= temp_max_gpus_num[seq_group.request_id]
-                continue
+            #if seq_group not in self.hungry_requests:
+            #    free_gpu_num -= temp_max_gpus_num[seq_group.request_id]
+            #    continue
             cur_workers_num = len(self.requests_workers_ids[seq_group.request_id])
             if self.opt_gps_num[seq_group.request_id] == 4:
                 if cur_workers_num + free_gpu_num >= 4:
