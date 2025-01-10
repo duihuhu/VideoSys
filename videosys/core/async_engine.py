@@ -254,12 +254,12 @@ class AsyncSched:
             response = self.post_http_request(pload=pload, api_url=api_url)
             
             if len(task.worker_ids) > 1:
-                print("to update ", self.video_sched.scheduler.gpu_status)
+                print("before to update ", self.video_sched.scheduler.gpu_status, task.request_id)
                 #for i in range(1, len(task.worker_ids)):
                     #self.video_sched.scheduler.gpu_status[task.worker_ids[i]] = 0
                 #self.video_sched.scheduler.gpu_status[task.worker_ids[-1]] = 0
                 self.video_sched.scheduler.update_and_schedule(last = False, free_gpus_list = task.worker_ids)
-                print("to update ", self.video_sched.scheduler.gpu_status)
+                print("to update ", self.video_sched.scheduler.gpu_status, task.request_id)
                 api_url = "http://127.0.0.1:8000/async_generate_vae"
                 pload = {
                     "request_id": task.request_id,
@@ -267,8 +267,10 @@ class AsyncSched:
                 }
                 response = self.post_http_request(pload=pload, api_url=api_url)
                 self.video_sched.scheduler.update_and_schedule(last = True, free_gpus_list = task.worker_ids)
+                print("to update ", self.video_sched.scheduler.gpu_status, task.request_id)
             else:
                 self.video_sched.scheduler.update_and_schedule(last = True, free_gpus_list = task.worker_ids)
+                print("to update ", self.video_sched.scheduler.gpu_status, task.request_id)
         return 
     
     def create_consumer(self, instances_num: int):
