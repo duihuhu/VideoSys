@@ -7,12 +7,13 @@ for x, y, z in ratios:
     print(f"----------Ratio----------")
     print(f"144p: 240p: 360p = {x}: {y}: {z}")
     file_path = prefix_path + str(x) + "_" + str(y) + "_" + str(z) + suffix_path
-    with open(file_path, 'w') as file:
+    with open(file_path, 'r') as file:
         lines = file.readlines()
         for line in lines:
-            print(line)
+            data = line.strip()
+            print(data)
 
-#count = 0
+'''#count = 0
 for x, y, z in ratios:
     #for j, policy in enumerate(schedule_policies):
     for j in range(1):
@@ -42,13 +43,13 @@ for x, y, z in ratios:
                         #else:
                         #    res[resolution] += 1
                 datas.sort(key=lambda x:x[0])
-                '''if count == 0:
+                if count == 0:
                     print(f"----------IDs----------")
                     for data in datas:
                         print(data[0])
                     print(f"----------Resolutions----------")
                     for data in datas:
-                        print(data[2])'''
+                        print(data[2])
                 #if j == 0:
                 #    print(f"----------Check----------")
                 #    for key, value in res.items():
@@ -64,4 +65,4 @@ for x, y, z in ratios:
         except FileNotFoundError:
             print(f"The {file_path} does not exist")
         except Exception as e:
-            print(f"Unexpected error {e}")
+            print(f"Unexpected error {e}")'''
