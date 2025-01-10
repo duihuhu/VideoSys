@@ -242,6 +242,7 @@ class AsyncSched:
             if task is None:
                 break  # 如果任务是 None，表示结束
             api_url = "http://127.0.0.1:8000/async_generate_dit"
+            print("task.worker_ids ", task.worker_ids)
             pload = {
                 "request_id": task.request_id,
                 "prompt": task.prompt,
