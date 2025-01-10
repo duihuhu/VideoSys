@@ -147,7 +147,7 @@ class VideoScheduler:
     def schedule(self) -> SequenceGroup:
         if self.waiting:
             seq_group = self.waiting[0]
-            temp_worker_ids = [gpu for gpu in self.gpu_status if gpu == 0]
+            temp_worker_ids = [i for i in range(len(self.gpu_status)) if self.gpu_status[i] == 0]
             
             if seq_group.resolution == "360p":
                 if len(temp_worker_ids) >= 4:
