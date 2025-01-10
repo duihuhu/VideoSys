@@ -239,10 +239,11 @@ class AsyncSched:
     def process(self,):
         while True:
             task = self.task_queue.get()  # 阻塞，直到有任务
+            print("process task ", task.request_id)
             if task is None:
                 break  # 如果任务是 None，表示结束
             api_url = "http://127.0.0.1:8000/async_generate_dit"
-            print("task.worker_ids ", task.worker_ids)
+            print("task.worker_ids ", task.worker_ids, task.request_id)
             pload = {
                 "request_id": task.request_id,
                 "prompt": task.prompt,
@@ -316,6 +317,7 @@ class AsyncSched:
         
     async def step_async(self):
         seq_group = self.video_sched.scheduler.schedule()
+        print("add to task_queue ", seq_group.request_id)
         self.task_queue.put(seq_group)
         return None
      
