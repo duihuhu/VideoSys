@@ -239,7 +239,6 @@ class AsyncSched:
     def process(self,):
         while True:
             task = self.task_queue.get()  # 阻塞，直到有任务
-            print("process task ", task.request_id)
             if task is None:
                 break  # 如果任务是 None，表示结束
             api_url = "http://127.0.0.1:8000/async_generate_dit"
@@ -718,6 +717,7 @@ class AsyncEngine:
                     aspect_ratio=aspect_ratio,
                     num_frames=num_frames,
                 )
+                print("new_worker_ids, worker_ids ", worker_ids, new_worker_ids)
                 worker_ids = new_worker_ids
                 await self.build_worker_comm(worker_ids)
                 del self.request_workers[request_id]
@@ -741,7 +741,7 @@ class AsyncEngine:
             aspect_ratio=aspect_ratio,
             num_frames=num_frames,
         )
-
+                
         t1 = time.time()
 
         for index in range(self.video_engine.config.num_sampling_steps):
@@ -752,6 +752,27 @@ class AsyncEngine:
             #     print("no new gpus ", request_id)
             # else:
             #     print("new gpus ", request_id, self.request_workers[request_id])
+
+
+            if request_id in self.request_workers:
+                #     print("no new gpus ", request_id)
+                # else:
+                    # print("new gpus ", request_id, self.request_workers[request_id])
+                    await self.destory_worker_comm(worker_ids=worker_ids)
+                    new_worker_ids = self.request_workers[request_id]
+                    pre_worker_ids = list(set(new_worker_ids) - set(worker_ids))
+                    await self.video_engine.prepare_generate(
+                        worker_ids=pre_worker_ids,
+                        prompt=prompt,
+                        resolution=resolution,
+                        aspect_ratio=aspect_ratio,
+                        num_frames=num_frames,
+                    )
+                    print("new_worker_ids, worker_ids ", worker_ids, new_worker_ids)
+                    worker_ids = new_worker_ids
+                    await self.build_worker_comm(worker_ids)
+                    del self.request_workers[request_id]
+
             await self.video_engine.index_iteration_generate(worker_ids=worker_ids, i=index)
             pload = {
                 "request_id": request_id,
