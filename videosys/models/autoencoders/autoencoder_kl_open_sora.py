@@ -625,7 +625,7 @@ class VideoAutoencoderPipeline(PreTrainedModel):
     def __init__(self, config: VideoAutoencoderPipelineConfig):
         super().__init__(config=config)
         self.spatial_vae = VideoAutoencoderKL(
-            from_pretrained="/data/home/scyb091/model/pixart_sigma_sdxlvae_T5_diffusers/models/snapshots/2c17b4e85261cd549b4068d086b7c2ba9d468e9f",
+            from_pretrained="/home/jovyan/hcch/models/pixart_sigma_sdxlvae_T5_diffusers/models/snapshots/2c17b4e85261cd549b4068d086b7c2ba9d468e9f",
             local_files_only=False,
             micro_batch_size=4,
             subfolder="vae",
@@ -733,7 +733,7 @@ def OpenSoraVAE_V1_2(
 ):
     vae_2d = dict(
         type="VideoAutoencoderKL",
-        from_pretrained="/data/home/scyb091/model/pixart_sigma_sdxlvae_T5_diffusers/models/snapshots/2c17b4e85261cd549b4068d086b7c2ba9d468e9f",
+        from_pretrained="/home/jovyan/hcch/models/pixart_sigma_sdxlvae_T5_diffusers/models/snapshots/2c17b4e85261cd549b4068d086b7c2ba9d468e9f",
         subfolder="vae",
         micro_batch_size=micro_batch_size,
         local_files_only=local_files_only,
