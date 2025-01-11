@@ -242,36 +242,51 @@ class AsyncSched:
             task = self.task_queue.get()  # 阻塞，直到有任务
             if task is None:
                 break  # 如果任务是 None，表示结束
-            api_url = "http://127.0.0.1:8000/async_generate_dit"
             print("task.worker_ids for dit", task.worker_ids, task.request_id, task.resolution)
-            pload = {
-                "request_id": task.request_id,
-                "prompt": task.prompt,
-                "resolution": task.resolution, 
-                "aspect_ratio": task.aspect_ratio,
-                "num_frames": task.num_frames,
-                "worker_ids": task.worker_ids,
-            }
-            response = self.post_http_request(pload=pload, api_url=api_url)
             
-            if len(task.worker_ids) > 1:
+            if task.resolution == "144p":
+                api_url = "http://127.0.0.1:8000/async_generate_dit"
+                pload = {
+                    "request_id": task.request_id,
+                    "prompt": task.prompt,
+                    "resolution": task.resolution, 
+                    "aspect_ratio": task.aspect_ratio,
+                    "num_frames": task.num_frames,
+                    "worker_ids": task.worker_ids,
+                }
+                response = self.post_http_request(pload=pload, api_url=api_url)
+                self.video_sched.scheduler.update_and_schedule(last = True, group_id = task.request_id)
+            else:
+                api_url = "http://127.0.0.1:8000/async_generate_dit"
+                pload = {
+                    "request_id": task.request_id,
+                    "prompt": task.prompt,
+                    "resolution": task.resolution, 
+                    "aspect_ratio": task.aspect_ratio,
+                    "num_frames": task.num_frames,
+                    "worker_ids": task.worker_ids,
+                }
+                response = self.post_http_request(pload=pload, api_url=api_url)
+                self.video_sched.scheduler.update_and_schedule(last = False, group_id = task.request_id)
+                api_url = "http://127.0.0.1:8000/async_generate_vae"
+                pload = {
+                    "request_id": task.request_id,
+                    "worker_ids": [task.worker_ids[0]],
+                }
+                response = self.post_http_request(pload=pload, api_url=api_url)
+                self.video_sched.scheduler.update_and_schedule(last = True, group_id = task.request_id)
+
+            #if len(task.worker_ids) > 1:
                 #print("before update ", self.video_sched.scheduler.gpu_status, task.request_id, task.resolution)
                 #for i in range(1, len(task.worker_ids)):
                     #self.video_sched.scheduler.gpu_status[task.worker_ids[i]] = 0
                 #self.video_sched.scheduler.gpu_status[task.worker_ids[-1]] = 0
-                self.video_sched.scheduler.update_and_schedule(last = False, group_id = task.request_id)
-                #print("after dit update ", self.video_sched.scheduler.gpu_status, task.request_id, task.resolution)
-                api_url = "http://127.0.0.1:8000/async_generate_vae"
-                pload = {
-                    "request_id": task.request_id,
-                    "worker_ids": [task.worker_ids[-1]],
-                }
-                response = self.post_http_request(pload=pload, api_url=api_url)
-                self.video_sched.scheduler.update_and_schedule(last = True, group_id = task.request_id)
+            
+                #print("after dit update ", self.video_sched.scheduler.gpu_status, task.request_id, task.resolution)            
                 #print("after vae update ", self.video_sched.scheduler.gpu_status, task.request_id, task.resolution)
-            else:
+            #else:
                 #print("before update ", self.video_sched.scheduler.gpu_status, task.request_id, task.resolution)
-                self.video_sched.scheduler.update_and_schedule(last = True, group_id = task.request_id)
+                #self.video_sched.scheduler.update_and_schedule(last = True, group_id = task.request_id)
                 #print("after dit&vae update ", self.video_sched.scheduler.gpu_status, task.request_id, task.resolution)
         return 
     

@@ -38,15 +38,24 @@ class VideoScheduler:
 
     def update_and_schedule(self, last: bool, group_id: str) -> None:   
         #cur_free_gpus_list = []
+        print(f"before release {self.gpu_status}")
         if last:
-            self.gpu_status[self.requests_workers_ids[group_id][-1]] = 0
-            del self.requests_workers_ids[group_id]
+            self.gpu_status[self.requests_workers_ids[group_id][0]] = 0
+            
+            self.requests_workers_ids.pop(group_id, None)
+            self.hungry_requests.pop(group_id, None)
+            
+            print(f"request {group_id} release the last worker {self.requests_workers_ids[group_id][0]}")
             #cur_free_gpus_list.append(free_gpus_list[-1])
         else:
-            for i in range(0, len(self.requests_workers_ids[group_id]) - 1):
+            temp = []
+            for i in range(1, len(self.requests_workers_ids[group_id])):
                 self.gpu_status[self.requests_workers_ids[group_id][i]] = 0
+                temp.append(self.requests_workers_ids[group_id][i])
+            print(f"request {group_id} release the workers {temp}")
                 #cur_free_gpus_list.append(free_gpus_list[i])
-        
+        print(f"after release {self.gpu_status}")
+
         if not self.hungry_requests:
             return
         
@@ -172,6 +181,8 @@ class VideoScheduler:
         for group_id in remove_groups:
             del self.hungry_requests[group_id]
             #del self.requests_workers_ids[group_id]
+        
+        print(f"after update {self.gpu_status}")
 
     def schedule(self) -> SequenceGroup:
         if self.waiting:
