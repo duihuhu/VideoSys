@@ -55,7 +55,7 @@ def post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames):
             
 def main(prompt, resolution, aspect_ratio, num_frames):
     t1 = time.time()
-    resolutions = ["360p", "360p", "360p", "360p", "360p", "360p","360p", "360p" ]
+    resolutions = ["360p", "360p", "360p"]
     for i in range(8):
         post_request_and_get_response(prompt, resolutions[i], aspect_ratio, num_frames)
         # time.sleep(2)
