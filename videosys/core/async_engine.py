@@ -719,7 +719,7 @@ class AsyncEngine:
                     aspect_ratio=aspect_ratio,
                     num_frames=num_frames,
                 )
-                print("new_worker_ids, worker_ids ", worker_ids, new_worker_ids)
+                print("new_worker_ids, worker_ids ", new_worker_ids, worker_ids)
                 worker_ids = copy.deepcopy(new_worker_ids)
                 await self.build_worker_comm(worker_ids)
                 del self.request_workers[request_id]
@@ -770,7 +770,7 @@ class AsyncEngine:
                         aspect_ratio=aspect_ratio,
                         num_frames=num_frames,
                     )
-                    print("new_worker_ids, worker_ids ", worker_ids, new_worker_ids)
+                    print("new_worker_ids, worker_ids ", new_worker_ids, worker_ids)
                     worker_ids = copy.deepcopy(new_worker_ids)
                     await self.build_worker_comm(worker_ids)
                     del self.request_workers[request_id]

@@ -127,7 +127,7 @@ class VideoScheduler:
                         id = cur_free_gpus_list.get()
                         self.gpu_status[id] = 1
                         self.requests_workers_ids[seq_group.request_id].append(id)
-                    seq_group.worker_ids = copy.deepcopy(self.requests_workers_ids[seq_group.request_id])
+                    #seq_group.worker_ids = copy.deepcopy(self.requests_workers_ids[seq_group.request_id])
                     free_gpu_num -= count
                     remove_groups.append(seq_group.request_id)
                     update_groups.append(seq_group.request_id)
@@ -140,7 +140,7 @@ class VideoScheduler:
                         id = cur_free_gpus_list.get()
                         self.gpu_status[id] = 1
                         self.requests_workers_ids[seq_group.request_id].append(id)
-                    seq_group.worker_ids = copy.deepcopy(self.requests_workers_ids[seq_group.request_id])
+                    #seq_group.worker_ids = copy.deepcopy(self.requests_workers_ids[seq_group.request_id])
                     free_gpu_num -= count
                     update_groups.append(seq_group.request_id)
                     self.requests_last_steps[seq_group.request_id] = self.requests_cur_steps[seq_group.request_id]
@@ -152,16 +152,15 @@ class VideoScheduler:
                         id = cur_free_gpus_list.get()
                         self.gpu_status[id] = 1
                         self.requests_workers_ids[seq_group.request_id].append(id)
-                    seq_group.worker_ids = copy.deepcopy(self.requests_workers_ids[seq_group.request_id])
+                    #seq_group.worker_ids = copy.deepcopy(self.requests_workers_ids[seq_group.request_id])
                     free_gpu_num -= count
                     remove_groups.append(seq_group.request_id)
                     update_groups.append(seq_group.request_id)
                     del self.requests_cur_steps[seq_group.request_id]
                     del self.requests_last_steps[seq_group.request_id]
 
-        if update_groups:
-            print("update_groups ", update_groups)
         for group_id in update_groups:
+            print(f"request {group_id} new workers ids {self.requests_workers_ids[group_id]}")
             pload = {
                 "request_id": group_id,
                 "worker_ids": self.requests_workers_ids[group_id],
