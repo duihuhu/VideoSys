@@ -190,6 +190,7 @@ class VideoScheduler:
             seq_group = self.waiting[0]
             temp_worker_ids = [i for i in range(len(self.gpu_status)) if self.gpu_status[i] == 0]
             
+            print(f"before schedule {self.gpu_status}")
             if seq_group.resolution == "360p":
                 if len(temp_worker_ids) >= 4:
                     worker_ids = [temp_worker_ids[i] for i in range(4)]
@@ -252,6 +253,7 @@ class VideoScheduler:
                     self.requests_workers_ids[seq_group.request_id] = copy.deepcopy(worker_ids)
                     self.waiting.popleft()
                     return seq_group
+            print(f"after schedule {self.gpu_status}")
         
         return None
 
