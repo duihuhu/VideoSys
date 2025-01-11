@@ -15,6 +15,7 @@ import aiohttp
 from videosys.core.sequence import SequenceGroup
 import queue
 import requests
+import copy
 AIOHTTP_TIMEOUT = aiohttp.ClientTimeout(total=6 * 60 * 60)
 
 ENGINE_ITERATION_TIMEOUT_S = int(
@@ -296,7 +297,7 @@ class AsyncSched:
             try:
                 has_requests_in_progress = await asyncio.wait_for(
                     self.engine_step(), ENGINE_ITERATION_TIMEOUT_S)
-                print("AsyncSched run_engine_loop ", len(self.video_sched.scheduler.waiting))
+                #print("AsyncSched run_engine_loop ", len(self.video_sched.scheduler.waiting))
             except asyncio.TimeoutError as exc:
                 raise
             await asyncio.sleep(0)
@@ -718,7 +719,7 @@ class AsyncEngine:
                     num_frames=num_frames,
                 )
                 print("new_worker_ids, worker_ids ", worker_ids, new_worker_ids)
-                worker_ids = new_worker_ids
+                worker_ids = copy.deepcopy(new_worker_ids)
                 await self.build_worker_comm(worker_ids)
                 del self.request_workers[request_id]
                 
@@ -769,7 +770,7 @@ class AsyncEngine:
                         num_frames=num_frames,
                     )
                     print("new_worker_ids, worker_ids ", worker_ids, new_worker_ids)
-                    worker_ids = new_worker_ids
+                    worker_ids = copy.deepcopy(new_worker_ids)
                     await self.build_worker_comm(worker_ids)
                     del self.request_workers[request_id]
 

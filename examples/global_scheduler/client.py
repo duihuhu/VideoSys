@@ -20,7 +20,7 @@ def clear_line(n: int = 1) -> None:
 def post_http_request(prompt, resolution, aspect_ratio, num_frames, api_url: str) -> requests.Response:
     headers = {"User-Agent": "Test Client"}
     request_id =  random_uuid()
-    print("request_id ", request_id, "resolution", resolution)
+    print("request_id ", request_id, "resolution ", resolution)
     pload = {
         "request_id": request_id,
         "prompt": prompt,

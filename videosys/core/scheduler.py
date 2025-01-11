@@ -2,6 +2,8 @@ from typing import Deque, Dict, Tuple, List
 from collections import deque
 from videosys.core.sequence import SequenceGroup
 import requests
+import copy
+from queue import Queue
 class VideoScheduler:
     def __init__(
         self,
@@ -43,19 +45,19 @@ class VideoScheduler:
             for i in range(0, len(free_gpus_list) - 1):
                 self.gpu_status[free_gpus_list[i]] = 0
                 #cur_free_gpus_list.append(free_gpus_list[i])
-        cur_free_gpus_list = [i for i in range(len(self.gpu_status)) if self.gpu_status[i] == 0]
         
         if not self.hungry_requests:
             return
         
-        temp_sorted_requests = []
-        for _, seq_group in self.hungry_requests.items():
-            temp_sorted_requests.append(seq_group)
+        temp_sorted_requests = list(self.hungry_requests.values())
         temp_sorted_requests.sort(key = lambda x: (self.requests_cur_steps[x.request_id] - self.requests_last_steps[x.request_id]) 
-                                  * (self.dit_times[x.resolution][len(x.worker_ids)] - self.dit_times[x.resolution][self.opt_gps_num[x.resolution]]) / self.denoising_steps
+                                  * (self.dit_times[x.resolution][len(self.requests_workers_ids[x.request_id])] - self.dit_times[x.resolution][self.opt_gps_num[x.resolution]]) 
+                                  / self.denoising_steps
                                   , reverse = True)
         
-        free_gpu_num = len(cur_free_gpus_list)
+        cur_free_gpus_list = Queue()
+        [cur_free_gpus_list.put(i) for i in range(len(self.gpu_status)) if self.gpu_status[i] == 0]
+        free_gpu_num = cur_free_gpus_list.qsize()
         
         '''temp_max_gpus_num: Dict[str, int] = {}
         temp_sorted_requests = []
@@ -109,11 +111,11 @@ class VideoScheduler:
         temp_sorted_requests.sort(key = lambda x: (1 - temp_requests_cur_steps[x.request_id] / self.denoising_steps)
                                   * self.dit_times[x.resolution][temp_max_gpus_num[x.request_id]])'''
 
-        remove_groups = []
-        update_groups = []
+        remove_groups: List[str] = []
+        update_groups: List[str] = []
         for seq_group in temp_sorted_requests:
-            if free_gpu_num < 1:
-                continue
+            if cur_free_gpus_list.empty():
+                break
             #if seq_group not in self.hungry_requests:
             #    free_gpu_num -= temp_max_gpus_num[seq_group.request_id]
             #    continue
@@ -121,15 +123,11 @@ class VideoScheduler:
             if self.opt_gps_num[seq_group.resolution] == 4:
                 if cur_workers_num + free_gpu_num >= 4:
                     count = 4 - cur_workers_num
-                    j = 0
-                    for id in cur_free_gpus_list:
-                        if j >= count:
-                            break
-                        if self.gpu_status[id] == 0:
-                            self.gpu_status[id] = 1
-                            self.requests_workers_ids[seq_group.request_id].append(id)
-                            seq_group.worker_ids.append(id)
-                            j += 1
+                    for i in range(count):
+                        id = cur_free_gpus_list.get()
+                        self.gpu_status[id] = 1
+                        self.requests_workers_ids[seq_group.request_id].append(id)
+                    seq_group.worker_ids = copy.deepcopy(self.requests_workers_ids[seq_group.request_id])
                     free_gpu_num -= count
                     remove_groups.append(seq_group.request_id)
                     update_groups.append(seq_group.request_id)
@@ -138,15 +136,11 @@ class VideoScheduler:
                 
                 elif cur_workers_num + free_gpu_num == 2 or cur_workers_num + free_gpu_num == 3:
                     count = 2 - cur_workers_num
-                    j = 0
-                    for id in cur_free_gpus_list:
-                        if j >= count:
-                            break
-                        if self.gpu_status[id] == 0:
-                            self.gpu_status[id] = 1
-                            self.requests_workers_ids[seq_group.request_id].append(id)
-                            seq_group.worker_ids.append(id)
-                            j += 1
+                    for i in range(count):
+                        id = cur_free_gpus_list.get()
+                        self.gpu_status[id] = 1
+                        self.requests_workers_ids[seq_group.request_id].append(id)
+                    seq_group.worker_ids = copy.deepcopy(self.requests_workers_ids[seq_group.request_id])
                     free_gpu_num -= count
                     update_groups.append(seq_group.request_id)
                     self.requests_last_steps[seq_group.request_id] = self.requests_cur_steps[seq_group.request_id]
@@ -154,15 +148,11 @@ class VideoScheduler:
             elif self.opt_gps_num[seq_group.resolution] == 2:
                 if cur_workers_num + free_gpu_num >= 2:
                     count = 2 - cur_workers_num
-                    j = 0
-                    for id in cur_free_gpus_list:
-                        if j >= count:
-                            break
-                        if self.gpu_status[id] == 0:
-                            self.gpu_status[id] = 1
-                            self.requests_workers_ids[seq_group.request_id].append(id)
-                            seq_group.worker_ids.append(id)
-                            j += 1
+                    for i in range(count):
+                        id = cur_free_gpus_list.get()
+                        self.gpu_status[id] = 1
+                        self.requests_workers_ids[seq_group.request_id].append(id)
+                    seq_group.worker_ids = copy.deepcopy(self.requests_workers_ids[seq_group.request_id])
                     free_gpu_num -= count
                     remove_groups.append(seq_group.request_id)
                     update_groups.append(seq_group.request_id)
@@ -170,7 +160,7 @@ class VideoScheduler:
                     del self.requests_last_steps[seq_group.request_id]
 
         if update_groups:
-            print("update_groups ", len(update_groups))
+            print("update_groups ", update_groups)
         for group_id in update_groups:
             pload = {
                 "request_id": group_id,
@@ -191,19 +181,19 @@ class VideoScheduler:
             if seq_group.resolution == "360p":
                 if len(temp_worker_ids) >= 4:
                     worker_ids = [temp_worker_ids[i] for i in range(4)]
-                    for i in range(4):
-                        self.gpu_status[temp_worker_ids[i]] = 1
-                    seq_group.worker_ids = worker_ids
+                    for id in worker_ids:
+                        self.gpu_status[id] = 1
+                    seq_group.worker_ids = copy.deepcopy(worker_ids)
                     self.waiting.popleft()
                     return seq_group
                 
                 elif len(temp_worker_ids) == 2 or len(temp_worker_ids) == 3:
                     worker_ids = [temp_worker_ids[i] for i in range(2)]
-                    for i in range(2):
-                        self.gpu_status[temp_worker_ids[i]] = 1
-                    seq_group.worker_ids = worker_ids
+                    for id in worker_ids:
+                        self.gpu_status[id] = 1
+                    seq_group.worker_ids = copy.deepcopy(worker_ids)
                     self.hungry_requests[seq_group.request_id] = seq_group
-                    self.requests_workers_ids[seq_group.request_id] = worker_ids
+                    self.requests_workers_ids[seq_group.request_id] = copy.deepcopy(worker_ids)
                     self.requests_cur_steps[seq_group.request_id] = 0
                     self.requests_last_steps[seq_group.request_id] = 0
                     self.waiting.popleft()
@@ -212,9 +202,9 @@ class VideoScheduler:
                 elif len(temp_worker_ids) == 1:
                     worker_ids = [temp_worker_ids[0]]
                     self.gpu_status[temp_worker_ids[0]] = 1
-                    seq_group.worker_ids = worker_ids
+                    seq_group.worker_ids = copy.deepcopy(worker_ids)
                     self.hungry_requests[seq_group.request_id] = seq_group
-                    self.requests_workers_ids[seq_group.request_id] = worker_ids
+                    self.requests_workers_ids[seq_group.request_id] = copy.deepcopy(worker_ids)
                     self.requests_cur_steps[seq_group.request_id] = 0
                     self.requests_last_steps[seq_group.request_id] = 0
                     self.waiting.popleft()
@@ -223,18 +213,18 @@ class VideoScheduler:
             elif seq_group.resolution == "240p":
                 if len(temp_worker_ids) >= 2:
                     worker_ids = [temp_worker_ids[i] for i in range(2)]
-                    for i in range(2):
-                        self.gpu_status[temp_worker_ids[i]] = 1
-                    seq_group.worker_ids = worker_ids
+                    for id in worker_ids:
+                        self.gpu_status[id] = 1
+                    seq_group.worker_ids = copy.deepcopy(worker_ids)
                     self.waiting.popleft()
                     return seq_group
                 
                 elif len(temp_worker_ids) == 1:
                     worker_ids = [temp_worker_ids[0]]
                     self.gpu_status[temp_worker_ids[0]] = 1
-                    seq_group.worker_ids = worker_ids
+                    seq_group.worker_ids = copy.deepcopy(worker_ids)
                     self.hungry_requests[seq_group.request_id] = seq_group
-                    self.requests_workers_ids[seq_group.request_id] = worker_ids
+                    self.requests_workers_ids[seq_group.request_id] = copy.deepcopy(worker_ids)
                     self.requests_cur_steps[seq_group.request_id] = 0
                     self.requests_last_steps[seq_group.request_id] = 0
                     self.waiting.popleft()
@@ -244,7 +234,7 @@ class VideoScheduler:
                 if len(temp_worker_ids) >= 1:
                     worker_ids = [temp_worker_ids[0]]
                     self.gpu_status[temp_worker_ids[0]] = 1
-                    seq_group.worker_ids = worker_ids
+                    seq_group.worker_ids = copy.deepcopy(worker_ids)
                     self.waiting.popleft()
                     return seq_group
         
