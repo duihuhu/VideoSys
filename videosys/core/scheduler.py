@@ -40,7 +40,7 @@ class VideoScheduler:
         #cur_free_gpus_list = []
         if last:
             self.gpu_status[free_gpus_list[-1]] = 0
-            #cur_free_gpus_list.append(free_gpus_list[-1])ß
+            #cur_free_gpus_list.append(free_gpus_list[-1])
         else:
             for i in range(0, len(free_gpus_list) - 1):
                 self.gpu_status[free_gpus_list[i]] = 0
