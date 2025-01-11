@@ -41,11 +41,10 @@ class VideoScheduler:
         print(f"before release {self.gpu_status}")
         if last:
             self.gpu_status[self.requests_workers_ids[group_id][0]] = 0
-            
-            self.requests_workers_ids.pop(group_id, None)
-            self.hungry_requests.pop(group_id, None)
-            
             print(f"request {group_id} release the last worker {self.requests_workers_ids[group_id][0]}")
+            
+            self.hungry_requests.pop(group_id, None)
+            self.requests_workers_ids.pop(group_id, None)
             #cur_free_gpus_list.append(free_gpus_list[-1])
         else:
             temp = []
@@ -53,7 +52,9 @@ class VideoScheduler:
                 self.gpu_status[self.requests_workers_ids[group_id][i]] = 0
                 temp.append(self.requests_workers_ids[group_id][i])
             print(f"request {group_id} release the workers {temp}")
-                #cur_free_gpus_list.append(free_gpus_list[i])
+           
+            self.hungry_requests.pop(group_id, None)
+            #cur_free_gpus_list.append(free_gpus_list[i])
         print(f"after release {self.gpu_status}")
 
         if not self.hungry_requests:
