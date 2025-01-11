@@ -245,7 +245,7 @@ class AsyncSched:
             print("task.worker_ids for dit", task.worker_ids, task.request_id, task.resolution)
             
             if task.resolution == "144p":
-                api_url = "http://127.0.0.1:8000/async_generate_dit"
+                api_url = "http://127.0.0.1:8000/async_generate"
                 pload = {
                     "request_id": task.request_id,
                     "prompt": task.prompt,
