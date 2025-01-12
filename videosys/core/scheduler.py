@@ -16,6 +16,7 @@ class VideoScheduler:
         self.num = 0
         
         self.gpu_status = [0 for _ in range(instances_num)]
+        #self.gpu_status_lock = asyncio.Lock()
         
         self.hungry_requests: Dict[str, SequenceGroup] = {}
         self.requests_workers_ids: Dict[str, List[int]] = {}
@@ -56,8 +57,10 @@ class VideoScheduler:
         cur_thread.daemon = True # kill gs -> kill AsyncSched -> Kill VideoSched -> Kill VideoScheduler -> Kill thread
         cur_thread.start()
 
+    #async def update_and_schedule
     def update_and_schedule(self, last: bool, group_id: str) -> None:   
         #cur_free_gpus_list = []
+        #async with self.gpu_status_lock:
         print(f"before release {self.gpu_status}")
         if last:
             self.gpu_status[self.requests_workers_ids[group_id][0]] = 0
@@ -200,7 +203,9 @@ class VideoScheduler:
         
         print(f"after update {self.gpu_status}")
 
+    #async def schedule
     def schedule(self) -> SequenceGroup:
+        #async with self.gpu_status_lock:
         if self.waiting:
             seq_group = self.waiting[0]
             temp_worker_ids = [i for i in range(len(self.gpu_status)) if self.gpu_status[i] == 0]
