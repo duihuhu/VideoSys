@@ -16,6 +16,7 @@ from videosys.core.sequence import SequenceGroup
 import queue
 import requests
 import copy
+from queue import Queue
 AIOHTTP_TIMEOUT = aiohttp.ClientTimeout(total=6 * 60 * 60)
 
 ENGINE_ITERATION_TIMEOUT_S = int(
@@ -450,6 +451,9 @@ class AsyncEngine:
         self.background_loop = None
         self._errored_with: Optional[BaseException] = None
         self.request_workers = {}
+
+        self.gs_url = "http://127.0.0.1:8001/update_cur_step"
+        self.update_cur_step_tasks: Queue[Tuple[str, int]] = Queue()
     
     def post_http_request(self, pload, api_url) -> requests.Response:
         headers = {"User-Agent": "Test Client"}
@@ -748,7 +752,23 @@ class AsyncEngine:
             self.post_http_request(pload=pload, api_url=api_url)
         t2 = time.time()
         print("t2-t1 " , t2-t1)
-            
+
+    def update_requests_cur_steps(self) -> None:
+        while True:
+            if self.update_cur_step_tasks.empty():
+                continue
+            request_id, cur_step = self.update_cur_step_tasks.get()
+            pload = {
+                "request_id": request_id,
+                "cur_step": cur_step,
+            }
+            _ = self.post_http_request(pload = pload, api_url = self.gs_url)
+    
+    def create_update_threads(self, instances_num: int) -> None:
+        for _ in range(instances_num): # can't be sure if we need instances_num's threads, may be one is enough
+            cur_thread = threading.Thread(target = self.update_requests_cur_steps)
+            cur_thread.daemon = True
+            cur_thread.start
     
     async def worker_generate_dit(self, worker_ids, request_id, prompt, resolution, aspect_ratio, num_frames) -> None:
         await self.video_engine.prepare_generate(
@@ -790,13 +810,8 @@ class AsyncEngine:
                     await self.build_worker_comm(worker_ids)
                     del self.request_workers[request_id]
 
+            self.update_cur_step_tasks.put((request_id, index + 1)) # comnunicate first then the scheduler will re-allocate while worker exectuing
             await self.video_engine.index_iteration_generate(worker_ids=worker_ids, i=index)
-            pload = {
-                "request_id": request_id,
-                "cur_step": index + 1,
-            }
-            api_url = "http://127.0.0.1:8001/update_cur_step"
-            self.post_http_request(pload=pload, api_url=api_url)
             
         t2 = time.time()
         print("t2-t1 " , t2-t1)

@@ -67,6 +67,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     sched = AsyncSched(instances_num = args.instances_num) 
     sched.create_consumer(instances_num = args.instances_num)
+    sched.video_sched.scheduler.create_update_threads()
     uvicorn.run(app,
                 host=args.host,
                 port=args.port,

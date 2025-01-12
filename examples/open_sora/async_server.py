@@ -235,6 +235,7 @@ if __name__ == "__main__":
     config = OpenSoraConfig(num_sampling_steps=30, cfg_scale=7.0, num_gpus=args.num_gpus, worker_type=args.worker_type, enable_separate=args.enable_separate, rank=args.rank, dworld_size = args.dworld_size)
     # engine = VideoSysEngine(config)
     engine = AsyncEngine(config, deploy_config)
+    engine.create_update_threads(instances_num = args.num_gpus)
     uvicorn.run(app,
                 host=args.host,
                 port=args.port,

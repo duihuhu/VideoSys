@@ -4,6 +4,7 @@ from videosys.core.sequence import SequenceGroup
 import requests
 import copy
 from queue import Queue
+import threading
 class VideoScheduler:
     def __init__(
         self,
@@ -26,6 +27,9 @@ class VideoScheduler:
                                                        "360p": {1: 19.2, 2: 10.4, 4: 6.1}}
         self.opt_gps_num: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 4}
         self.denoising_steps = 30
+
+        self.update_tasks: Queue[Tuple[str, List[int]]] = Queue()
+        self.async_server_url = "http://127.0.0.1:8000/request_workers"
     
     def post_http_request(self, pload, api_url) -> requests.Response:
         headers = {"User-Agent": "Test Client"}
@@ -35,6 +39,22 @@ class VideoScheduler:
     def update_requests_cur_steps(self, request_id: str, cur_step: int) -> None:
         if request_id in self.requests_cur_steps:
             self.requests_cur_steps[request_id] = cur_step
+    
+    def update_dit_workers_ids_for_request(self) -> None:
+        while True:
+            if self.update_tasks.empty():
+                continue
+            group_id, worker_ids = self.update_tasks.get()
+            pload = {
+                "request_id": group_id,
+                "worker_ids": worker_ids,
+            }
+            _ = self.post_http_request(pload, self.async_server_url)
+    
+    def create_update_threads(self) -> None:
+        cur_thread = threading.Thread(target = self.update_dit_workers_ids_for_request)
+        cur_thread.daemon = True # kill gs -> kill AsyncSched -> Kill VideoSched -> Kill VideoScheduler -> Kill thread
+        cur_thread.start()
 
     def update_and_schedule(self, last: bool, group_id: str) -> None:   
         #cur_free_gpus_list = []
@@ -172,12 +192,7 @@ class VideoScheduler:
 
         for group_id in update_groups:
             print(f"request {group_id} new workers ids {self.requests_workers_ids[group_id]}")
-            pload = {
-                "request_id": group_id,
-                "worker_ids": self.requests_workers_ids[group_id],
-            }
-            api_url = "http://127.0.0.1:8000/request_workers"
-            response = self.post_http_request(pload, api_url)
+            self.update_tasks.put((group_id, self.requests_workers_ids[group_id]))
         
         for group_id in remove_groups:
             del self.hungry_requests[group_id]
