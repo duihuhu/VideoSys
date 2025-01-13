@@ -87,7 +87,7 @@ class VideoSysEngine:
                             distributed_init_method=distributed_init_method,
                         ),
                     )
-            self.dirver_worker_monitor = WorkerMonitor(self.driver_worker, driver_result_handler)
+            self.dirver_worker_monitor = WorkerMonitor([self.driver_worker], driver_result_handler)
             driver_result_handler.start()
             self.dirver_worker_monitor.start()
             self.workers.append(self.driver_worker)
