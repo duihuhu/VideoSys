@@ -76,6 +76,8 @@ class VideoScheduler:
         for gpu_id, status in enumerate(self.gpu_status):
             if status == 0:
                 cur_free_gpus.put(gpu_id)
+        if cur_free_gpus.qsize() < 1:
+            return None
 
         #----------process hungry queue in starvation descending order while num = N#
         temp_hungry_requests = list(self.hungry_requests.values())

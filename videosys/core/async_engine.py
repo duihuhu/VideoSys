@@ -795,9 +795,24 @@ class AsyncEngine:
             #     print("no new gpus ", request_id)
             # else:
             #     print("new gpus ", request_id, self.request_workers[request_id])
-
-
             if request_id in self.request_workers:
+                pre_worker_ids = list(set(self.request_workers[request_id]) - set(worker_ids))
+            else:
+                pre_worker_ids = []
+            if pre_worker_ids:
+                await self.destory_worker_comm(worker_ids=worker_ids)
+                await self.video_engine.prepare_generate(
+                        worker_ids=pre_worker_ids,
+                        prompt=prompt,
+                        resolution=resolution,
+                        aspect_ratio=aspect_ratio,
+                        num_frames=num_frames,
+                    )
+                print("new_worker_ids, worker_ids ", self.request_workers[request_id], worker_ids)
+                worker_ids = copy.deepcopy(self.request_workers[request_id])
+                await self.build_worker_comm(worker_ids)
+
+            '''if request_id in self.request_workers:
                 #     print("no new gpus ", request_id)
                 # else:
                     # print("new gpus ", request_id, self.request_workers[request_id])
@@ -814,7 +829,7 @@ class AsyncEngine:
                     print("new_worker_ids, worker_ids ", new_worker_ids, worker_ids)
                     worker_ids = copy.deepcopy(new_worker_ids)
                     await self.build_worker_comm(worker_ids)
-                    del self.request_workers[request_id]
+                    del self.request_workers[request_id]'''
 
             self.update_cur_step_tasks.put((request_id, index + 1)) # comnunicate first then the scheduler will re-allocate while worker exectuing
             await self.video_engine.index_iteration_generate(worker_ids=worker_ids, i=index)
