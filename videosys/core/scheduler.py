@@ -63,12 +63,14 @@ class VideoScheduler:
             self.gpu_status[self.requests_workers_ids[group_id][0]] = 0
             print(f"request {group_id} release its last worker {self.requests_workers_ids[group_id][0]}")
             self.requests_workers_ids.pop(group_id, None)
-            self.hungry_requests.pop(group_id, None) # this may be useless
+            #self.hungry_requests.pop(group_id, None) # this may be useless
         else:
             for i in range(1, len(self.requests_workers_ids[group_id])):
                 self.gpu_status[self.requests_workers_ids[group_id][i]] = 0
             print(f"request {group_id} release {self.requests_workers_ids[group_id][1: ]}")
-            self.hungry_requests.pop(group_id, None) # this may be also useless
+            self.hungry_requests.pop(group_id, None) 
+            self.requests_cur_steps.pop(group_id, None)
+            self.requests_last_steps.pop(group_id, None)
         print(f"after release {self.gpu_status}")
     
     def hungry_first_priority_schedule(self) -> SequenceGroup:
