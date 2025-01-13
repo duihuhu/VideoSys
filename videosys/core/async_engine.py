@@ -258,7 +258,8 @@ class AsyncSched:
                     "worker_ids": task.worker_ids,
                 }
                 response = self.post_http_request(pload=pload, api_url=api_url)
-                self.video_sched.scheduler.update_and_schedule(last = True, group_id = task.request_id)
+                #self.video_sched.scheduler.update_and_schedule(last = True, group_id = task.request_id)
+                self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id)
             else:
                 api_url = "http://127.0.0.1:8000/async_generate_dit"
                 pload = {
@@ -270,14 +271,16 @@ class AsyncSched:
                     "worker_ids": task.worker_ids,
                 }
                 response = self.post_http_request(pload=pload, api_url=api_url)
-                self.video_sched.scheduler.update_and_schedule(last = False, group_id = task.request_id)
+                #self.video_sched.scheduler.update_and_schedule(last = False, group_id = task.request_id)
+                self.video_sched.scheduler.update_gpu_status(last = False, group_id = task.request_id)
                 api_url = "http://127.0.0.1:8000/async_generate_vae"
                 pload = {
                     "request_id": task.request_id,
                     "worker_ids": [task.worker_ids[0]],
                 }
                 response = self.post_http_request(pload=pload, api_url=api_url)
-                self.video_sched.scheduler.update_and_schedule(last = True, group_id = task.request_id)
+                #self.video_sched.scheduler.update_and_schedule(last = True, group_id = task.request_id)
+                self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id)
 
             #if len(task.worker_ids) > 1:
                 #print("before update ", self.video_sched.scheduler.gpu_status, task.request_id, task.resolution)
@@ -335,7 +338,8 @@ class AsyncSched:
     #     return
         
     async def step_async(self):
-        seq_group = self.video_sched.scheduler.schedule()
+        #seq_group = self.video_sched.scheduler.schedule()
+        seq_group = self.video_sched.scheduler.hungry_first_priority_schedule()
         if seq_group:
             print("add to task_queue ", seq_group.request_id)
             self.task_queue.put(seq_group)
