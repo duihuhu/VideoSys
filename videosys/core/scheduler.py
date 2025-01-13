@@ -26,7 +26,7 @@ class VideoScheduler:
         self.dit_times: Dict[str, Dict[int, float]] = {"144p": {1: 3, 2: 3.4, 4: 3.5}, 
                                                        "240p": {1: 8.3, 2: 4.6, 4: 3.7}, 
                                                        "360p": {1: 19.2, 2: 10.4, 4: 6.1}}
-        self.opt_gps_num: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 4}
+        self.opt_gpus_num: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 4}
         self.denoising_steps = 30
 
         self.update_tasks: Queue[Tuple[str, List[int]]] = Queue()
@@ -85,7 +85,7 @@ class VideoScheduler:
         temp_hungry_requests = list(self.hungry_requests.values())
         # sort in descending order by starvation time
         temp_hungry_requests.sort(key = lambda x: (self.requests_cur_steps[x.request_id] - self.requests_last_steps[x.request_id])
-                                    * (self.dit_times[x.resolution][len(self.requests_workers_ids[x.request_id])] - self.dit_times[x.resolution][self.opt_gps_num[x.resolution]])
+                                    * (self.dit_times[x.resolution][len(self.requests_workers_ids[x.request_id])] - self.dit_times[x.resolution][self.opt_gpus_num[x.resolution]])
                                     / self.denoising_steps
                                     , reverse = True)
         
@@ -95,7 +95,7 @@ class VideoScheduler:
                 break
             
             cur_wanted_gpus_num = []
-            cur_opt_gpus_num = self.opt_gps_num[cur_hungry_request.resolution]
+            cur_opt_gpus_num = self.opt_gpus_num[cur_hungry_request.resolution]
             while cur_opt_gpus_num > 0:
                 if cur_opt_gpus_num - len(self.requests_workers_ids[cur_hungry_request.request_id]) > 0:
                     cur_wanted_gpus_num.append(cur_opt_gpus_num - len(self.requests_workers_ids[cur_hungry_request.request_id]))
@@ -130,7 +130,7 @@ class VideoScheduler:
             cur_waiting_request = self.waiting[0]
 
             cur_demand_gpus_num = []
-            cur_max_gpus_num = self.opt_gps_num[cur_waiting_request.resolution]
+            cur_max_gpus_num = self.opt_gpus_num[cur_waiting_request.resolution]
             while cur_max_gpus_num > 0:
                 cur_demand_gpus_num.append(cur_max_gpus_num)
                 cur_max_gpus_num //= 2
@@ -186,7 +186,7 @@ class VideoScheduler:
         
         temp_sorted_requests = list(self.hungry_requests.values())
         temp_sorted_requests.sort(key = lambda x: (self.requests_cur_steps[x.request_id] - self.requests_last_steps[x.request_id]) 
-                                  * (self.dit_times[x.resolution][len(self.requests_workers_ids[x.request_id])] - self.dit_times[x.resolution][self.opt_gps_num[x.resolution]]) 
+                                  * (self.dit_times[x.resolution][len(self.requests_workers_ids[x.request_id])] - self.dit_times[x.resolution][self.opt_gpus_num[x.resolution]]) 
                                   / self.denoising_steps
                                   , reverse = True)
         
@@ -199,7 +199,7 @@ class VideoScheduler:
         temp_requests_cur_steps: Dict[str, int] = {}
         for _, seq_group in self.hungry_requests.items():
             cur_workers_num = len(self.requests_workers_ids[seq_group.request_id])
-            if self.opt_gps_num[seq_group.resolution] == 4:
+            if self.opt_gpus_num[seq_group.resolution] == 4:
                 if cur_workers_num + free_gpu_num >= 4:
                     temp_max_gpus_num[seq_group.request_id] = 4
                     temp_sorted_requests.append(seq_group)
@@ -208,14 +208,14 @@ class VideoScheduler:
                     temp_max_gpus_num[seq_group.request_id] = 2
                     temp_sorted_requests.append(seq_group)
                     temp_requests_cur_steps[seq_group.request_id] = self.requests_cur_steps[seq_group.request_id]
-            elif self.opt_gps_num[seq_group.resolution] == 2:
+            elif self.opt_gpus_num[seq_group.resolution] == 2:
                 if cur_workers_num + free_gpu_num >= 2:
                     temp_max_gpus_num[seq_group.request_id] = 2
                     temp_sorted_requests.append(seq_group)
                     temp_requests_cur_steps[seq_group.request_id] = self.requests_cur_steps[seq_group.request_id]
         
         for seq_group in self.waiting:  
-            if self.opt_gps_num[seq_group.resolution] == 4:
+            if self.opt_gpus_num[seq_group.resolution] == 4:
                 if free_gpu_num >= 4:
                     temp_max_gpus_num[seq_group.request_id] = 4
                     temp_sorted_requests.append(seq_group)
@@ -228,7 +228,7 @@ class VideoScheduler:
                     temp_max_gpus_num[seq_group.request_id] = 1
                     temp_sorted_requests.append(seq_group)
                     temp_requests_cur_steps[seq_group.request_id] = 0
-            elif self.opt_gps_num[seq_group.resolution] == 2:
+            elif self.opt_gpus_num[seq_group.resolution] == 2:
                 if free_gpu_num >= 2:
                     temp_max_gpus_num[seq_group.request_id] = 2
                     temp_sorted_requests.append(seq_group)
@@ -237,7 +237,7 @@ class VideoScheduler:
                     temp_max_gpus_num[seq_group.request_id] = 1
                     temp_sorted_requests.append(seq_group)
                     temp_requests_cur_steps[seq_group.request_id] = 0
-            elif self.opt_gps_num[seq_group.resolution] == 1:
+            elif self.opt_gpus_num[seq_group.resolution] == 1:
                 if free_gpu_num >= 1:
                     temp_max_gpus_num[seq_group.request_id] = 1
                     temp_sorted_requests.append(seq_group)
@@ -255,7 +255,7 @@ class VideoScheduler:
             #    free_gpu_num -= temp_max_gpus_num[seq_group.request_id]
             #    continue
             cur_workers_num = len(self.requests_workers_ids[seq_group.request_id])
-            if self.opt_gps_num[seq_group.resolution] == 4:
+            if self.opt_gpus_num[seq_group.resolution] == 4:
                 if cur_workers_num + free_gpu_num >= 4:
                     count = 4 - cur_workers_num
                     for i in range(count):
@@ -280,7 +280,7 @@ class VideoScheduler:
                     update_groups.append(seq_group.request_id)
                     self.requests_last_steps[seq_group.request_id] = self.requests_cur_steps[seq_group.request_id]
             
-            elif self.opt_gps_num[seq_group.resolution] == 2:
+            elif self.opt_gpus_num[seq_group.resolution] == 2:
                 if cur_workers_num + free_gpu_num >= 2:
                     count = 2 - cur_workers_num
                     for i in range(count):

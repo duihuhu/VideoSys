@@ -64,12 +64,12 @@ def main(prompt, aspect_ratio, num_frames, ratios: List[int], recv_ratio: float,
             time.sleep(1 / recv_ratio)
     else:
         total_ratios = sum(ratios)
-        total_num = [round(total_num * (ratios[i] / total_ratios)) for i in range(len(resolutions))] 
+        total_nums = [round(total_num * (ratios[i] / total_ratios)) for i in range(len(resolutions))] 
         # if total_num can't divide total_ratios this will make the reall total_num be different from the args
         # but the error can be ignored since is too small
-        print(f"real req num {sum(total_num)} args num {total_num}")
+        print(f"real req num {sum(total_nums)} args num {total_num}")
         add_resolutions = []
-        for i, num in enumerate(total_num):
+        for i, num in enumerate(total_nums):
             for _ in range(num):
                 add_resolutions.append(resolutions[i])
         random.shuffle(add_resolutions)
