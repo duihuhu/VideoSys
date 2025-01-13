@@ -152,6 +152,7 @@ class VideoScheduler:
                     self.requests_cur_steps[cur_waiting_request.request_id] = 0
                     self.requests_last_steps[cur_waiting_request.request_id] = 0
                 
+                cur_waiting_request.worker_ids = copy.deepcopy(self.requests_workers_ids[cur_waiting_request.request_id])
                 self.waiting.popleft()
                 return cur_waiting_request
         
