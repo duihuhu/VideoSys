@@ -90,7 +90,7 @@ class VideoSysEngine:
             self.dirver_worker_monitor = WorkerMonitor(self.driver_worker, driver_result_handler)
             driver_result_handler.start()
             self.dirver_worker_monitor.start()
-            self.workers = [self.driver_worker]
+            self.workers.append(self.driver_worker)
         else:
             result_handler = ResultHandler()
             self.workers = [
