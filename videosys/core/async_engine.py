@@ -240,11 +240,11 @@ class AsyncSched:
     
     def process(self,):
         while True:
-            #if self.task_queue.empty():
-            #    continue
+            if self.task_queue.empty():
+                continue
             task = self.task_queue.get()  # 阻塞，直到有任务
-            if task is None:
-                break  # 如果任务是 None，表示结束
+            #if task is None:
+            #    break  # 如果任务是 None，表示结束
             print("task.worker_ids for dit", task.worker_ids, task.request_id, task.resolution)
             
             if task.resolution == "144p":
@@ -299,6 +299,7 @@ class AsyncSched:
     def create_consumer(self, instances_num: int):
         for _ in range(instances_num):
             consumer = threading.Thread(target=self.process)
+            consumer.daemon = True
             consumer.start()
             self.consumers.append(consumer)
         
