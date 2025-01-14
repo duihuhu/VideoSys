@@ -206,20 +206,20 @@ class GlobalScheduler:
         return None
     
     def static_sp_fcfs_scheduler(self, sp_size: int) -> Request:
-        print("a")
         if self.high_affinity:
             cur_free_gpus: Queue[int] = Queue()
             for gpu_id, status in enumerate(self.gpu_status):
                 if status == 0:
                     cur_free_gpus.put(gpu_id)
             if cur_free_gpus.qsize() < sp_size:
+                print("a")
                 return None
         else:
             cur_free_gpus2 = self.get_free_gpus_topology()
             cur_free_gpus2.sort(key = lambda x: x[0], reverse = True)
             if cur_free_gpus2[0][0] < sp_size:
+                print("b")
                 return None
-        print("b")
         if self.waiting_requests:
             cur_waiting_request = self.waiting_requests[0]
             for _ in range(sp_size):
@@ -247,7 +247,6 @@ class GlobalScheduler:
                 cur_waiting_request.workers_ids2 = copy.deepcopy(self.requests_workers_ids2[cur_waiting_request.id])
             self.waiting_requests.popleft()
             return cur_waiting_request
-        print("c")
         return None
 
 def gs(global_scheduler: GlobalScheduler, sp_size: Optional[int] = None) -> None:
