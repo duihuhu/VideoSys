@@ -286,7 +286,7 @@ class GlobalScheduler:
                 self.waiting_requests.popleft()
                 return cur_req
             
-            if cur_req.resolution == "144p" and self.w1_num >= 1:
+            '''if cur_req.resolution == "144p" and self.w1_num >= 1:
                 self.w1_num -= 1
                 self.waiting_requests.popleft()
                 return cur_req
@@ -297,8 +297,23 @@ class GlobalScheduler:
             elif cur_req.resolution == "360p" and self.w3_num >= 1:
                 self.w3_num -= 1
                 self.waiting_requests.popleft()
+                return cur_req'''
+            if self.w1_num >= 1:
+                self.w1_num -= 1
+                self.waiting_requests.popleft()
+                cur_req.resolution = "144p"
                 return cur_req
-        
+            if self.w2_num >= 1:
+                self.w2_num -= 1
+                self.waiting_requests.popleft()
+                cur_req.resolution = "240p"
+                return cur_req
+            if self.w3_num >= 1:
+                self.w3_num -= 1
+                self.waiting_requests.popleft()
+                cur_req.resolution = "360p"
+                return cur_req
+                
         return None
             
 def gs(global_scheduler: GlobalScheduler, sp_size: Optional[int] = None) -> None:
