@@ -280,11 +280,11 @@ class Engine:
                 gap_workers_ids = []
             if gap_workers_ids:
                 if self.high_affinity:
-                    workers_ids = copy.deepcopy(requests_new_workers_ids[id])
                     print(f"request {id} resolution {resolution} old gpus {workers_ids} new gpus {requests_new_workers_ids[id]}") # add for log
+                    workers_ids = copy.deepcopy(requests_new_workers_ids[id])
                 else:
-                    workers_ids2 = copy.deepcopy(requests_new_workers_ids2[id])
                     print(f"request {id} resolution {resolution} old gpus {workers_ids2} new gpus {requests_new_workers_ids2[id]}") # add for log
+                    workers_ids2 = copy.deepcopy(requests_new_workers_ids2[id])
             if self.high_affinity:    
                 cur_sleep_time = self.dit_times[resolution][len(workers_ids)] / self.denoising_steps
             else:
