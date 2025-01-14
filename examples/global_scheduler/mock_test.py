@@ -336,7 +336,7 @@ class Engine:
         return
 
 def task_consumer(engine: Engine, global_scheduler: GlobalScheduler, high_affinity: Optional[bool] = True, 
-                  static: Optional[bool] = False) -> None:
+                  static: Optional[bool] = False, my_resolution: Optional[str] = "idk") -> None:
     while True:
         # if len(finished_requests) == engine.jobs_num:
         #     break
@@ -344,6 +344,8 @@ def task_consumer(engine: Engine, global_scheduler: GlobalScheduler, high_affini
         if task == "exit":
             print("thread exit ", threading.get_native_id())
             break
+        if static and task.resolution != my_resolution:
+            continue
         print(f"request {task.id} resolution {task.resolution} starts") # add for log
         if task.resolution == "144p" or static:
             if high_affinity:
@@ -443,6 +445,15 @@ if __name__ == "__main__":
                 consumers_num = args.instances_num * args.gpus_per_instance
             else:
                 consumers_num = args.instances_num * (args.gpus_per_instance // args.sp_size)
+                
+                static_consumers_types = []
+                static_consumers_resolutions_distribution = [round(consumers_num * (ratios[0] / total_ratios)),
+                                                             round(consumers_num * (ratios[1] / total_ratios))]
+                static_consumers_resolutions_distribution.append(consumers_num - static_consumers_resolutions_distribution[0] -
+                                                                 static_consumers_resolutions_distribution[1])
+                for k, distribution in enumerate(static_consumers_resolutions_distribution):
+                    for _ in range(distribution):
+                        static_consumers_types.append(resolutions[k])
 
             for request in add_requests:
                 globalscheduler.add_request(request = request)
@@ -453,11 +464,12 @@ if __name__ == "__main__":
                 globalscheduler.add_request(request = "exit")
                 
             total_threads: List[threading.Thread] = []
-            for _ in range(consumers_num):
+            for t in range(consumers_num):
                 if j == 0:
                     consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, high_affinity, False))
                 else:
-                    consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, high_affinity, True))
+                    consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, high_affinity, True, 
+                                                                                static_consumers_types[t]))
                 consumer.start()
                 total_threads.append(consumer)
             if j == 0:
@@ -495,13 +507,23 @@ if __name__ == "__main__":
                 consumers_num = args.instances_num * args.gpus_per_instance
             else:
                 consumers_num = args.instances_num * (args.gpus_per_instance // args.sp_size)
-                
+
+                static_consumers_types = []
+                static_consumers_resolutions_distribution = [round(consumers_num * (ratios[0] / total_ratios)),
+                                                             round(consumers_num * (ratios[1] / total_ratios))]
+                static_consumers_resolutions_distribution.append(consumers_num - static_consumers_resolutions_distribution[0] -
+                                                                 static_consumers_resolutions_distribution[1])
+                for k, distribution in enumerate(static_consumers_resolutions_distribution):
+                    for _ in range(distribution):
+                        static_consumers_types.append(resolutions[k])
+
             total_threads: List[threading.Thread] = []
-            for _ in range(consumers_num):
+            for t in range(consumers_num):
                 if j == 0:
                     consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, high_affinity, False))
                 else:
-                    consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, high_affinity, True))
+                    consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, high_affinity, True, 
+                                                                                static_consumers_types[t]))
                 consumer.start()
                 total_threads.append(consumer)
             if j == 0:
