@@ -425,6 +425,8 @@ if __name__ == "__main__":
             add_requests.append(Request(id = i, resolution = resolution))
         for j in range(2):
             if j == 0:
+                continue
+            if j == 0:
                 log_file_path = args.log_file_path + "ddit.txt"
             else:
                 log_file_path = args.log_file_path + "static.txt"
