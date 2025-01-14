@@ -251,7 +251,7 @@ def gs(global_scheduler: GlobalScheduler, sp_size: Optional[int] = None) -> None
         if len(finished_requests) == global_scheduler.jobs_num:
             break
         if sp_size:
-            request = global_scheduler.static_sp_fcfs_scheduler()
+            request = global_scheduler.static_sp_fcfs_scheduler(sp_size=sp_size)
         else:
             request = global_scheduler.affinity_aware_hungry_first_priority_schedule()
         if request:
