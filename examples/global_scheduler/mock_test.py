@@ -259,6 +259,7 @@ def gs(global_scheduler: GlobalScheduler, sp_size: Optional[int] = None) -> None
             request = global_scheduler.affinity_aware_hungry_first_priority_schedule()
         if request:
             tasks_queue.put(request)
+            print("request ", request)
     return
 
 class Engine:
