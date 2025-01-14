@@ -27,7 +27,7 @@ else:
 
 class GlobalScheduler:
     def __init__(self, instances_num: int, jobs_num: int, high_affinity: bool = True, gpus_per_instance: int = 8,
-                 w1_num: Optional[int] = 1, w2_num: Optional[int] = 1, w3_num: Optional[int] = 1):
+                 w1_num: Optional[int] = 10, w2_num: Optional[int] = 9, w3_num: Optional[int] = 9):
         self.gpu_status = [0 for _ in range(instances_num * gpus_per_instance)]
         self.hungry_requests: Dict[int, Request] = {}
         self.waiting_requests: Deque[Request] = Deque()
@@ -332,7 +332,12 @@ class Engine:
     
     def generate_dit_isolated(self, resolution: str) -> None:
         for _ in range(self.denoising_steps):
-            time.sleep(self.dit_times[resolution][4] / self.denoising_steps)
+            if resolution == "144p":
+                time.sleep(self.dit_times[resolution][1] / self.denoising_steps)
+            elif resolution == "240p":
+                time.sleep(self.dit_times[resolution][2] / self.denoising_steps)
+            elif resolution == "360p":
+                time.sleep(self.dit_times[resolution][4] / self.denoising_steps)
         return
     
     def generate_dit(self, id: int, resolution: str, 
@@ -362,7 +367,12 @@ class Engine:
         return
     
     def generate_vae_isolated(self, id: int, resolution: str) -> None:
-        time.sleep(self.vae_times[resolution][4])
+        if resolution == "144p":
+            time.sleep(self.vae_times[resolution][1])
+        elif resolution == "240p":
+            time.sleep(self.vae_times[resolution][2])
+        elif resolution == "360p":
+            time.sleep(self.vae_times[resolution][4])
         end_time = time.time()
         finished_requests.append(0)
         print(f"request {id} resolution {resolution} ends") # add for log
@@ -496,16 +506,16 @@ if __name__ == "__main__":
             else:
                 log_file_path = args.log_file_path + "static.txt"
             engine = Engine(log_file_path = log_file_path, jobs_num = jobs_num, high_affinity = high_affinity)
-            '''globalscheduler = GlobalScheduler(instances_num = args.instances_num, jobs_num = jobs_num, 
+            globalscheduler = GlobalScheduler(instances_num = args.instances_num, jobs_num = jobs_num, 
                                               high_affinity = high_affinity,
-                                              gpus_per_instance = args.gpus_per_instance)'''
-            ws = [round(16 * (ratios[0] / total_ratios)),
+                                              gpus_per_instance = args.gpus_per_instance)
+            '''ws = [round(16 * (ratios[0] / total_ratios)),
                   round(16 * (ratios[1] / total_ratios)),
                   16 - round(16 * (ratios[0] / total_ratios)) - round(16 * (ratios[1] / total_ratios))]
             globalscheduler = GlobalScheduler(instances_num = args.instances_num, jobs_num = jobs_num, 
                                               high_affinity = high_affinity,
                                               gpus_per_instance = args.gpus_per_instance,
-                                              w1_num = ws[0], w2_num = ws[1], w3_num = ws[2])
+                                              w1_num = ws[0], w2_num = ws[1], w3_num = ws[2])'''
             
             if j == 1:
                 #reset when iteration 
