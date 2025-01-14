@@ -345,6 +345,7 @@ def task_consumer(engine: Engine, global_scheduler: GlobalScheduler, high_affini
             print("thread exit ", threading.get_native_id())
             break
         if static and task.resolution != my_resolution:
+            tasks_queue.put(task)
             continue
         print(f"request {task.id} resolution {task.resolution} starts") # add for log
         if task.resolution == "144p" or static:
