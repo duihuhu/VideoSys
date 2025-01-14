@@ -317,6 +317,7 @@ def task_consumer(engine: Engine, global_scheduler: GlobalScheduler, high_affini
             break
         task = tasks_queue.get()
         if task == "exit":
+            print("thread exit ")
             break
         print(f"request {task.id} resolution {task.resolution} starts") # add for log
         if task.resolution == "144p":
