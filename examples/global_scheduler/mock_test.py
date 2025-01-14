@@ -506,7 +506,7 @@ if __name__ == "__main__":
                 start_time = time.time()
                 with open(log_file_path1, 'a') as file:
                     file.write(f"request {i} starts at {start_time}\n")
-                time.sleep(1 / args.arrvial_ratio)
+                time.sleep(1 / args.arrival_ratio)
             
             #for consumer exit
             for _ in range(consumers_num):
