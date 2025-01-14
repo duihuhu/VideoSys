@@ -21,6 +21,8 @@ from .data_process import get_image_size, get_num_frames, prepare_multi_resoluti
 # from .video_ops import trans_ops
 import time
 import videosys
+from datetime import datetime
+
 os.environ["TOKENIZERS_PARALLELISM"] = "true"
 
 
@@ -631,6 +633,12 @@ class OpenSoraPipeline(VideoSysPipeline):
 
             masks = apply_mask_strategy(z, refs, ms, loop_i, align=align)
             t1 = time.time()
+            dt1 = datetime.fromtimestamp(int(t1))  # 转换为秒的 datetime
+            ms1 = int((t1 - int(t1)) * 1000)  # 提取毫秒部分
+            # 格式化输出
+            formatted_time1 = dt1.strftime("%Y-%m-%d %H:%M:%S") + f".{ms1:03d}"
+            print("dit start time ", formatted_time1)
+            
             samples = self.scheduler.sample(
                 self.transformer,
                 z=z,
@@ -643,6 +651,12 @@ class OpenSoraPipeline(VideoSysPipeline):
             torch.cuda.synchronize() 
             # print("type samples ", type(samples), samples.shape, samples.element_size() * samples.nelement(), samples.device)
             t2 = time.time()
+            dt2 = datetime.fromtimestamp(int(t1))  # 转换为秒的 datetime
+            ms2 = int((t2 - int(t2)) * 1000)  # 提取毫秒部分
+            # 格式化输出
+            formatted_time2 = dt2.strftime("%Y-%m-%d %H:%M:%S") + f".{ms2:03d}"
+            print("vae start time ", formatted_time2)
+            
             samples = self.vae.decode(samples.to(self._dtype), num_frames=num_frames)
             torch.cuda.synchronize() 
             t3 = time.time()
