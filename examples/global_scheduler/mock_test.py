@@ -407,7 +407,7 @@ if __name__ == "__main__":
                 globalscheduler.add_request(request = request)
             
             #for consumer exit
-            print("consumers_num " , consumers_num)
+            print("consumers_num " , consumers_num, len(globalscheduler.waiting_requests))
             for _ in range(consumers_num):
                 globalscheduler.add_request(request = "exit")
                 
