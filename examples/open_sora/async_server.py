@@ -165,7 +165,7 @@ async def async_generate(request: Request) -> Response:
     #num_frames = "2s"
     await engine.build_worker_comm(worker_ids)
     # await engine.worker_generate(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
-    await engine.worker_generate_tog(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
+    await engine.worker_generate_homo(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
     await engine.destory_worker_comm(worker_ids)
     print(request_id, "144p's dit&vae end")
 
