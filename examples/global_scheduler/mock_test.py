@@ -348,14 +348,14 @@ def task_consumer(engine: Engine, global_scheduler: GlobalScheduler, high_affini
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--log-file-path", type = str, default = "/home/jovyan/hcch/hucc/VideoSys/examples/global_scheduler/logs_temp")
+    parser.add_argument("--log-file-path", type = str, default = "/home/jovyan/hcch/hucc/VideoSys/examples/global_scheduler/logs_temp/")
     parser.add_argument("--instances-num", type = int, default = 8)
     parser.add_argument("--gpus-per-instance", type = int, default = 8)
     parser.add_argument("--low", type = int, default = 1)
     parser.add_argument("--middle", type = int, default = 1)
     parser.add_argument("--high", type = int, default = 1)
     parser.add_argument("--requests-num", type = int, default = 128)
-    parser.add_argument("--batch", type = int, default = True)
+    parser.add_argument("--batch", type = bool, default = True)
     parser.add_argument("--arrival-ratio", type = float, default = 4.0)
     parser.add_argument("--high-affinity", action = 'store_true', default = True)
     parser.add_argument("--static", action = 'store_true', default = False)
