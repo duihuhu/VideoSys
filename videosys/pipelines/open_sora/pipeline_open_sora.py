@@ -1211,6 +1211,7 @@ class OpenSoraPipeline(VideoSysPipeline):
         if hash_value in self.comm_group:
             parallel_group = self.comm_group[hash_value]
         else:
+            print(f"new group:{worker_ids}. global rank:{torch.distributed.get_rank()}")
             parallel_group = dist.new_group(ranks=worker_ids)
             self.comm_group[hash_value] = parallel_group
         videosys.initialize_manager(parallel_group=parallel_group)
