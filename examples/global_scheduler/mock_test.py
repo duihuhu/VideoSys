@@ -129,7 +129,7 @@ class GlobalScheduler:
             if len(cur_free_gpus2[0]) < 1:
                 return None
         #----------process hungry queue in starvation descending order while num = N----------#
-        temp_hungry_requests = list(self.hungry_requests.values())
+        '''temp_hungry_requests = list(self.hungry_requests.values())
         # sort in descending order by starvation time
         if self.high_affinity:
             temp_hungry_requests.sort(key = lambda x: (requests_cur_steps[x.id] - self.requests_last_steps[x.id])
@@ -180,16 +180,8 @@ class GlobalScheduler:
                     cur_free_gpus2.sort(key = lambda x: len(x), reverse = True)
                 # notice the real workers
                 if self.high_affinity:
-                    '''gap = len(self.requests_workers_ids[cur_hungry_request.id]) - self.opt_gpus_num[cur_hungry_request.resolution]
-                    for _ in range(gap):
-                        if self.requests_workers_ids:
-                            self.requests_workers_ids.pop()'''
                     requests_new_workers_ids[cur_hungry_request.id] = copy.deepcopy(self.requests_workers_ids[cur_hungry_request.id])
                 else:
-                    '''gap = len(self.requests_workers_ids2[cur_hungry_request.id]) - self.opt_gpus_num[cur_hungry_request.resolution]
-                    for _ in range(gap):
-                        if self.requests_workers_ids2:
-                            self.requests_workers_ids2.pop()'''
                     requests_new_workers_ids2[cur_hungry_request.id] = copy.deepcopy(self.requests_workers_ids2[cur_hungry_request.id])
                 if i == 0:
                     self.hungry_requests.pop(cur_hungry_request.id, None)
@@ -198,7 +190,7 @@ class GlobalScheduler:
                 else:
                     if cur_hungry_request.id in self.requests_last_steps:
                         self.requests_last_steps[cur_hungry_request.id] = requests_cur_steps[cur_hungry_request.id]     
-        #----------process waiting queue in FCFS while num = 1----------#
+        #----------process waiting queue in FCFS while num = 1----------#'''
         if self.waiting_requests:
             if self.high_affinity:
                 if cur_free_gpus.qsize() < 1:
@@ -243,10 +235,10 @@ class GlobalScheduler:
                 # sort again in case the max row not be the max
                 #if not self.high_affinity:
                 #    cur_free_gpus2.sort(key = lambda x: x[0], reverse = True)
-                if j > 0:
+                '''if j > 0:
                     requests_cur_steps[cur_waiting_request.id] = 0
                     self.requests_last_steps[cur_waiting_request.id] = 0
-                    self.hungry_requests[cur_waiting_request.id] = cur_waiting_request
+                    self.hungry_requests[cur_waiting_request.id] = cur_waiting_request'''
                 if self.high_affinity:
                     cur_waiting_request.workers_ids = copy.deepcopy(self.requests_workers_ids[cur_waiting_request.id])
                 else:
@@ -464,7 +456,8 @@ def task_consumer(engine: Engine, global_scheduler: GlobalScheduler, high_affini
             print("thread exit ", threading.get_native_id())
             break
         print(f"request {task.id} resolution {task.resolution} starts") # add for log
-        #couple with update
+        
+        '''#couple with update
         if high_affinity:
             dit_thread = threading.Thread(target = engine.generate_dit, args = (task.id, task.resolution, task.workers_ids, None))
         else:
@@ -483,8 +476,9 @@ def task_consumer(engine: Engine, global_scheduler: GlobalScheduler, high_affini
             global_scheduler.couple_update(request_id = task.id)
         else:
             #global_scheduler.update_gpu_status_static(request_id = task.id)
-            global_scheduler.couple_update(request_id = task.id)
-        '''if task.resolution == "144p" or static:
+            global_scheduler.couple_update(request_id = task.id)'''
+        
+        if task.resolution == "144p" or static:
             if high_affinity:
                 dit_thread = threading.Thread(target = engine.generate_dit, args = (task.id, task.resolution, task.workers_ids, None))
             else:
@@ -523,7 +517,7 @@ def task_consumer(engine: Engine, global_scheduler: GlobalScheduler, high_affini
             vae_thread.start()
             vae_thread.join()
             #global_scheduler.update_gpu_status(last = False, request_id = task.id) # couple
-            global_scheduler.update_gpu_status(last = True, request_id = task.id)'''
+            global_scheduler.update_gpu_status(last = True, request_id = task.id)
     return
 
 if __name__ == "__main__":
