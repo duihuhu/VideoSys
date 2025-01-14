@@ -4,7 +4,7 @@ import torch
 import torch.distributed as dist
 from colossalai.cluster.process_group_mesh import ProcessGroupMesh
 from torch.distributed import ProcessGroup
-
+import datetime
 from videosys.utils.logging import init_dist_logger, logger
 from videosys.utils.utils import set_seed
 
@@ -104,7 +104,7 @@ def initialize_position(
         except Exception:
             pass
         print("initialize_position method ")
-        dist.init_process_group(backend="nccl", init_method=init_method, world_size=world_size, rank=rank, timeout=2)
+        dist.init_process_group(backend="nccl", init_method=init_method, world_size=world_size, rank=rank, timeout=datetime.timedelta(minutes=2))
         # torch.cuda.set_device(local_rank)
         init_dist_logger()
         torch.backends.cuda.matmul.allow_tf32 = True
