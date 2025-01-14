@@ -713,6 +713,9 @@ class AsyncEngine:
     async def build_worker_comm_data(self, worker_ids):
         await self.video_engine.build_worker_comm_data(worker_ids)
         
+    
+    async def worker_generate_homo(self, worker_ids, request_id, prompt, resolution, aspect_ratio, num_frames) -> None:
+        await self.video_engine.async_generate(worker_ids=worker_ids, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
         
     async def worker_generate(self, worker_ids, request_id, prompt, resolution, aspect_ratio, num_frames) -> None:
         # await self.video_engine.async_generate(worker_ids=worker_ids, prompt=prompt,
