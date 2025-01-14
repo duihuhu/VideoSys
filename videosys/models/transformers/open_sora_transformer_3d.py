@@ -310,7 +310,6 @@ class STDiT3Block(nn.Module):
             gather_pad = get_spatial_pad()
 
         x = rearrange(x, "b (t s) d -> b t s d", t=t, s=s)
-        print(f"before all to all: {x.size()}. sp: {torch.distributed.get_rank(get_sequence_parallel_group())}. global_rank: {torch.distributed.get_rank()}")
         x = all_to_all_with_pad(
             x,
             get_sequence_parallel_group(),
@@ -319,7 +318,6 @@ class STDiT3Block(nn.Module):
             scatter_pad=scatter_pad,
             gather_pad=gather_pad,
         )
-        print(f"after all to all: {x.size()}. sp: {torch.distributed.get_rank(get_sequence_parallel_group())}. global_rank: {torch.distributed.get_rank()}")
         
         new_s, new_t = x.shape[2], x.shape[1]
         x = rearrange(x, "b t s d -> b (t s) d")

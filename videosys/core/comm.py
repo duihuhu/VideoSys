@@ -413,7 +413,10 @@ def all_to_all_with_pad(
         input_.shape[scatter_dim] % dist.get_world_size(process_group) == 0
     ), f"Dimension to scatter ({input_.shape[scatter_dim]}) is not divisible by world size ({dist.get_world_size(process_group)})"
     # print(f"All to all. shape: {input_.size()}, ps: {dist.get_rank(process_group)}")
+    print(f"before all to all: {input_.size()}. sp: {torch.distributed.get_rank(process_group)}. sp size: {torch.distributed.get_world_size(process_group)},  global_rank: {torch.distributed.get_rank()}")
+    
     input_ = _AllToAll.apply(input_, process_group, scatter_dim, gather_dim)
+    print(f"after all to all: {input_.size()}. sp: {torch.distributed.get_rank(process_group)}. sp size: {torch.distributed.get_world_size(process_group)}, global_rank: {torch.distributed.get_rank()}")
 
     if gather_pad > 0:
         input_ = input_.narrow(gather_dim, 0, input_.size(gather_dim) - gather_pad)
