@@ -267,6 +267,7 @@ class OpenSoraPipeline(VideoSysPipeline):
             # if config.rank == 0:
             #     self.trans_manager = trans_ops.TransManager(config.rank, config.local_rank, config.worker_type)
 
+        self.comm_group = {}
     def get_text_embeddings(self, texts):
         text_tokens_and_mask = self.tokenizer(
             texts,
@@ -1201,7 +1202,17 @@ class OpenSoraPipeline(VideoSysPipeline):
         save_video(video, output_path, fps=24)
 
     def build_worker_comm(self, worker_ids):
-        parallel_group = dist.new_group(ranks=worker_ids)
+        worker_ids = worker_ids.sort()
+        # 转换为不可变对象 (tuple)
+        my_tuple = tuple(worker_ids)
+
+        # 获取哈希值
+        hash_value = hash(my_tuple)
+        if hash_value in self.comm_group:
+            parallel_group = self.comm_group[hash_value]
+        else:
+            parallel_group = dist.new_group(ranks=worker_ids)
+            self.comm_group[hash_value] = parallel_group
         videosys.initialize_manager(parallel_group=parallel_group)
     
     def build_worker_comm_comm(self, rank=0, num_gpus=1, distributed_init_method=None):
