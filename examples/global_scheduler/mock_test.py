@@ -219,8 +219,6 @@ class GlobalScheduler:
             if cur_free_gpus2[0][0] < sp_size:
                 return None
         if self.waiting_requests:
-            print("waiting_requests ")
-            time.sleep(5)
             cur_waiting_request = self.waiting_requests[0]
             for _ in range(sp_size):
                 if self.high_affinity:
@@ -246,6 +244,8 @@ class GlobalScheduler:
             else:
                 cur_waiting_request.workers_ids2 = copy.deepcopy(self.requests_workers_ids2[cur_waiting_request.id])
             self.waiting_requests.popleft()
+            print("pop left ")
+            time.sleep(1)
             return cur_waiting_request
         return None
 
