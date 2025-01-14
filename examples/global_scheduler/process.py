@@ -41,10 +41,10 @@ for j, cls in enumerate(["ddit.txt", "static.txt"]):
                 times.append(float(line.strip().split(' ')[-1]) - st)
     if j == 0:
         ddits.append(sum(times) / len(times))
-        #ddits.append(max(times))
+        ddits.append(max(times))
     else:
         statics.append(sum(times) / len(times))
-        #statics.append(max(times))
+        statics.append(max(times))
 print(f"----------DDiT----------")
 for item in ddits:
     print(item)
