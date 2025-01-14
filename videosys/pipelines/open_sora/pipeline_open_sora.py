@@ -1202,7 +1202,7 @@ class OpenSoraPipeline(VideoSysPipeline):
         save_video(video, output_path, fps=24)
 
     def build_worker_comm(self, worker_ids):
-        worker_ids = worker_ids.sort()
+        worker_ids.sort()
         # 转换为不可变对象 (tuple)
         my_tuple = tuple(worker_ids)
 
