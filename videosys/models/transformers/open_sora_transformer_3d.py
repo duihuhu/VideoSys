@@ -572,6 +572,7 @@ class STDiT3(PreTrainedModel):
             x_mask = split_sequence(
                 x_mask, get_sequence_parallel_group(), dim=1, grad_scale="down", pad=get_temporal_pad()
             )
+        print("ccccc ")
 
         x = rearrange(x, "B T S C -> B (T S) C", T=T, S=S)
 
@@ -604,6 +605,7 @@ class STDiT3(PreTrainedModel):
                 timestep,
                 all_timesteps=all_timesteps,
             )
+        print("ddddd ")
 
         if enable_sequence_parallel():
             x = rearrange(x, "B (T S) C -> B T S C", T=T, S=S)
@@ -618,10 +620,12 @@ class STDiT3(PreTrainedModel):
 
         # cast to float32 for better accuracy
         x = x.to(torch.float32)
+        print("eeeee ")
 
         # === Gather Output ===
         if get_cfg_parallel_size() > 1:
             x = gather_sequence(x, get_data_parallel_group(), dim=0)
+        print("fffff ")
 
         return x
 
