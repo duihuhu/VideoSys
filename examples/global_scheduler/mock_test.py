@@ -159,6 +159,7 @@ class GlobalScheduler:
                 if cur_free_gpus2[0][0] < 1:
                     return None
             cur_waiting_request = self.waiting_requests[0]
+            # help to end the first loop
             if cur_waiting_request == "exit":
                 self.waiting_requests.popleft()
                 return cur_waiting_request
@@ -185,15 +186,15 @@ class GlobalScheduler:
                             self.requests_workers_ids[cur_waiting_request.id].append(gpu_id)
                     else:
                         gpu_id_row, gpu_id_column = cur_free_gpus2[0][1].pop(0) # update the max row itself
-                        cur_free_gpus2[0][0] -= 1 # update free gpu num in the max row
+                        #cur_free_gpus2[0][0] -= 1 # update free gpu num in the max row
                         self.gpu_status2[gpu_id_row][gpu_id_column] = 1
                         if cur_waiting_request.id not in self.requests_workers_ids2:
                             self.requests_workers_ids2[cur_waiting_request.id] = [(gpu_id_row, gpu_id_column)]
                         else:
                             self.requests_workers_ids2[cur_waiting_request.id].append((gpu_id_row, gpu_id_column))
                 # sort again in case the max row not be the max
-                if not self.high_affinity:
-                    cur_free_gpus2.sort(key = lambda x: x[0], reverse = True)
+                #if not self.high_affinity:
+                #    cur_free_gpus2.sort(key = lambda x: x[0], reverse = True)
                 if j > 0:
                     self.hungry_requests[cur_waiting_request.id] = cur_waiting_request
                     requests_cur_steps[cur_waiting_request.id] = 0
@@ -221,6 +222,11 @@ class GlobalScheduler:
                 return None
         if self.waiting_requests:
             cur_waiting_request = self.waiting_requests[0]
+            # help to end the first loop
+            if cur_waiting_request == "exit":
+                self.waiting_requests.popleft()
+                return cur_waiting_request
+            
             for _ in range(sp_size):
                 if self.high_affinity:
                     gpu_id = cur_free_gpus.get()
@@ -231,15 +237,15 @@ class GlobalScheduler:
                         self.requests_workers_ids[cur_waiting_request.id].append(gpu_id)
                 else:
                     gpu_id_row, gpu_id_column = cur_free_gpus2[0][1].pop(0) # update the max row itself
-                    cur_free_gpus2[0][0] -= 1 # update free gpu num in the max row
+                    #cur_free_gpus2[0][0] -= 1 # update free gpu num in the max row
                     self.gpu_status2[gpu_id_row][gpu_id_column] = 1
                     if cur_waiting_request.id not in self.requests_workers_ids2:
                         self.requests_workers_ids2[cur_waiting_request.id] = [(gpu_id_row, gpu_id_column)]
                     else:
                         self.requests_workers_ids2[cur_waiting_request.id].append((gpu_id_row, gpu_id_column))
-            # sort again in case the max row not be the max
-            if not self.high_affinity:
-                cur_free_gpus2.sort(key = lambda x: x[0], reverse = True)
+            # FCFS -> no need to sort cur_free_gpus2
+            #if not self.high_affinity:
+            #    cur_free_gpus2.sort(key = lambda x: x[0], reverse = True)
             if self.high_affinity:
                 cur_waiting_request.workers_ids = copy.deepcopy(self.requests_workers_ids[cur_waiting_request.id])
             else:
@@ -316,7 +322,8 @@ class Engine:
         with open(self.log_file_path, 'a') as file:
             file.write(f"request {id} ends at {end_time}\n")
 
-def task_consumer(engine: Engine, global_scheduler: GlobalScheduler, high_affinity: Optional[bool] = True) -> None:
+def task_consumer(engine: Engine, global_scheduler: GlobalScheduler, high_affinity: Optional[bool] = True, 
+                  static: Optional[bool] = False) -> None:
     while True:
         # if len(finished_requests) == engine.jobs_num:
         #     break
@@ -325,7 +332,7 @@ def task_consumer(engine: Engine, global_scheduler: GlobalScheduler, high_affini
             print("thread exit ", threading.get_native_id())
             break
         print(f"request {task.id} resolution {task.resolution} starts") # add for log
-        if task.resolution == "144p":
+        if task.resolution == "144p" or static:
             if high_affinity:
                 dit_thread = threading.Thread(target = engine.generate_dit, args = (task.id, task.resolution, task.workers_ids, None))
             else:
@@ -400,11 +407,14 @@ if __name__ == "__main__":
             globalscheduler = GlobalScheduler(instances_num = args.instances_num, jobs_num = args.requests_num, 
                                               high_affinity = args.high_affinity,
                                               gpus_per_instance = args.gpus_per_instance)
-            #reset when iteration 
-            finished_requests = []
-            requests_new_workers_ids = {}
-            requests_new_workers_ids2 = {}
-            requests_cur_steps = {}
+            
+            if j == 1:
+                #reset when iteration 
+                finished_requests = []
+                requests_new_workers_ids = {}
+                requests_new_workers_ids2 = {}
+                requests_cur_steps = {}
+                tasks_queue = Queue()
             
             consumers_num = args.instances_num * (args.gpus_per_instance // args.sp_size)
             for request in add_requests:
@@ -417,7 +427,10 @@ if __name__ == "__main__":
                 
             total_threads: List[threading.Thread] = []
             for _ in range(consumers_num):
-                consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, args.high_affinity))
+                if j == 0:
+                    consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, args.high_affinity, False))
+                else:
+                    consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, args.high_affinity, True))
                 consumer.start()
                 total_threads.append(consumer)
             if j == 0:
@@ -442,10 +455,22 @@ if __name__ == "__main__":
             globalscheduler = GlobalScheduler(instances_num = args.instances_num, jobs_num = args.requests_num, 
                                               high_affinity = args.high_affinity,
                                               gpus_per_instance = args.gpus_per_instance)
+            
+            if j == 1:
+                #reset when iteration 
+                finished_requests = []
+                requests_new_workers_ids = {}
+                requests_new_workers_ids2 = {}
+                requests_cur_steps = {}
+                tasks_queue = Queue()
+            
             consumers_num = args.instances_num * (args.gpus_per_instance // args.sp_size)
             total_threads: List[threading.Thread] = []
             for _ in range(consumers_num):
-                consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, args.high_affinity))
+                if j == 0:
+                    consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, args.high_affinity, False))
+                else:
+                    consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, args.high_affinity, True))
                 consumer.start()
                 total_threads.append(consumer)
             if j == 0:
@@ -462,5 +487,10 @@ if __name__ == "__main__":
                 with open(log_file_path1, 'a') as file:
                     file.write(f"request {i} starts at {start_time}\n")
                 time.sleep(1 / args.arrvial_ratio)
+            
+            #for consumer exit
+            for _ in range(consumers_num):
+                globalscheduler.add_request(request = "exit")
+            
             for thread in total_threads:
                 thread.join()
