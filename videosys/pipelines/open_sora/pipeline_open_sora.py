@@ -1222,8 +1222,16 @@ class OpenSoraPipeline(VideoSysPipeline):
         else:
             videosys.recv(self.z)
     
-    def destory_worker_comm(self, alloc_rank=0, num_gpus=1, distributed_init_method=None):
-        videosys.destroy()
+    def destory_worker_comm(self, worker_ids):
+        worker_ids.sort()
+        my_tuple = tuple(worker_ids)
+
+        # 获取哈希值
+        hash_value = hash(my_tuple)
+        if hash_value in self.comm_group:
+            parallel_group = self.comm_group[hash_value]
+            del self.comm_group[hash_value]
+            parallel_group = None
 
 
 def load_prompts(prompt_path, start_idx=None, end_idx=None):

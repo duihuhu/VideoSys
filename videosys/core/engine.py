@@ -239,7 +239,7 @@ class VideoSysEngine:
 
     async def destory_worker_comm(self, worker_ids):
         for worker_id in worker_ids:
-            self.workers[worker_id].execute_method("destory_worker_comm")
+            self.workers[worker_id].execute_method("destory_worker_comm", worker_ids)
 
     async def async_generate(self, worker_ids, *args, **kwargs):
         video = await self._run_workers_aync("generate", worker_ids, *args, **kwargs)

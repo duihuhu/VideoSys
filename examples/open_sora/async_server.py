@@ -188,7 +188,7 @@ async def async_generate_dit(request: Request) -> Response:
         #await engine.worker_generate(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
         #print(request_id, "vae end")
         
-    # await engine.destory_worker_comm(worker_ids)
+    await engine.destory_worker_comm(worker_ids)
     print(request_id, " dit end")
 
 
