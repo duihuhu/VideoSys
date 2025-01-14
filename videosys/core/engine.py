@@ -78,6 +78,7 @@ class VideoSysEngine:
             distributed_init_method = get_distributed_init_method("127.0.0.1", get_open_port())
             self.driver_worker = ProcessWorkerWrapper(
                         driver_result_handler,
+                        0,
                         partial(
                             self._create_pipeline,
                             pipeline_cls=pipeline_cls,
@@ -86,9 +87,10 @@ class VideoSysEngine:
                             distributed_init_method=distributed_init_method,
                         ),
                     )
-            self.dirver_worker_monitor = WorkerMonitor(self.driver_worker, driver_result_handler)
+            self.dirver_worker_monitor = WorkerMonitor([self.driver_worker], driver_result_handler)
             driver_result_handler.start()
             self.dirver_worker_monitor.start()
+            self.workers.append(self.driver_worker)
         else:
             result_handler = ResultHandler()
             self.workers = [

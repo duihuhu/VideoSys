@@ -641,7 +641,7 @@ class OpenSoraPipeline(VideoSysPipeline):
                 mask=masks,
             )
             torch.cuda.synchronize() 
-            print("type samples ", type(samples), samples.shape, samples.element_size() * samples.nelement(), samples.device)
+            # print("type samples ", type(samples), samples.shape, samples.element_size() * samples.nelement(), samples.device)
             t2 = time.time()
             samples = self.vae.decode(samples.to(self._dtype), num_frames=num_frames)
             torch.cuda.synchronize() 
