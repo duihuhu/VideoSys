@@ -78,14 +78,14 @@ class GlobalScheduler:
                 requests_cur_steps.pop(request_id, None)
                 self.requests_last_steps.pop(request_id, None)
     
-    def get_free_gpus_topology(self) -> List[Tuple[int, List[Tuple[int, int]]]]:
+    def get_free_gpus_topology(self) -> List[List[Tuple[int, int]]]:
         output = []
         for i in range(len(self.gpu_status2)):
             temp = []
             for j in range(len(self.gpu_status2[i])):
                 if self.gpu_status2[i][j] == 0:
                     temp.append((i, j))
-            output.append((len(temp), temp))
+            output.append(temp)
         return output
 
     def affinity_aware_hungry_first_priority_schedule(self) -> Request:
@@ -98,8 +98,8 @@ class GlobalScheduler:
                 return None
         else:
             cur_free_gpus2 = self.get_free_gpus_topology()
-            cur_free_gpus2.sort(key = lambda x: x[0], reverse = True)
-            if cur_free_gpus2[0][0] < 1:
+            cur_free_gpus2.sort(key = lambda x: len(x), reverse = True)
+            if len(cur_free_gpus2[0]) < 1:
                 return None
         #----------process hungry queue in starvation descending order while num = N----------#
         temp_hungry_requests = list(self.hungry_requests.values())
@@ -119,7 +119,7 @@ class GlobalScheduler:
                 if cur_free_gpus.qsize() < 1:
                     break
             else:
-                if cur_free_gpus2[0][0] < 1:
+                if len(cur_free_gpus2[0]) < 1:
                     break
             cur_wanted_gpus_num = []
             cur_opt_gpus_num = self.opt_gpus_num[cur_hungry_request.resolution]
@@ -136,7 +136,7 @@ class GlobalScheduler:
                     if cur_free_gpus.qsize() < wanted_gpus_num:
                         continue
                 else:
-                    if cur_free_gpus2[0][0] < wanted_gpus_num:
+                    if len(cur_free_gpus2[0]) < wanted_gpus_num:
                         continue
                 for _ in range(wanted_gpus_num):
                     if self.high_affinity:
@@ -144,13 +144,13 @@ class GlobalScheduler:
                         self.gpu_status[gpu_id] = 1
                         self.requests_workers_ids[cur_hungry_request.id].append(gpu_id)
                     else:
-                        gpu_id_row, gpu_id_column = cur_free_gpus2[0][1].pop(0) # update the max row itself
-                        cur_free_gpus2[0][0] -= 1 # update free gpu num in the max row
+                        gpu_id_row, gpu_id_column = cur_free_gpus2[0].pop(0) # update the max row itself
+                        #cur_free_gpus2[0][0] -= 1 # update free gpu num in the max row
                         self.gpu_status2[gpu_id_row][gpu_id_column] = 1
                         self.requests_workers_ids2[cur_hungry_request.id].append((gpu_id_row, gpu_id_column))
                 # sort again in case the max row not be the max
                 if not self.high_affinity:
-                    cur_free_gpus2.sort(key = lambda x: x[0], reverse = True)
+                    cur_free_gpus2.sort(key = lambda x: len(x), reverse = True)
                 # notice the real workers
                 if self.high_affinity:
                     requests_new_workers_ids[cur_hungry_request.id] = copy.deepcopy(self.requests_workers_ids[cur_hungry_request.id])
@@ -168,7 +168,7 @@ class GlobalScheduler:
                 if cur_free_gpus.qsize() < 1:
                     return None
             else:
-                if cur_free_gpus2[0][0] < 1:
+                if len(cur_free_gpus2[0]) < 1:
                     return None
             cur_waiting_request = self.waiting_requests[0]
             # help to end the first loop
@@ -186,7 +186,7 @@ class GlobalScheduler:
                     if cur_free_gpus.qsize() < demand_gpus_num:
                         continue
                 else:
-                    if cur_free_gpus2[0][0] < demand_gpus_num:
+                    if len(cur_free_gpus2[0]) < demand_gpus_num:
                         continue
                 for _ in range(demand_gpus_num):
                     if self.high_affinity:
@@ -197,7 +197,7 @@ class GlobalScheduler:
                         else:
                             self.requests_workers_ids[cur_waiting_request.id].append(gpu_id)
                     else:
-                        gpu_id_row, gpu_id_column = cur_free_gpus2[0][1].pop(0) # update the max row itself
+                        gpu_id_row, gpu_id_column = cur_free_gpus2[0].pop(0) # update the max row itself
                         #cur_free_gpus2[0][0] -= 1 # update free gpu num in the max row
                         self.gpu_status2[gpu_id_row][gpu_id_column] = 1
                         if cur_waiting_request.id not in self.requests_workers_ids2:
@@ -229,8 +229,8 @@ class GlobalScheduler:
                 return None
         else:
             cur_free_gpus2 = self.get_free_gpus_topology()
-            cur_free_gpus2.sort(key = lambda x: x[0], reverse = True)
-            if cur_free_gpus2[0][0] < sp_size:
+            cur_free_gpus2.sort(key = lambda x: len(x), reverse = True)
+            if len(cur_free_gpus2[0]) < sp_size:
                 return None
         if self.waiting_requests:
             cur_waiting_request = self.waiting_requests[0]
@@ -248,7 +248,7 @@ class GlobalScheduler:
                     else:
                         self.requests_workers_ids[cur_waiting_request.id].append(gpu_id)
                 else:
-                    gpu_id_row, gpu_id_column = cur_free_gpus2[0][1].pop(0) # update the max row itself
+                    gpu_id_row, gpu_id_column = cur_free_gpus2[0].pop(0) # update the max row itself
                     #cur_free_gpus2[0][0] -= 1 # update free gpu num in the max row
                     self.gpu_status2[gpu_id_row][gpu_id_column] = 1
                     if cur_waiting_request.id not in self.requests_workers_ids2:
