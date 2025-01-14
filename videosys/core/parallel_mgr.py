@@ -105,6 +105,7 @@ def initialize_position(
             pass
         print("initialize_position method ")
         dist.init_process_group(backend="nccl", init_method=init_method, world_size=world_size, rank=rank, timeout=datetime.timedelta(minutes=2))
+        dist.barrier()
         # torch.cuda.set_device(local_rank)
         init_dist_logger()
         torch.backends.cuda.matmul.allow_tf32 = True
