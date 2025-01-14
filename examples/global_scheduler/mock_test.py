@@ -385,9 +385,9 @@ if __name__ == "__main__":
     parser.add_argument("--middle", type = int, default = 1)
     parser.add_argument("--high", type = int, default = 1)
     parser.add_argument("--requests-num", type = int, default = 128)
-    parser.add_argument("--batch", type = bool, default = True)
+    parser.add_argument("--batch", type = int, default = 1)
     parser.add_argument("--arrival-ratio", type = float, default = 4.0)
-    parser.add_argument("--high-affinity", type = bool, default = True)
+    parser.add_argument("--high-affinity", type = int, default = 1)
     #parser.add_argument("--static", type = bool, default = False)
     parser.add_argument("--sp-size", type = int, default = 4)
     args = parser.parse_args()
@@ -398,6 +398,12 @@ if __name__ == "__main__":
 
     resolutions = ["144p", "240p", "360p"]
     ratios: List[int] = [args.low, args.middle, args.high]
+
+    if args.high_affinity:
+        high_affinity = True
+    else:
+        high_affinity = False
+
     if args.batch:
         total_ratios = sum(ratios)
         total_nums = [round(args.requests_num * (ratio / total_ratios)) for ratio in ratios] 
@@ -414,9 +420,9 @@ if __name__ == "__main__":
                 log_file_path = args.log_file_path + "ddit.txt"
             else:
                 log_file_path = args.log_file_path + "static.txt"
-            engine = Engine(log_file_path = log_file_path, jobs_num = args.requests_num, high_affinity = args.high_affinity)
+            engine = Engine(log_file_path = log_file_path, jobs_num = args.requests_num, high_affinity = high_affinity)
             globalscheduler = GlobalScheduler(instances_num = args.instances_num, jobs_num = args.requests_num, 
-                                              high_affinity = args.high_affinity,
+                                              high_affinity = high_affinity,
                                               gpus_per_instance = args.gpus_per_instance)
             
             if j == 1:
@@ -439,9 +445,9 @@ if __name__ == "__main__":
             total_threads: List[threading.Thread] = []
             for _ in range(consumers_num):
                 if j == 0:
-                    consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, args.high_affinity, False))
+                    consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, high_affinity, False))
                 else:
-                    consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, args.high_affinity, True))
+                    consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, high_affinity, True))
                 consumer.start()
                 total_threads.append(consumer)
             if j == 0:
@@ -462,9 +468,9 @@ if __name__ == "__main__":
             else:
                 log_file_path1 = args.log_file_path + "static1.txt"
                 log_file_path2 = args.log_file_path + "static2.txt"
-            engine = Engine(log_file_path = log_file_path2, jobs_num = args.requests_num, high_affinity = args.high_affinity)
+            engine = Engine(log_file_path = log_file_path2, jobs_num = args.requests_num, high_affinity = high_affinity)
             globalscheduler = GlobalScheduler(instances_num = args.instances_num, jobs_num = args.requests_num, 
-                                              high_affinity = args.high_affinity,
+                                              high_affinity = high_affinity,
                                               gpus_per_instance = args.gpus_per_instance)
             
             if j == 1:
@@ -479,9 +485,9 @@ if __name__ == "__main__":
             total_threads: List[threading.Thread] = []
             for _ in range(consumers_num):
                 if j == 0:
-                    consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, args.high_affinity, False))
+                    consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, high_affinity, False))
                 else:
-                    consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, args.high_affinity, True))
+                    consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, high_affinity, True))
                 consumer.start()
                 total_threads.append(consumer)
             if j == 0:
