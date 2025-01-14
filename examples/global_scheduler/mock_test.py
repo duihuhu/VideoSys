@@ -46,6 +46,14 @@ class GlobalScheduler:
     def add_request(self, request: Request) -> None:
         self.waiting_requests.append(request)
     
+    def update_gpu_status_static(self, request_id: int) -> None:
+        if self.high_affinity:
+            for gpu_id in self.requests_workers_ids[request_id]:
+                self.gpu_status[gpu_id] = 0
+        else:
+            for x, y in self.requests_workers_ids2[request_id]:
+                self.gpu_status2[x][y] = 0
+    
     def update_gpu_status(self, last: bool, request_id: int) -> None:
         if self.high_affinity:
             if last:
@@ -345,7 +353,10 @@ def task_consumer(engine: Engine, global_scheduler: GlobalScheduler, high_affini
                 vae_thread = threading.Thread(target = engine.generate_vae, args = (task.id, task.resolution, None, task.workers_ids2))
             vae_thread.start()
             vae_thread.join()
-            global_scheduler.update_gpu_status(last = True, request_id = task.id)
+            if not static:
+                global_scheduler.update_gpu_status(last = True, request_id = task.id)
+            else:
+                global_scheduler.update_gpu_status_static(request_id = task.id)
         else:
             if high_affinity:
                 dit_thread = threading.Thread(target = engine.generate_dit, args = (task.id, task.resolution, task.workers_ids, None))
