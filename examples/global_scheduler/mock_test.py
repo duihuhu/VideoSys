@@ -387,8 +387,8 @@ if __name__ == "__main__":
     parser.add_argument("--requests-num", type = int, default = 128)
     parser.add_argument("--batch", type = bool, default = True)
     parser.add_argument("--arrival-ratio", type = float, default = 4.0)
-    parser.add_argument("--high-affinity", action = 'store_true', default = True)
-    parser.add_argument("--static", action = 'store_true', default = False)
+    parser.add_argument("--high-affinity", type = bool, default = True)
+    #parser.add_argument("--static", type = bool, default = False)
     parser.add_argument("--sp-size", type = int, default = 4)
     args = parser.parse_args()
 
