@@ -217,9 +217,10 @@ class GlobalScheduler:
             cur_free_gpus2 = self.get_free_gpus_topology()
             cur_free_gpus2.sort(key = lambda x: x[0], reverse = True)
             if cur_free_gpus2[0][0] < sp_size:
-                print("b")
                 return None
         if self.waiting_requests:
+            print("waiting_requests ")
+            time.sleep(5)
             cur_waiting_request = self.waiting_requests[0]
             for _ in range(sp_size):
                 if self.high_affinity:
@@ -420,7 +421,6 @@ if __name__ == "__main__":
             if j == 0:
                 gs_thread = threading.Thread(target = gs, args = (globalscheduler, None))
             else:
-                print("globalscheduler ", globalscheduler.gpu_status)
                 gs_thread = threading.Thread(target = gs, args = (globalscheduler, args.sp_size))
             with open(log_file_path, 'a') as file:
                 file.write(f"start at {time.time()}\n")
