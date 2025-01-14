@@ -410,12 +410,13 @@ if __name__ == "__main__":
         for _ in range(num):
             add_resolutions.append(resolutions[i])
     random.shuffle(add_resolutions)
+    jobs_num = len(add_resolutions)
 
     if args.high_affinity:
         high_affinity = True
     else:
         high_affinity = False
-
+    
     if args.batch:
         add_requests: List[Request] = []
         for i, resolution in enumerate(add_resolutions):
@@ -425,8 +426,8 @@ if __name__ == "__main__":
                 log_file_path = args.log_file_path + "ddit.txt"
             else:
                 log_file_path = args.log_file_path + "static.txt"
-            engine = Engine(log_file_path = log_file_path, jobs_num = args.requests_num, high_affinity = high_affinity)
-            globalscheduler = GlobalScheduler(instances_num = args.instances_num, jobs_num = args.requests_num, 
+            engine = Engine(log_file_path = log_file_path, jobs_num = jobs_num, high_affinity = high_affinity)
+            globalscheduler = GlobalScheduler(instances_num = args.instances_num, jobs_num = jobs_num, 
                                               high_affinity = high_affinity,
                                               gpus_per_instance = args.gpus_per_instance)
             
@@ -473,8 +474,8 @@ if __name__ == "__main__":
             else:
                 log_file_path1 = args.log_file_path + "static1.txt"
                 log_file_path2 = args.log_file_path + "static2.txt"
-            engine = Engine(log_file_path = log_file_path2, jobs_num = args.requests_num, high_affinity = high_affinity)
-            globalscheduler = GlobalScheduler(instances_num = args.instances_num, jobs_num = args.requests_num, 
+            engine = Engine(log_file_path = log_file_path2, jobs_num = jobs_num, high_affinity = high_affinity)
+            globalscheduler = GlobalScheduler(instances_num = args.instances_num, jobs_num = jobs_num, 
                                               high_affinity = high_affinity,
                                               gpus_per_instance = args.gpus_per_instance)
             
