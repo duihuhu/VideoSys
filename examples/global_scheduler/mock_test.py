@@ -180,8 +180,14 @@ class GlobalScheduler:
                     cur_free_gpus2.sort(key = lambda x: len(x), reverse = True)
                 # notice the real workers
                 if self.high_affinity:
+                    gap = len(self.requests_workers_ids[cur_hungry_request.id]) - self.opt_gpus_num[cur_hungry_request.resolution]
+                    for _ in range(gap):
+                        self.requests_workers_ids.pop()
                     requests_new_workers_ids[cur_hungry_request.id] = copy.deepcopy(self.requests_workers_ids[cur_hungry_request.id])
                 else:
+                    gap = len(self.requests_workers_ids2[cur_hungry_request.id]) - self.opt_gpus_num[cur_hungry_request.resolution]
+                    for _ in range(gap):
+                        self.requests_workers_ids2.pop()
                     requests_new_workers_ids2[cur_hungry_request.id] = copy.deepcopy(self.requests_workers_ids2[cur_hungry_request.id])
                 if i == 0:
                     self.hungry_requests.pop(cur_hungry_request.id, None)
