@@ -218,6 +218,7 @@ class GlobalScheduler:
             cur_free_gpus2.sort(key = lambda x: x[0], reverse = True)
             if cur_free_gpus2[0][0] < sp_size:
                 return None
+        print("static_sp_fcfs_scheduler ")
         if self.waiting_requests:
             cur_waiting_request = self.waiting_requests[0]
             for _ in range(sp_size):
@@ -253,7 +254,7 @@ def gs(global_scheduler: GlobalScheduler, sp_size: Optional[int] = None) -> None
             break
         if sp_size:
             request = global_scheduler.static_sp_fcfs_scheduler(sp_size=sp_size)
-            print("gs ", request)
+            print("gs request ", request)
         else:
             request = global_scheduler.affinity_aware_hungry_first_priority_schedule()
         if request:
