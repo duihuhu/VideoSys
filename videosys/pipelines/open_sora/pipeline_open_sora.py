@@ -660,7 +660,7 @@ class OpenSoraPipeline(VideoSysPipeline):
             samples = self.vae.decode(samples.to(self._dtype), num_frames=num_frames)
             torch.cuda.synchronize() 
             t3 = time.time()
-            dt3 = datetime.fromtimestamp(int(t1))  # 转换为秒的 datetime
+            dt3 = datetime.fromtimestamp(int(t3))  # 转换为秒的 datetime
             ms3 = int((t3 - int(t3)) * 1000)  # 提取毫秒部分
             # 格式化输出
             formatted_time3 = dt3.strftime("%Y-%m-%d %H:%M:%S") + f".{ms3:03d}"
