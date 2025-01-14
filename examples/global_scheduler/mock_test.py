@@ -395,11 +395,13 @@ if __name__ == "__main__":
             globalscheduler = GlobalScheduler(instances_num = args.instances_num, jobs_num = args.requests_num, 
                                               high_affinity = args.high_affinity,
                                               gpus_per_instance = args.gpus_per_instance)
+                    
             consumers_num = args.instances_num * (args.gpus_per_instance // args.sp_size)
             for request in add_requests:
                 globalscheduler.add_request(request = request)
             
             #for consumer exit
+            print("consumers_num " , consumers_num)
             for _ in range(consumers_num):
                 globalscheduler.add_request(request = "exit")
                 
