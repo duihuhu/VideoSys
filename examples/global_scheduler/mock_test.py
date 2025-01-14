@@ -41,6 +41,7 @@ class GlobalScheduler:
         self.jobs_num = jobs_num
         self.high_affinity = high_affinity
         self.gpu_status2 = [[0 for _ in range(gpus_per_instance)] for _ in range(instances_num)]
+
     
     def add_request(self, request: Request) -> None:
         self.waiting_requests.append(request)
@@ -395,7 +396,12 @@ if __name__ == "__main__":
             globalscheduler = GlobalScheduler(instances_num = args.instances_num, jobs_num = args.requests_num, 
                                               high_affinity = args.high_affinity,
                                               gpus_per_instance = args.gpus_per_instance)
-                    
+            #reset when iteration 
+            finished_requests = []
+            requests_new_workers_ids = {}
+            requests_new_workers_ids2 = {}
+            requests_cur_steps = {}
+            
             consumers_num = args.instances_num * (args.gpus_per_instance // args.sp_size)
             for request in add_requests:
                 globalscheduler.add_request(request = request)
