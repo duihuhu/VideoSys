@@ -235,9 +235,9 @@ class GlobalScheduler:
                 #if not self.high_affinity:
                 #    cur_free_gpus2.sort(key = lambda x: x[0], reverse = True)
                 if j > 0:
-                    self.hungry_requests[cur_waiting_request.id] = cur_waiting_request
                     requests_cur_steps[cur_waiting_request.id] = 0
                     self.requests_last_steps[cur_waiting_request.id] = 0
+                    self.hungry_requests[cur_waiting_request.id] = cur_waiting_request
                 if self.high_affinity:
                     cur_waiting_request.workers_ids = copy.deepcopy(self.requests_workers_ids[cur_waiting_request.id])
                 else:
