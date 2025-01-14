@@ -160,6 +160,7 @@ class GlobalScheduler:
                     return None
             cur_waiting_request = self.waiting_requests[0]
             if cur_waiting_request == "exit":
+                self.waiting_requests.popleft()
                 return cur_waiting_request
             
             cur_demand_gpus_num = []
