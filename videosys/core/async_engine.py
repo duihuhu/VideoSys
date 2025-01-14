@@ -259,8 +259,8 @@ class AsyncSched:
                 }
                 response = self.post_http_request(pload=pload, api_url=api_url)
                 #self.video_sched.scheduler.update_and_schedule(last = True, group_id = task.request_id)
-                self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id)
                 self.video_sched.scheduler.update_gpu_status(last = False, group_id = task.request_id)
+                self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id)
             else:
                 api_url = "http://127.0.0.1:8000/async_generate_dit"
                 pload = {
