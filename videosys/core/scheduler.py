@@ -112,11 +112,12 @@ class VideoScheduler:
                 
                 update_requests.append(cur_hungry_request.request_id)
                 if i == 0:
-                    self.hungry_requests.pop(cur_hungry_request.request_id, None)
                     self.requests_cur_steps.pop(cur_hungry_request.request_id, None)
                     self.requests_last_steps.pop(cur_hungry_request.request_id, None)
+                    self.hungry_requests.pop(cur_hungry_request.request_id, None)
                 else:
-                    self.requests_last_steps[cur_hungry_request.request_id] = self.requests_cur_steps[cur_hungry_request.request_id]
+                    if cur_hungry_request.request_id in self.requests_last_steps:
+                        self.requests_last_steps[cur_hungry_request.request_id] = self.requests_cur_steps[cur_hungry_request.request_id]
             
         for request_id in update_requests:
             print(f"request {request_id} new workers ids {self.requests_workers_ids[request_id]}")
@@ -148,9 +149,9 @@ class VideoScheduler:
                         self.requests_workers_ids[cur_waiting_request.request_id].append(gpu_id)
                 
                 if j > 0:
-                    self.hungry_requests[cur_waiting_request.request_id] = cur_waiting_request
                     self.requests_cur_steps[cur_waiting_request.request_id] = 0
                     self.requests_last_steps[cur_waiting_request.request_id] = 0
+                    self.hungry_requests[cur_waiting_request.request_id] = cur_waiting_request
                 
                 cur_waiting_request.worker_ids = copy.deepcopy(self.requests_workers_ids[cur_waiting_request.request_id])
                 self.waiting.popleft()
