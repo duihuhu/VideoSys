@@ -247,7 +247,7 @@ class AsyncSched:
                 break  # 如果任务是 None，表示结束
             print("task.worker_ids for dit", task.worker_ids, task.request_id, task.resolution)
             
-            if task.resolution == "144p" or task.resolution == "240p" or task.resolution == "360p":
+            if task.resolution == "720p":
                 api_url = "http://127.0.0.1:8000/async_generate"
                 pload = {
                     "request_id": task.request_id,
@@ -259,7 +259,6 @@ class AsyncSched:
                 }
                 response = self.post_http_request(pload=pload, api_url=api_url)
                 #self.video_sched.scheduler.update_and_schedule(last = True, group_id = task.request_id)
-                self.video_sched.scheduler.update_gpu_status(last = False, group_id = task.request_id)
                 self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id)
             else:
                 api_url = "http://127.0.0.1:8000/async_generate_dit"
@@ -274,12 +273,12 @@ class AsyncSched:
                 response = self.post_http_request(pload=pload, api_url=api_url)
                 #self.video_sched.scheduler.update_and_schedule(last = False, group_id = task.request_id)
                 self.video_sched.scheduler.update_gpu_status(last = False, group_id = task.request_id)
-                api_url = "http://127.0.0.1:8000/async_generate_vae"
-                pload = {
-                    "request_id": task.request_id,
-                    "worker_ids": [task.worker_ids[0]],
-                }
-                response = self.post_http_request(pload=pload, api_url=api_url)
+                # api_url = "http://127.0.0.1:8000/async_generate_vae"
+                # pload = {
+                #     "request_id": task.request_id,
+                #     "worker_ids": [task.worker_ids[0]],
+                # }
+                # response = self.post_http_request(pload=pload, api_url=api_url)
                 #self.video_sched.scheduler.update_and_schedule(last = True, group_id = task.request_id)
                 self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id)
 
