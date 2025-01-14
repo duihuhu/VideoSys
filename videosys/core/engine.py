@@ -227,9 +227,9 @@ class VideoSysEngine:
     def _driver_execute_model(self, *args, **kwargs):
         return self.driver_worker.generate(*args, **kwargs)
 
-    async def build_worker_comm(self, worker_ids, parallel_group):
-        for worker_id in zip(worker_ids, range(len(worker_ids))):
-            self.workers[worker_id].execute_method("build_worker_comm", parallel_group)
+    async def build_worker_comm(self, worker_ids):
+        for worker_id in worker_ids:
+            self.workers[worker_id].execute_method("build_worker_comm", worker_ids)
 
     async def build_worker_comm_data(self, worker_ids):
         distributed_init_method = get_distributed_init_method("127.0.0.1", get_open_port())

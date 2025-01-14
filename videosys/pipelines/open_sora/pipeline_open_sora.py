@@ -21,6 +21,8 @@ from .data_process import get_image_size, get_num_frames, prepare_multi_resoluti
 # from .video_ops import trans_ops
 import time
 import videosys
+import torch.distributed as dist
+
 os.environ["TOKENIZERS_PARALLELISM"] = "true"
 
 
@@ -1198,7 +1200,8 @@ class OpenSoraPipeline(VideoSysPipeline):
     def save_video(self, video, output_path):
         save_video(video, output_path, fps=24)
 
-    def build_worker_comm(self, parallel_group):
+    def build_worker_comm(self, worker_ids):
+        parallel_group = dist.new_group(ranks=worker_ids)
         videosys.initialize_manager(parallel_group=parallel_group)
     
     def build_worker_comm_comm(self, rank=0, num_gpus=1, distributed_init_method=None):
