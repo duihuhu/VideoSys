@@ -6,7 +6,7 @@ import threading
 import argparse
 import random
 import sys
-    
+
 class Request:
     def __init__(self, id: int, resolution: str):
         self.id = id
@@ -18,7 +18,11 @@ finished_requests: List[int] = []
 requests_new_workers_ids: Dict[int, List[int]] = {}
 requests_new_workers_ids2: Dict[int, List[Tuple[int, int]]] = {}
 requests_cur_steps: Dict[int, int] = {}
-tasks_queue: Queue[Request] = Queue()
+
+if sys.version_info >= (3, 9):
+    tasks_queue: Queue[Request] = Queue()
+else:
+    tasks_queue: Queue = Queue()
 
 class GlobalScheduler:
     def __init__(self, instances_num: int, jobs_num: int, high_affinity: bool = True, gpus_per_instance: int = 8):
@@ -291,7 +295,7 @@ class Engine:
     
     def generate_vae(self, id: int, resolution: str,
                      workers_ids: Optional[List[int]], 
-                     workers_ids2: Optional[List[int, int]]) -> None:
+                     workers_ids2: Optional[List[Tuple[int, int]]]) -> None:
         if self.high_affinity:  
             cur_sleep_time = self.vae_times[resolution][len(workers_ids)]
         else:
@@ -344,7 +348,7 @@ def task_consumer(engine: Engine, global_scheduler: GlobalScheduler, high_affini
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--log-file-path", type = str, default = "/home/jovyan/hhy/VideoSys/examples/global_scheduler/logs_temp.txt")
+    parser.add_argument("--log-file-path", type = str, default = "/home/jovyan/hcch/hucc/VideoSys/examples/global_scheduler/logs_temp")
     parser.add_argument("--instances-num", type = int, default = 8)
     parser.add_argument("--gpus-per-instance", type = int, default = 8)
     parser.add_argument("--low", type = int, default = 1)
