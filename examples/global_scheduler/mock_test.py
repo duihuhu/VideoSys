@@ -208,12 +208,10 @@ class GlobalScheduler:
     def static_sp_fcfs_scheduler(self, sp_size: int) -> Request:
         if self.high_affinity:
             cur_free_gpus: Queue[int] = Queue()
-            print("self.gpu_status ", self.gpu_status)
             for gpu_id, status in enumerate(self.gpu_status):
                 if status == 0:
                     cur_free_gpus.put(gpu_id)
             if cur_free_gpus.qsize() < sp_size:
-                print("a")
                 return None
         else:
             cur_free_gpus2 = self.get_free_gpus_topology()
@@ -423,6 +421,7 @@ if __name__ == "__main__":
             if j == 0:
                 gs_thread = threading.Thread(target = gs, args = (globalscheduler, None))
             else:
+                print("globalscheduler ", globalscheduler.gpu_status)
                 gs_thread = threading.Thread(target = gs, args = (globalscheduler, args.sp_size))
             with open(log_file_path, 'a') as file:
                 file.write(f"start at {time.time()}\n")
