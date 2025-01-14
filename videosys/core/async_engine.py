@@ -247,7 +247,7 @@ class AsyncSched:
                 break  # 如果任务是 None，表示结束
             print("task.worker_ids for dit", task.worker_ids, task.request_id, task.resolution)
             
-            if task.resolution == "144p" and task.resolution == "240p" and task.resolution == "360p":
+            if task.resolution == "144p" or task.resolution == "240p" or task.resolution == "360p":
                 api_url = "http://127.0.0.1:8000/async_generate"
                 pload = {
                     "request_id": task.request_id,
