@@ -298,7 +298,7 @@ class Engine:
                      workers_ids: Optional[List[int]] = None,
                      workers_ids2: Optional[List[Tuple[int, int]]] = None) -> None:
         for step_id in range(self.denoising_steps):
-            if id in requests_new_workers_ids:
+            if id in requests_new_workers_ids or id in requests_new_workers_ids2:
                 if self.high_affinity:
                     gap_workers_ids = list(set(requests_new_workers_ids[id]) - set(workers_ids))
                 else:
