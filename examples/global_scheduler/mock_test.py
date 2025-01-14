@@ -66,6 +66,11 @@ class GlobalScheduler:
             for x, y in self.requests_workers_ids2[request_id]:
                 self.gpu_status2[x][y] = 0
     
+    def couple_helper(self, request_id: int) -> None:
+        self.hungry_requests.pop(request_id, None)
+        requests_cur_steps.pop(request_id, None)
+        self.requests_last_steps.pop(request_id, None)
+    
     def update_gpu_status(self, last: bool, request_id: int) -> None:
         if self.high_affinity:
             if last:
@@ -320,11 +325,11 @@ def gs(global_scheduler: GlobalScheduler, sp_size: Optional[int] = None) -> None
     while True:
         if len(finished_requests) == global_scheduler.jobs_num:
             break
-        '''if sp_size:
+        if sp_size:
             request = global_scheduler.static_sp_fcfs_scheduler(sp_size=sp_size)
         else:
-            request = global_scheduler.affinity_aware_hungry_first_priority_schedule()'''
-        request = global_scheduler.isolated_fcfs_scheduler()
+            request = global_scheduler.affinity_aware_hungry_first_priority_schedule()
+        #request = global_scheduler.isolated_fcfs_scheduler()
         if request:
             tasks_queue.put(request)
             # if sp_size:
@@ -463,15 +468,21 @@ def task_consumer(engine: Engine, global_scheduler: GlobalScheduler, high_affini
                 dit_thread = threading.Thread(target = engine.generate_dit, args = (task.id, task.resolution, None, task.workers_ids2))
             dit_thread.start()
             dit_thread.join()
-            global_scheduler.update_gpu_status(last = False, request_id = task.id)
+            #global_scheduler.update_gpu_status(last = False, request_id = task.id) -> no decouple
+            global_scheduler.couple_helper(request_id = task.id) # delete hungry stuff
             if high_affinity:
-                vae_thread = threading.Thread(target = engine.generate_vae, args = (task.id, task.resolution, [task.workers_ids[0]], 
+                vae_thread = threading.Thread(target = engine.generate_vae, args = (task.id, task.resolution, 
+                                                                                    task.workers_ids, # couple
+                                                                                    #[task.workers_ids[0]], 
                                                                                     None))
             else:
                 vae_thread = threading.Thread(target = engine.generate_vae, args = (task.id, task.resolution, None, 
-                                                                                    [task.workers_ids2[0]]))
+                                                                                    task.workers_ids2,
+                                                                                    #[task.workers_ids2[0]]
+                                                                                    ))
             vae_thread.start()
             vae_thread.join()
+            global_scheduler.update_gpu_status(last = False, request_id = task.id) # couple
             global_scheduler.update_gpu_status(last = True, request_id = task.id)
     return
 
@@ -515,7 +526,7 @@ if __name__ == "__main__":
         add_requests: List[Request] = []
         for i, resolution in enumerate(add_resolutions):
             add_requests.append(Request(id = i, resolution = resolution))
-        for j in range(1, 2):
+        for j in range(1):
             if j == 0:
                 log_file_path = args.log_file_path + "ddit.txt"
             else:
