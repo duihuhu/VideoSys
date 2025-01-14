@@ -402,6 +402,13 @@ if __name__ == "__main__":
 
     resolutions = ["144p", "240p", "360p"]
     ratios: List[int] = [args.low, args.middle, args.high]
+    total_ratios = sum(ratios)
+    total_nums = [round(args.requests_num * (ratio / total_ratios)) for ratio in ratios] 
+    add_resolutions: List[str] = []
+    for i, num in enumerate(total_nums):
+        for _ in range(num):
+            add_resolutions.append(resolutions[i])
+    random.shuffle(add_resolutions)
 
     if args.high_affinity:
         high_affinity = True
@@ -409,13 +416,6 @@ if __name__ == "__main__":
         high_affinity = False
 
     if args.batch:
-        total_ratios = sum(ratios)
-        total_nums = [round(args.requests_num * (ratio / total_ratios)) for ratio in ratios] 
-        add_resolutions: List[str] = []
-        for i, num in enumerate(total_nums):
-            for _ in range(num):
-                add_resolutions.append(resolutions[i])
-        random.shuffle(add_resolutions)
         add_requests: List[Request] = []
         for i, resolution in enumerate(add_resolutions):
             add_requests.append(Request(id = i, resolution = resolution))
@@ -501,8 +501,7 @@ if __name__ == "__main__":
             gs_thread.start()
             total_threads.append(gs_thread)
             for i in range(args.requests_num):
-                resolution = random.choices(resolutions, weights = ratios, k = 1)[0]
-                request = Request(id = i, resolution = resolution)
+                request = Request(id = i, resolution = add_resolutions[i])
                 globalscheduler.add_request(request = request)
                 start_time = time.time()
                 with open(log_file_path1, 'a') as file:
