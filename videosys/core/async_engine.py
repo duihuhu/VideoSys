@@ -247,7 +247,7 @@ class AsyncSched:
                 break  # 如果任务是 None，表示结束
             print("task.worker_ids for dit", task.worker_ids, task.request_id, task.resolution)
             
-            if task.resolution == "144p" or task.resolution == "240p" or task.resolution == "360p":
+            if task.resolution == "144p":
                 api_url = "http://127.0.0.1:8000/async_generate"
                 pload = {
                     "request_id": task.request_id,
@@ -268,7 +268,7 @@ class AsyncSched:
                     "resolution": task.resolution, 
                     "aspect_ratio": task.aspect_ratio,
                     "num_frames": task.num_frames,
-                    "worker_ids": task.worker_ids,
+                    "worker_ids": 0,
                 }
                 response = self.post_http_request(pload=pload, api_url=api_url)
                 #self.video_sched.scheduler.update_and_schedule(last = False, group_id = task.request_id)
@@ -276,7 +276,7 @@ class AsyncSched:
                 api_url = "http://127.0.0.1:8000/async_generate_vae"
                 pload = {
                     "request_id": task.request_id,
-                    "worker_ids": [task.worker_ids[0]],
+                    "worker_ids": 0,
                 }
                 response = self.post_http_request(pload=pload, api_url=api_url)
                 #self.video_sched.scheduler.update_and_schedule(last = True, group_id = task.request_id)
@@ -805,7 +805,9 @@ class AsyncEngine:
             else:
                 pre_worker_ids = []
             if pre_worker_ids:
+                ct1 = time.time()
                 await self.destory_worker_comm(worker_ids=worker_ids)
+                ct2= time.time()
                 await self.video_engine.prepare_generate(
                         worker_ids=pre_worker_ids,
                         prompt=prompt,
@@ -813,9 +815,13 @@ class AsyncEngine:
                         aspect_ratio=aspect_ratio,
                         num_frames=num_frames,
                     )
-                print("new_worker_ids, worker_ids ", self.request_workers[request_id], worker_ids)
+                ct3 = time.time()
+                # print("new_worker_ids, worker_ids ", self.request_workers[request_id], worker_ids)
                 worker_ids = copy.deepcopy(self.request_workers[request_id])
+                ct4 = time.time()
                 await self.build_worker_comm(worker_ids)
+                ct5 = time.time()
+                print("comm time: ", ct5-ct4 + ct2-ct1, " transfer tensor t3-t2 ", ct3-ct2)
 
             '''if request_id in self.request_workers:
                 #     print("no new gpus ", request_id)
