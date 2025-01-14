@@ -395,8 +395,8 @@ if __name__ == "__main__":
     #parser.add_argument("--static", type = bool, default = False)
     parser.add_argument("--sp-size", type = int, default = 4)
     args = parser.parse_args()
-
-    os.makedirs(args.log_file_path, exist_ok=True)
+    print(args) # add for debug
+    #os.makedirs(args.log_file_path, exist_ok = True)
 
     random.seed(42)
 
