@@ -561,6 +561,7 @@ class STDiT3(PreTrainedModel):
         x = rearrange(x, "B (T S) C -> B T S C", T=T, S=S)
         x = x + pos_emb
 
+        print("bbbbb ")
         # shard over the sequence dim if sp is enabled
         if enable_sequence_parallel():
             set_temporal_pad(T)
