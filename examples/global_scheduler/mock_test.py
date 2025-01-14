@@ -71,6 +71,16 @@ class GlobalScheduler:
         requests_cur_steps.pop(request_id, None)
         self.requests_last_steps.pop(request_id, None)
     
+    def couple_update(self, request_id: int) -> None:
+        if self.high_affinity:
+            for id in self.requests_workers_ids[request_id]:
+                self.gpu_status[id] = 0
+            self.requests_workers_ids.pop(request_id, None)
+        else:
+            for x, y in self.requests_workers_ids2[request_id]:
+                self.gpu_status2[x][y] = 0
+            self.requests_workers_ids2.pop(request_id, None)
+    
     def update_gpu_status(self, last: bool, request_id: int) -> None:
         if self.high_affinity:
             if last:
@@ -444,7 +454,27 @@ def task_consumer(engine: Engine, global_scheduler: GlobalScheduler, high_affini
             print("thread exit ", threading.get_native_id())
             break
         print(f"request {task.id} resolution {task.resolution} starts") # add for log
-        if task.resolution == "144p" or static:
+        #couple with update
+        if high_affinity:
+            dit_thread = threading.Thread(target = engine.generate_dit, args = (task.id, task.resolution, task.workers_ids, None))
+        else:
+            dit_thread = threading.Thread(target = engine.generate_dit, args = (task.id, task.resolution, None, task.workers_ids2))
+        dit_thread.start()
+        dit_thread.join()
+        global_scheduler.couple_helper(request_id = task.id)
+        if high_affinity:
+            vae_thread = threading.Thread(target = engine.generate_vae, args = (task.id, task.resolution, task.workers_ids, None))
+        else:
+            vae_thread = threading.Thread(target = engine.generate_vae, args = (task.id, task.resolution, None, task.workers_ids2))
+        vae_thread.start()
+        vae_thread.join()
+        if not static:
+            #global_scheduler.update_gpu_status(last = True, request_id = task.id)
+            global_scheduler.couple_update(request_id = task.id)
+        else:
+            #global_scheduler.update_gpu_status_static(request_id = task.id)
+            global_scheduler.couple_update(request_id = task.id)
+        '''if task.resolution == "144p" or static:
             if high_affinity:
                 dit_thread = threading.Thread(target = engine.generate_dit, args = (task.id, task.resolution, task.workers_ids, None))
             else:
@@ -468,22 +498,22 @@ def task_consumer(engine: Engine, global_scheduler: GlobalScheduler, high_affini
                 dit_thread = threading.Thread(target = engine.generate_dit, args = (task.id, task.resolution, None, task.workers_ids2))
             dit_thread.start()
             dit_thread.join()
-            #global_scheduler.update_gpu_status(last = False, request_id = task.id) -> no decouple
-            global_scheduler.couple_helper(request_id = task.id) # delete hungry stuff
+            global_scheduler.update_gpu_status(last = False, request_id = task.id) #-> no decouple
+            #global_scheduler.couple_helper(request_id = task.id) # delete hungry stuff
             if high_affinity:
                 vae_thread = threading.Thread(target = engine.generate_vae, args = (task.id, task.resolution, 
-                                                                                    task.workers_ids, # couple
-                                                                                    #[task.workers_ids[0]], 
+                                                                                    #task.workers_ids, # couple
+                                                                                    [task.workers_ids[0]], 
                                                                                     None))
             else:
                 vae_thread = threading.Thread(target = engine.generate_vae, args = (task.id, task.resolution, None, 
-                                                                                    task.workers_ids2,
-                                                                                    #[task.workers_ids2[0]]
+                                                                                    #task.workers_ids2,
+                                                                                    [task.workers_ids2[0]]
                                                                                     ))
             vae_thread.start()
             vae_thread.join()
-            global_scheduler.update_gpu_status(last = False, request_id = task.id) # couple
-            global_scheduler.update_gpu_status(last = True, request_id = task.id)
+            #global_scheduler.update_gpu_status(last = False, request_id = task.id) # couple
+            global_scheduler.update_gpu_status(last = True, request_id = task.id)'''
     return
 
 if __name__ == "__main__":
