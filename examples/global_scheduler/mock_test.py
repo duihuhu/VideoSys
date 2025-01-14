@@ -405,7 +405,6 @@ if __name__ == "__main__":
             requests_new_workers_ids = {}
             requests_new_workers_ids2 = {}
             requests_cur_steps = {}
-            tasks_queue = Queue()
             
             consumers_num = args.instances_num * (args.gpus_per_instance // args.sp_size)
             for request in add_requests:
