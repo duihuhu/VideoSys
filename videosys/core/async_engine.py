@@ -247,8 +247,8 @@ class AsyncSched:
                 break  # 如果任务是 None，表示结束
             print("task.worker_ids for dit", task.worker_ids, task.request_id, task.resolution)
             
-            if task.resolution == "144p":
-                api_url = "http://127.0.0.1:8000/async_generate_dit"
+            if task.resolution == "144p" or task.resolution == "240p" or task.resolution == "360p":
+                api_url = "http://127.0.0.1:8000/async_generate"
                 pload = {
                     "request_id": task.request_id,
                     "prompt": task.prompt,
@@ -268,7 +268,7 @@ class AsyncSched:
                     "resolution": task.resolution, 
                     "aspect_ratio": task.aspect_ratio,
                     "num_frames": task.num_frames,
-                    "worker_ids": [0],
+                    "worker_ids": task.worker_ids,
                 }
                 response = self.post_http_request(pload=pload, api_url=api_url)
                 #self.video_sched.scheduler.update_and_schedule(last = False, group_id = task.request_id)
@@ -276,7 +276,7 @@ class AsyncSched:
                 api_url = "http://127.0.0.1:8000/async_generate_vae"
                 pload = {
                     "request_id": task.request_id,
-                    "worker_ids": [0],
+                    "worker_ids": [task.worker_ids[0]],
                 }
                 response = self.post_http_request(pload=pload, api_url=api_url)
                 #self.video_sched.scheduler.update_and_schedule(last = True, group_id = task.request_id)
@@ -715,22 +715,24 @@ class AsyncEngine:
     
     
     async def worker_generate_homo(self, worker_ids, request_id, prompt, resolution, aspect_ratio, num_frames) -> None:
+        t1 = time.time()
         await self.video_engine.async_generate(worker_ids=worker_ids, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
-
+        t2 = time.time()
+        print("worker_generate_homo ", t2-t1)
         
     async def worker_generate(self, worker_ids, request_id, prompt, resolution, aspect_ratio, num_frames) -> None:
         # await self.video_engine.async_generate(worker_ids=worker_ids, prompt=prompt,
         #             resolution=resolution,
         #             aspect_ratio=aspect_ratio,
         #             num_frames=num_frames,)
-        
+        t1 = time.time()
         await self.video_engine.prepare_generate(worker_ids=worker_ids,
             prompt=prompt,
             resolution=resolution,
             aspect_ratio=aspect_ratio,
             num_frames=num_frames,
         )
-        t1 = time.time()
+        
         for index in range(self.video_engine.config.num_sampling_steps):
             #use request_id check sched req to and get worker_ids, if true, need rebuild comm and trans data.
             # new worker need execute prepare_generate
@@ -755,14 +757,14 @@ class AsyncEngine:
                 del self.request_workers[request_id]
                 
             await self.video_engine.index_iteration_generate(worker_ids=worker_ids, i=index)
-            pload = {
-                "request_id": request_id,
-                "cur_step": index + 1,
-            }
-            api_url = "http://127.0.0.1:8001/update_cur_step"
-            self.post_http_request(pload=pload, api_url=api_url)
+            # pload = {
+            #     "request_id": request_id,
+            #     "cur_step": index + 1,
+            # }
+            # api_url = "http://127.0.0.1:8001/update_cur_step"
+            # self.post_http_request(pload=pload, api_url=api_url)
         t2 = time.time()
-        print("t2-t1 " , t2-t1)
+        print("worker_generate_index" , t2-t1)
 
     def update_requests_cur_steps(self) -> None:
         while True:

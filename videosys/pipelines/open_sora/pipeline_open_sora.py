@@ -632,12 +632,12 @@ class OpenSoraPipeline(VideoSysPipeline):
             y_null = self.null_embed(len(batch_prompts_loop))
 
             masks = apply_mask_strategy(z, refs, ms, loop_i, align=align)
-            t1 = time.time()
-            dt1 = datetime.fromtimestamp(int(t1))  # 转换为秒的 datetime
-            ms1 = int((t1 - int(t1)) * 1000)  # 提取毫秒部分
-            # 格式化输出
-            formatted_time1 = dt1.strftime("%Y-%m-%d %H:%M:%S") + f".{ms1:03d}"
-            print("dit start time ", formatted_time1)
+            # t1 = time.time()
+            # dt1 = datetime.fromtimestamp(int(t1))  # 转换为秒的 datetime
+            # ms1 = int((t1 - int(t1)) * 1000)  # 提取毫秒部分
+            # # 格式化输出
+            # formatted_time1 = dt1.strftime("%Y-%m-%d %H:%M:%S") + f".{ms1:03d}"
+            # print("dit start time ", formatted_time1)
             
             samples = self.scheduler.sample(
                 self.transformer,
@@ -648,43 +648,17 @@ class OpenSoraPipeline(VideoSysPipeline):
                 progress=verbose,
                 mask=masks,
             )
-            torch.cuda.synchronize() 
-            # print("type samples ", type(samples), samples.shape, samples.element_size() * samples.nelement(), samples.device)
-            t2 = time.time()
-            dt2 = datetime.fromtimestamp(int(t2))  # 转换为秒的 datetime
-            ms2 = int((t2 - int(t2)) * 1000)  # 提取毫秒部分
-            # 格式化输出
-            formatted_time2 = dt2.strftime("%Y-%m-%d %H:%M:%S") + f".{ms2:03d}"
-            print("vae start time ", formatted_time2)
+            # torch.cuda.synchronize() 
+            # # print("type samples ", type(samples), samples.shape, samples.element_size() * samples.nelement(), samples.device)
+            # t2 = time.time()
+            # dt2 = datetime.fromtimestamp(int(t2))  # 转换为秒的 datetime
+            # ms2 = int((t2 - int(t2)) * 1000)  # 提取毫秒部分
+            # # 格式化输出
+            # formatted_time2 = dt2.strftime("%Y-%m-%d %H:%M:%S") + f".{ms2:03d}"
+            # print("vae start time ", formatted_time2)
             
-            samples = self.vae.decode(samples.to(self._dtype), num_frames=num_frames)
-            torch.cuda.synchronize() 
-            t3 = time.time()
-            dt3 = datetime.fromtimestamp(int(t3))  # 转换为秒的 datetime
-            ms3 = int((t3 - int(t3)) * 1000)  # 提取毫秒部分
-            # 格式化输出
-            formatted_time3 = dt3.strftime("%Y-%m-%d %H:%M:%S") + f".{ms3:03d}"
-            print("vae start time ", formatted_time3)
-            print("transformer, vae ", t2-t1, t3-t2)
-            video_clips.append(samples)
-
-        for i in range(1, loop):
-            video_clips[i] = video_clips[i][:, dframe_to_frame(condition_frame_length) :]
-        video = torch.cat(video_clips, dim=1)
-
-        low, high = -1, 1
-        video.clamp_(min=low, max=high)
-        video.sub_(low).div_(max(high - low, 1e-5))
-        video = video.mul(255).add_(0.5).clamp_(0, 255).permute(0, 2, 3, 4, 1).to("cpu", torch.uint8)
-
-        # Offload all models
-        self.maybe_free_model_hooks()
-
-        if not return_dict:
-            return (video,)
-        
-        print("video info ", type(video), video.shape)
-        return VideoSysPipelineOutput(video=video)
+        #     samples = self.vae
+        return
 
     @torch.no_grad()
     def generate_dit(
