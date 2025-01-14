@@ -75,11 +75,11 @@ class GlobalScheduler:
         if self.high_affinity:
             for id in self.requests_workers_ids[request_id]:
                 self.gpu_status[id] = 0
-            self.requests_workers_ids.pop(request_id, None)
+            #self.requests_workers_ids.pop(request_id, None)
         else:
             for x, y in self.requests_workers_ids2[request_id]:
                 self.gpu_status2[x][y] = 0
-            self.requests_workers_ids2.pop(request_id, None)
+            #self.requests_workers_ids2.pop(request_id, None)
     
     def update_gpu_status(self, last: bool, request_id: int) -> None:
         if self.high_affinity:
@@ -180,16 +180,16 @@ class GlobalScheduler:
                     cur_free_gpus2.sort(key = lambda x: len(x), reverse = True)
                 # notice the real workers
                 if self.high_affinity:
-                    gap = len(self.requests_workers_ids[cur_hungry_request.id]) - self.opt_gpus_num[cur_hungry_request.resolution]
+                    '''gap = len(self.requests_workers_ids[cur_hungry_request.id]) - self.opt_gpus_num[cur_hungry_request.resolution]
                     for _ in range(gap):
                         if self.requests_workers_ids:
-                            self.requests_workers_ids.pop()
+                            self.requests_workers_ids.pop()'''
                     requests_new_workers_ids[cur_hungry_request.id] = copy.deepcopy(self.requests_workers_ids[cur_hungry_request.id])
                 else:
-                    gap = len(self.requests_workers_ids2[cur_hungry_request.id]) - self.opt_gpus_num[cur_hungry_request.resolution]
+                    '''gap = len(self.requests_workers_ids2[cur_hungry_request.id]) - self.opt_gpus_num[cur_hungry_request.resolution]
                     for _ in range(gap):
                         if self.requests_workers_ids2:
-                            self.requests_workers_ids2.pop()
+                            self.requests_workers_ids2.pop()'''
                     requests_new_workers_ids2[cur_hungry_request.id] = copy.deepcopy(self.requests_workers_ids2[cur_hungry_request.id])
                 if i == 0:
                     self.hungry_requests.pop(cur_hungry_request.id, None)
