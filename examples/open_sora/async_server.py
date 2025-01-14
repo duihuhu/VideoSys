@@ -16,6 +16,7 @@ from comm import CommData, CommEngine, CommonHeader, ReqMeta
 from videosys.utils.config import DeployConfig
 import videosys.entrypoints.server_config as cfg
 from videosys.core.outputs import KvPreparedResponse
+import torch.distributed as dist
 
 AIOHTTP_TIMEOUT = aiohttp.ClientTimeout(total=6 * 60 * 60)
 TIMEOUT_KEEP_ALIVE = 5  # seconds.
@@ -163,12 +164,17 @@ async def async_generate(request: Request) -> Response:
     #resolution = "480p"
     #aspect_ratio = "9:16"
     #num_frames = "2s"
-    await engine.build_worker_comm(worker_ids)
+    parallel_group = create_parallel_group(worker_ids)
+    await engine.build_worker_comm(worker_ids, parallel_group)
     # await engine.worker_generate(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
     await engine.worker_generate_homo(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
     
     # await engine.destory_worker_comm(worker_ids)
     print(request_id, "144p's dit&vae end")
+
+def create_parallel_group(worker_ids):
+    parallel_group = dist.new_group(ranks=worker_ids)
+    return parallel_group
 
 @app.post("/async_generate_dit")
 async def async_generate_dit(request: Request) -> Response:
@@ -180,7 +186,8 @@ async def async_generate_dit(request: Request) -> Response:
     num_frames = request_dict.pop("num_frames")
     #print("async_generate", request_id)
     worker_ids = request_dict.pop("worker_ids")
-    await engine.build_worker_comm(worker_ids)
+    parallel_group = create_parallel_group(worker_ids)
+    await engine.build_worker_comm(worker_ids, parallel_group)
     #if len(worker_ids) > 1:
     await engine.worker_generate_dit(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
     #else:
@@ -238,6 +245,7 @@ if __name__ == "__main__":
     config = OpenSoraConfig(num_sampling_steps=30, cfg_scale=7.0, num_gpus=args.num_gpus, worker_type=args.worker_type, enable_separate=args.enable_separate, rank=args.rank, dworld_size = args.dworld_size)
     # engine = VideoSysEngine(config)
     engine = AsyncEngine(config, deploy_config)
+
     engine.create_update_threads(instances_num = args.num_gpus)
     uvicorn.run(app,
                 host=args.host,

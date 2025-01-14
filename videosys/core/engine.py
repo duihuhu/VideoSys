@@ -90,6 +90,7 @@ class VideoSysEngine:
             driver_result_handler.start()
             self.dirver_worker_monitor.start()
         else:
+            distributed_init_method = get_distributed_init_method("127.0.0.1", get_open_port())
             result_handler = ResultHandler()
             self.workers = [
                 ProcessWorkerWrapper(
@@ -100,7 +101,8 @@ class VideoSysEngine:
                         pipeline_cls=pipeline_cls,
                         rank=rank,
                         local_rank=rank,
-                        # distributed_init_method=distributed_init_method,
+                        world_size = world_size,
+                        distributed_init_method=distributed_init_method,
                     ),
                 )
                 for rank in range(0, world_size)
@@ -127,9 +129,9 @@ class VideoSysEngine:
         return int(devices[rank])
 
     # TODO: add more options here for pipeline, or wrap all options into config
-    def _create_pipeline(self, pipeline_cls, rank=0, local_rank=0, distributed_init_method=None):
+    def _create_pipeline(self, pipeline_cls, rank=0, local_rank=0, world_size=0, distributed_init_method=None):
         # videosys.initialize(rank=0, local_rank=local_rank, world_size=1, init_method=distributed_init_method, seed=42)
-        videosys.initialize_device(local_rank=local_rank)
+        videosys.initialize_device(local_rank=local_rank, world_size= world_size, distributed_init_method = distributed_init_method)
         pipeline = pipeline_cls(self.config)
         return pipeline
 
@@ -225,10 +227,9 @@ class VideoSysEngine:
     def _driver_execute_model(self, *args, **kwargs):
         return self.driver_worker.generate(*args, **kwargs)
 
-    async def build_worker_comm(self, worker_ids):
-        distributed_init_method = get_distributed_init_method("127.0.0.1", get_open_port())
-        for worker_id, rank in zip(worker_ids, range(len(worker_ids))):
-            self.workers[worker_id].execute_method("build_worker_comm", rank, len(worker_ids),distributed_init_method=distributed_init_method)
+    async def build_worker_comm(self, worker_ids, parallel_group):
+        for worker_id in zip(worker_ids, range(len(worker_ids))):
+            self.workers[worker_id].execute_method("build_worker_comm", parallel_group)
 
     async def build_worker_comm_data(self, worker_ids):
         distributed_init_method = get_distributed_init_method("127.0.0.1", get_open_port())

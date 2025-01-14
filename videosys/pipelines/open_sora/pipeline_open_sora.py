@@ -1198,8 +1198,8 @@ class OpenSoraPipeline(VideoSysPipeline):
     def save_video(self, video, output_path):
         save_video(video, output_path, fps=24)
 
-    def build_worker_comm(self, rank=0, num_gpus=1, distributed_init_method=None):
-        videosys.initialize_postposition(rank=rank, world_size=num_gpus, init_method=distributed_init_method, seed=42)
+    def build_worker_comm(self, parallel_group):
+        videosys.initialize_manager(parallel_group=parallel_group)
     
     def build_worker_comm_comm(self, rank=0, num_gpus=1, distributed_init_method=None):
         videosys.initialize_postposition(rank=rank, world_size=num_gpus, init_method=distributed_init_method, seed=42)

@@ -12,29 +12,29 @@ PARALLEL_MANAGER = None
 
 
 class ParallelManager(ProcessGroupMesh):
-    def __init__(self, dp_size, cp_size, sp_size):
+    def __init__(self, dp_size, cp_size, sp_size, parallel_group):
         super().__init__(dp_size, cp_size, sp_size)
         dp_axis, cp_axis, sp_axis = 0, 1, 2
 
         self.dp_size = dp_size
         self.dp_group: ProcessGroup = self.get_group_along_axis(dp_axis)
-        self.dp_rank = dist.get_rank(self.dp_group)
+        self.dp_rank = dist.get_rank(self.dp_group, group=parallel_group)
 
         self.cp_size = cp_size
         self.cp_group: ProcessGroup = self.get_group_along_axis(cp_axis)
-        self.cp_rank = dist.get_rank(self.cp_group)
+        self.cp_rank = dist.get_rank(self.cp_group, group=parallel_group)
 
         self.sp_size = sp_size
         self.sp_group: ProcessGroup = self.get_group_along_axis(sp_axis)
         # print(f"new ß. global_rank: {torch.distributed.get_rank()}. local_sp_rank: {torch.distributed.get_rank(self.sp_group)}")
-        self.sp_rank = dist.get_rank(self.sp_group)
+        self.sp_rank = dist.get_rank(self.sp_group, group=parallel_group)
         self.enable_sp = sp_size > 1
         logger.info(f"Init parallel manager with dp_size: {dp_size}, cp_size: {cp_size}, sp_size: {sp_size} \n")
 
 
-def set_parallel_manager(dp_size, cp_size, sp_size):
+def set_parallel_manager(dp_size, cp_size, sp_size, parallel_group):
     global PARALLEL_MANAGER
-    PARALLEL_MANAGER = ParallelManager(dp_size, cp_size, sp_size)
+    PARALLEL_MANAGER = ParallelManager(dp_size, cp_size, sp_size, parallel_group)
 
 def del_parallel_manager():
     global PARALLEL_MANAGER
@@ -81,17 +81,18 @@ def enable_sequence_parallel():
 def get_parallel_manager():
     return PARALLEL_MANAGER
 
-def initialize_device(local_rank=0):
+def initialize_device(local_rank=0, world_size= 0, distributed_init_method = None):
     torch.cuda.set_device(local_rank)
+    initialize_position(local_rank, world_size, distributed_init_method)
 
-def initialize_postposition(
+def initialize_position(
     rank=0,
     # local_rank=0,
     world_size=1,
     init_method=None,
-    seed: Optional[int] = None,
-    sp_size: Optional[int] = None,
-    enable_cp: bool = False,
+    # seed: Optional[int] = None,
+    # sp_size: Optional[int] = None,
+    # enable_cp: bool = False,
 ):
     if not dist.is_initialized():
         try:
@@ -105,13 +106,20 @@ def initialize_postposition(
         torch.backends.cuda.matmul.allow_tf32 = True
         torch.backends.cudnn.allow_tf32 = True
 
+def initialize_manager(
+    parallel_group,
+    seed: Optional[int] = None,
+    sp_size: Optional[int] = None,
+    enable_cp: bool = False,
+):
+
     # init sequence parallel
     if sp_size is None:
-        sp_size = dist.get_world_size()
+        sp_size = dist.get_world_size(group=parallel_group)
         dp_size = 1
     else:
-        assert dist.get_world_size() % sp_size == 0, f"world_size {dist.get_world_size()} must be divisible by sp_size"
-        dp_size = dist.get_world_size() // sp_size
+        assert dist.get_world_size(group=parallel_group) % sp_size == 0, f"world_size {dist.get_world_size()} must be divisible by sp_size"
+        dp_size = dist.get_world_size(group=parallel_group) // sp_size
 
     # update cfg parallel
     if enable_cp and sp_size % 2 == 0:
@@ -119,7 +127,7 @@ def initialize_postposition(
         cp_size = 2
     else:
         cp_size = 1
-    set_parallel_manager(dp_size, cp_size, sp_size)
+    set_parallel_manager(dp_size, cp_size, sp_size, parallel_group)
 
     if seed is not None:
         set_seed(seed + get_data_parallel_rank())

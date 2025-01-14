@@ -707,8 +707,8 @@ class AsyncEngine:
     async def build_conn(self, rank, world_size, group_name) -> None:
         self.video_engine._build_conn(rank, world_size, group_name)
     
-    async def build_worker_comm(self, worker_ids):
-        await self.video_engine.build_worker_comm(worker_ids)
+    async def build_worker_comm(self, worker_ids, parallel_group):
+        await self.video_engine.build_worker_comm(worker_ids, parallel_group)
 
     async def build_worker_comm_data(self, worker_ids):
         await self.video_engine.build_worker_comm_data(worker_ids)
