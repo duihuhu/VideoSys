@@ -188,7 +188,8 @@ class GlobalScheduler:
                     requests_cur_steps.pop(cur_hungry_request.id, None)
                     self.requests_last_steps.pop(cur_hungry_request.id, None)
                 else:
-                    self.requests_last_steps[cur_hungry_request.id] = requests_cur_steps[cur_hungry_request.id]     
+                    if cur_hungry_request.id in self.requests_last_steps:
+                        self.requests_last_steps[cur_hungry_request.id] = requests_cur_steps[cur_hungry_request.id]     
         #----------process waiting queue in FCFS while num = 1----------#
         if self.waiting_requests:
             if self.high_affinity:
