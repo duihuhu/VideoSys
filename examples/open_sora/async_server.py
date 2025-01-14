@@ -166,7 +166,8 @@ async def async_generate(request: Request) -> Response:
     await engine.build_worker_comm(worker_ids)
     # await engine.worker_generate(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
     await engine.worker_generate_homo(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
-    await engine.destory_worker_comm(worker_ids)
+    
+    # await engine.destory_worker_comm(worker_ids)
     print(request_id, "144p's dit&vae end")
 
 @app.post("/async_generate_dit")
@@ -185,7 +186,8 @@ async def async_generate_dit(request: Request) -> Response:
     #else:
         #await engine.worker_generate(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
         #print(request_id, "vae end")
-    await engine.destory_worker_comm(worker_ids)
+        
+    # await engine.destory_worker_comm(worker_ids)
     print(request_id, " dit end")
 
 
