@@ -313,8 +313,8 @@ class Engine:
 
 def task_consumer(engine: Engine, global_scheduler: GlobalScheduler, high_affinity: Optional[bool] = True) -> None:
     while True:
-        if len(finished_requests) == engine.jobs_num:
-            break
+        # if len(finished_requests) == engine.jobs_num:
+        #     break
         task = tasks_queue.get()
         if task == "exit":
             print("thread exit ")
