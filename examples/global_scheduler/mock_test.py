@@ -158,6 +158,9 @@ class GlobalScheduler:
                 if cur_free_gpus2[0][0] < 1:
                     return None
             cur_waiting_request = self.waiting_requests[0]
+            if cur_waiting_request == "exit":
+                return cur_waiting_request
+            
             cur_demand_gpus_num = []
             cur_max_gpus_num = self.opt_gpus_num[cur_waiting_request.resolution]
             while cur_max_gpus_num > 0:
@@ -313,7 +316,7 @@ def task_consumer(engine: Engine, global_scheduler: GlobalScheduler, high_affini
         if len(finished_requests) == engine.jobs_num:
             break
         task = tasks_queue.get()
-        if task == None:
+        if task == "exit":
             break
         print(f"request {task.id} resolution {task.resolution} starts") # add for log
         if task.resolution == "144p":
@@ -397,7 +400,7 @@ if __name__ == "__main__":
             
             #for consumer exit
             for _ in range(consumers_num):
-                globalscheduler.add_request(request = None)
+                globalscheduler.add_request(request = "exit")
                 
             total_threads: List[threading.Thread] = []
             for _ in range(consumers_num):
