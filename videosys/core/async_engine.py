@@ -836,8 +836,10 @@ class AsyncEngine:
                     del self.request_workers[request_id]'''
 
             self.update_cur_step_tasks.put((request_id, index + 1)) # comnunicate first then the scheduler will re-allocate while worker exectuing
+            print("before worker_ids ", worker_ids , index)
             await self.video_engine.index_iteration_generate(worker_ids=worker_ids, i=index)
-            
+            print("after worker_ids ", worker_ids , index)
+
         t2 = time.time()
         print("t2-t1 " , t2-t1)
             

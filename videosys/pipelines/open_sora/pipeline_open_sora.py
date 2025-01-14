@@ -1201,7 +1201,7 @@ class OpenSoraPipeline(VideoSysPipeline):
     def save_video(self, video, output_path):
         save_video(video, output_path, fps=24)
 
-    def build_worker_comm(self, worker_ids, rank):
+    def build_worker_comm(self, worker_ids):
         worker_ids.sort()
         # 转换为不可变对象 (tuple)
         my_tuple = tuple(worker_ids)
@@ -1211,7 +1211,7 @@ class OpenSoraPipeline(VideoSysPipeline):
         if hash_value in self.comm_group:
             parallel_group = self.comm_group[hash_value]
         else:
-            parallel_group = dist.new_group(ranks=rank)
+            parallel_group = dist.new_group(ranks=worker_ids)
             self.comm_group[hash_value] = parallel_group
         videosys.initialize_manager(parallel_group=parallel_group)
     
