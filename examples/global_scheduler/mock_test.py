@@ -500,7 +500,7 @@ if __name__ == "__main__":
                 gs_thread = threading.Thread(target = gs, args = (globalscheduler, args.sp_size))
             gs_thread.start()
             total_threads.append(gs_thread)
-            for i in range(args.requests_num):
+            for i in range(len(add_resolutions)):
                 request = Request(id = i, resolution = add_resolutions[i])
                 globalscheduler.add_request(request = request)
                 start_time = time.time()
