@@ -124,8 +124,12 @@ class GlobalScheduler:
             cur_wanted_gpus_num = []
             cur_opt_gpus_num = self.opt_gpus_num[cur_hungry_request.resolution]
             while cur_opt_gpus_num > 0:
-                if cur_opt_gpus_num - len(self.requests_workers_ids[cur_hungry_request.id]) > 0:
-                    cur_wanted_gpus_num.append(cur_opt_gpus_num - len(self.requests_workers_ids[cur_hungry_request.id]))
+                if self.high_affinity:
+                    gap_gpus_num = cur_opt_gpus_num - len(self.requests_workers_ids[cur_hungry_request.id])
+                else:
+                    gap_gpus_num = cur_opt_gpus_num - len(self.requests_workers_ids2[cur_hungry_request.id])
+                if gap_gpus_num > 0:
+                    cur_wanted_gpus_num.append(gap_gpus_num)
                 cur_opt_gpus_num //= 2
             for i, wanted_gpus_num in enumerate(cur_wanted_gpus_num):
                 if self.high_affinity:
