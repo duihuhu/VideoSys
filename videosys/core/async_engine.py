@@ -804,7 +804,7 @@ class AsyncEngine:
             else:
                 pre_worker_ids = []
             if pre_worker_ids:
-                await self.destory_worker_comm(worker_ids=worker_ids)
+                # await self.destory_worker_comm(worker_ids=worker_ids)
                 await self.video_engine.prepare_generate(
                         worker_ids=pre_worker_ids,
                         prompt=prompt,
