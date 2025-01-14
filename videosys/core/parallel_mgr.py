@@ -12,8 +12,8 @@ PARALLEL_MANAGER = None
 
 
 class ParallelManager(ProcessGroupMesh):
-    def __init__(self, dp_size, cp_size, sp_size, parallel_group):
-        super().__init__(dp_size, cp_size, sp_size)
+    def __init__(self, parallel_group, dp_size, cp_size, sp_size):
+        super().__init__(parallel_group, dp_size, cp_size, sp_size)
         dp_axis, cp_axis, sp_axis = 0, 1, 2
 
         self.dp_size = dp_size
@@ -38,7 +38,7 @@ class ParallelManager(ProcessGroupMesh):
 
 def set_parallel_manager(dp_size, cp_size, sp_size, parallel_group):
     global PARALLEL_MANAGER
-    PARALLEL_MANAGER = ParallelManager(dp_size, cp_size, sp_size, parallel_group)
+    PARALLEL_MANAGER = ParallelManager(parallel_group, dp_size, cp_size, sp_size)
 
 def del_parallel_manager():
     global PARALLEL_MANAGER
