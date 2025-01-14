@@ -286,15 +286,15 @@ class GlobalScheduler:
                 self.waiting_requests.popleft()
                 return cur_req
             
-            if cur_req.resolution == "144p" and self.w1_num > 1:
+            if cur_req.resolution == "144p" and self.w1_num >= 1:
                 self.w1_num -= 1
                 self.waiting_requests.popleft()
                 return cur_req
-            elif cur_req.resolution == "240p" and self.w2_num > 1:
+            elif cur_req.resolution == "240p" and self.w2_num >= 1:
                 self.w2_num -= 1
                 self.waiting_requests.popleft()
                 return cur_req
-            elif cur_req.resolution == "360p" and self.w3_num > 1:
+            elif cur_req.resolution == "360p" and self.w3_num >= 1:
                 self.w3_num -= 1
                 self.waiting_requests.popleft()
                 return cur_req
