@@ -1,15 +1,11 @@
 from typing import Dict, Deque, List, Tuple, Optional
+from queue import Queue
 import copy
 import time
 import threading
 import argparse
 import random
 import sys
-
-if sys.version_info >= (3, 9):
-    from queue import Queue
-else:
-    from typing import Queue
     
 class Request:
     def __init__(self, id: int, resolution: str):
