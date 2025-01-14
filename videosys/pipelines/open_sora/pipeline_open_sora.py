@@ -651,7 +651,7 @@ class OpenSoraPipeline(VideoSysPipeline):
             torch.cuda.synchronize() 
             # print("type samples ", type(samples), samples.shape, samples.element_size() * samples.nelement(), samples.device)
             t2 = time.time()
-            dt2 = datetime.fromtimestamp(int(t1))  # 转换为秒的 datetime
+            dt2 = datetime.fromtimestamp(int(t2))  # 转换为秒的 datetime
             ms2 = int((t2 - int(t2)) * 1000)  # 提取毫秒部分
             # 格式化输出
             formatted_time2 = dt2.strftime("%Y-%m-%d %H:%M:%S") + f".{ms2:03d}"
