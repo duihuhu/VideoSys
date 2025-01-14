@@ -355,6 +355,7 @@ class Engine:
         self.vae_times: Dict[str, Dict[int, float]] = {"144p": {1: 0.16, 2: 0.16, 4: 0.16}, 
                                                        "240p": {1: 0.38, 2: 0.38, 4: 0.38}, 
                                                        "360p": {1: 0.87, 2: 0.87, 4: 0.87}}
+        self.opt_gpus_num: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 4}
         self.denoising_steps: int = 30
         self.log_file_path = log_file_path
         self.jobs_num = jobs_num
@@ -384,9 +385,13 @@ class Engine:
             if gap_workers_ids:
                 if self.high_affinity:
                     print(f"request {id} resolution {resolution} old gpus {workers_ids} new gpus {requests_new_workers_ids[id]}") # add for log
+                    while len(requests_new_workers_ids[id]) > self.opt_gpus_num[resolution]:
+                        requests_new_workers_ids.pop()
                     workers_ids = copy.deepcopy(requests_new_workers_ids[id])
                 else:
                     print(f"request {id} resolution {resolution} old gpus {workers_ids2} new gpus {requests_new_workers_ids2[id]}") # add for log
+                    while len(requests_new_workers_ids2[id]) > self.opt_gpus_num[resolution]:
+                        requests_new_workers_ids2.pop()
                     workers_ids2 = copy.deepcopy(requests_new_workers_ids2[id])
             if self.high_affinity:    
                 cur_sleep_time = self.dit_times[resolution][len(workers_ids)] / self.denoising_steps
