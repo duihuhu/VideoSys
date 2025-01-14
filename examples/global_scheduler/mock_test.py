@@ -313,6 +313,8 @@ def task_consumer(engine: Engine, global_scheduler: GlobalScheduler, high_affini
         if len(finished_requests) == engine.jobs_num:
             break
         task = tasks_queue.get()
+        if task == None:
+            break
         print(f"request {task.id} resolution {task.resolution} starts") # add for log
         if task.resolution == "144p":
             if high_affinity:
@@ -392,6 +394,11 @@ if __name__ == "__main__":
             consumers_num = args.instances_num * (args.gpus_per_instance // args.sp_size)
             for request in add_requests:
                 globalscheduler.add_request(request = request)
+            
+            #for consumer exit
+            for _ in range(consumers_num):
+                globalscheduler.add_request(request = None)
+                
             total_threads: List[threading.Thread] = []
             for _ in range(consumers_num):
                 consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, args.high_affinity))
