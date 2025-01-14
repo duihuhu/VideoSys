@@ -244,7 +244,7 @@ class GlobalScheduler:
             else:
                 cur_waiting_request.workers_ids2 = copy.deepcopy(self.requests_workers_ids2[cur_waiting_request.id])
             self.waiting_requests.popleft()
-            print("pop left ")
+            print("pop left ", cur_waiting_request)
             time.sleep(1)
             return cur_waiting_request
         return None
