@@ -196,7 +196,7 @@ class GlobalScheduler:
                     cur_waiting_request.workers_ids = copy.deepcopy(self.requests_workers_ids[cur_waiting_request.id])
                 else:
                     cur_waiting_request.workers_ids2 = copy.deepcopy(self.requests_workers_ids2[cur_waiting_request.id])
-                self.waiting.popleft()
+                self.waiting_requests.popleft()
                 return cur_waiting_request
         return None
     
