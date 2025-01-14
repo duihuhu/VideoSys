@@ -18,19 +18,19 @@ class ParallelManager(ProcessGroupMesh):
 
         self.dp_size = dp_size
         self.dp_group: ProcessGroup = self.get_group_along_axis(dp_axis)
-        self.dp_rank = dist.get_rank(self.dp_group)
-        # self.dp_rank = dist.get_rank(group=parallel_group)
+        # self.dp_rank = dist.get_rank(self.dp_group)
+        self.dp_rank = dist.get_rank(group=parallel_group)
 
         self.cp_size = cp_size
         self.cp_group: ProcessGroup = self.get_group_along_axis(cp_axis)
-        self.cp_rank = dist.get_rank(self.cp_group)
-        # self.cp_rank = dist.get_rank(group=parallel_group)
+        # self.cp_rank = dist.get_rank(self.cp_group)
+        self.cp_rank = dist.get_rank(group=parallel_group)
 
         self.sp_size = sp_size
         self.sp_group: ProcessGroup = self.get_group_along_axis(sp_axis)
         # print(f"new ß. global_rank: {torch.distributed.get_rank()}. local_sp_rank: {torch.distributed.get_rank(self.sp_group)}")
-        self.sp_rank = dist.get_rank(self.sp_group)
-        # self.sp_rank = dist.get_rank(group=parallel_group)
+        # self.sp_rank = dist.get_rank(self.sp_group)
+        self.sp_rank = dist.get_rank(group=parallel_group)
         
         self.enable_sp = sp_size > 1
         logger.info(f"Init parallel manager with dp_size: {dp_size}, cp_size: {cp_size}, sp_size: {sp_size} \n")
