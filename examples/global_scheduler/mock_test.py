@@ -26,7 +26,8 @@ else:
     tasks_queue: Queue = Queue()
 
 class GlobalScheduler:
-    def __init__(self, instances_num: int, jobs_num: int, high_affinity: bool = True, gpus_per_instance: int = 8):
+    def __init__(self, instances_num: int, jobs_num: int, high_affinity: bool = True, gpus_per_instance: int = 8,
+                 w1_num: Optional[int] = 1, w2_num: Optional[int] = 1, w3_num: Optional[int] = 1):
         self.gpu_status = [0 for _ in range(instances_num * gpus_per_instance)]
         self.hungry_requests: Dict[int, Request] = {}
         self.waiting_requests: Deque[Request] = Deque()
@@ -41,10 +42,21 @@ class GlobalScheduler:
         self.jobs_num = jobs_num
         self.high_affinity = high_affinity
         self.gpu_status2 = [[0 for _ in range(gpus_per_instance)] for _ in range(instances_num)]
+        
+        self.w1_num = w1_num
+        self.w2_num = w2_num
+        self.w3_num = w3_num
 
-    
     def add_request(self, request: Request) -> None:
         self.waiting_requests.append(request)
+    
+    def update_gpu_status_isolated(self, resolution: str) -> None:
+        if resolution == "144p":
+            self.w1_num += 1
+        elif resolution == "240p":
+            self.w2_num += 1
+        elif resolution == "360p":
+            self.w3_num += 1
     
     def update_gpu_status_static(self, request_id: int) -> None:
         if self.high_affinity:
@@ -265,15 +277,39 @@ class GlobalScheduler:
             self.waiting_requests.popleft()
             return cur_waiting_request
         return None
+    
+    def isolated_fcfs_scheduler(self) -> Request:
+        if self.waiting_requests:
+            cur_req = self.waiting_requests[0]
 
+            if cur_req == "exit": # add to stop the consumer
+                self.waiting_requests.popleft()
+                return cur_req
+            
+            if cur_req.resolution == "144p" and self.w1_num > 1:
+                self.w1_num -= 1
+                self.waiting_requests.popleft()
+                return cur_req
+            elif cur_req.resolution == "240p" and self.w2_num > 1:
+                self.w2_num -= 1
+                self.waiting_requests.popleft()
+                return cur_req
+            elif cur_req.resolution == "360p" and self.w3_num > 1:
+                self.w3_num -= 1
+                self.waiting_requests.popleft()
+                return cur_req
+        
+        return None
+            
 def gs(global_scheduler: GlobalScheduler, sp_size: Optional[int] = None) -> None:
     while True:
         if len(finished_requests) == global_scheduler.jobs_num:
             break
-        if sp_size:
+        '''if sp_size:
             request = global_scheduler.static_sp_fcfs_scheduler(sp_size=sp_size)
         else:
-            request = global_scheduler.affinity_aware_hungry_first_priority_schedule()
+            request = global_scheduler.affinity_aware_hungry_first_priority_schedule()'''
+        request = global_scheduler.isolated_fcfs_scheduler()
         if request:
             tasks_queue.put(request)
             # if sp_size:
@@ -293,6 +329,11 @@ class Engine:
         self.log_file_path = log_file_path
         self.jobs_num = jobs_num
         self.high_affinity = high_affinity
+    
+    def generate_dit_isolated(self, resolution: str) -> None:
+        for _ in range(self.denoising_steps):
+            time.sleep(self.dit_times[resolution][4] / self.denoising_steps)
+        return
     
     def generate_dit(self, id: int, resolution: str, 
                      workers_ids: Optional[List[int]] = None,
@@ -320,6 +361,15 @@ class Engine:
             time.sleep(cur_sleep_time)
         return
     
+    def generate_vae_isolated(self, id: int, resolution: str) -> None:
+        time.sleep(self.vae_times[resolution][4])
+        end_time = time.time()
+        finished_requests.append(0)
+        print(f"request {id} resolution {resolution} ends") # add for log
+        with open(self.log_file_path, 'a') as file:
+            file.write(f"request {id} ends at {end_time}\n")
+        return
+
     def generate_vae(self, id: int, resolution: str,
                      workers_ids: Optional[List[int]], 
                      workers_ids2: Optional[List[Tuple[int, int]]]) -> None:
@@ -335,8 +385,27 @@ class Engine:
             file.write(f"request {id} ends at {end_time}\n")
         return
 
+def isolated_task_consumer(engine: Engine, global_scheduler: GlobalScheduler) -> None:
+    while True:
+        task = tasks_queue.get()
+
+        if task == "exit":
+            print("thread exit ", threading.get_native_id())
+            break
+
+        print(f"request {task.id} resolution {task.resolution} starts") # add for log
+        dit_thread = threading.Thread(target = engine.generate_dit_isolated, args = (task.resolution, ))
+        dit_thread.start()
+        dit_thread.join()
+
+        vae_thread = threading.Thread(target = engine.generate_vae_isolated, args = (task.id, task.resolution))
+        vae_thread.start()
+        vae_thread.join()
+
+        global_scheduler.update_gpu_status_isolated(task.resolution)
+
 def task_consumer(engine: Engine, global_scheduler: GlobalScheduler, high_affinity: Optional[bool] = True, 
-                  static: Optional[bool] = False, my_resolution: Optional[str] = "idk") -> None:
+                  static: Optional[bool] = False) -> None:
     while True:
         # if len(finished_requests) == engine.jobs_num:
         #     break
@@ -344,9 +413,6 @@ def task_consumer(engine: Engine, global_scheduler: GlobalScheduler, high_affini
         if task == "exit":
             print("thread exit ", threading.get_native_id())
             break
-        if static and task.resolution != my_resolution:
-            tasks_queue.put(task)
-            continue
         print(f"request {task.id} resolution {task.resolution} starts") # add for log
         if task.resolution == "144p" or static:
             if high_affinity:
@@ -413,7 +479,7 @@ if __name__ == "__main__":
         for _ in range(num):
             add_resolutions.append(resolutions[i])
     random.shuffle(add_resolutions)
-    jobs_num = len(add_resolutions)
+    jobs_num = len(add_resolutions) # add to end the gs
 
     if args.high_affinity:
         high_affinity = True
@@ -424,17 +490,22 @@ if __name__ == "__main__":
         add_requests: List[Request] = []
         for i, resolution in enumerate(add_resolutions):
             add_requests.append(Request(id = i, resolution = resolution))
-        for j in range(2):
-            if j == 0:
-                continue
+        for j in range(1, 2):
             if j == 0:
                 log_file_path = args.log_file_path + "ddit.txt"
             else:
                 log_file_path = args.log_file_path + "static.txt"
             engine = Engine(log_file_path = log_file_path, jobs_num = jobs_num, high_affinity = high_affinity)
+            '''globalscheduler = GlobalScheduler(instances_num = args.instances_num, jobs_num = jobs_num, 
+                                              high_affinity = high_affinity,
+                                              gpus_per_instance = args.gpus_per_instance)'''
+            ws = [round(16 * (ratios[0] / total_ratios)),
+                  round(16 * (ratios[1] / total_ratios)),
+                  16 - round(16 * (ratios[0] / total_ratios)) - round(16 * (ratios[1] / total_ratios))]
             globalscheduler = GlobalScheduler(instances_num = args.instances_num, jobs_num = jobs_num, 
                                               high_affinity = high_affinity,
-                                              gpus_per_instance = args.gpus_per_instance)
+                                              gpus_per_instance = args.gpus_per_instance,
+                                              w1_num = ws[0], w2_num = ws[1], w3_num = ws[2])
             
             if j == 1:
                 #reset when iteration 
@@ -449,15 +520,6 @@ if __name__ == "__main__":
             else:
                 consumers_num = args.instances_num * (args.gpus_per_instance // args.sp_size)
                 
-                static_consumers_types = []
-                static_consumers_resolutions_distribution = [round(consumers_num * (ratios[0] / total_ratios)),
-                                                             round(consumers_num * (ratios[1] / total_ratios))]
-                static_consumers_resolutions_distribution.append(consumers_num - static_consumers_resolutions_distribution[0] -
-                                                                 static_consumers_resolutions_distribution[1])
-                for k, distribution in enumerate(static_consumers_resolutions_distribution):
-                    for _ in range(distribution):
-                        static_consumers_types.append(resolutions[k])
-
             for request in add_requests:
                 globalscheduler.add_request(request = request)
             
@@ -467,12 +529,12 @@ if __name__ == "__main__":
                 globalscheduler.add_request(request = "exit")
                 
             total_threads: List[threading.Thread] = []
-            for t in range(consumers_num):
+            for _ in range(consumers_num):
                 if j == 0:
                     consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, high_affinity, False))
                 else:
-                    consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, high_affinity, True, 
-                                                                                static_consumers_types[t]))
+                    #consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, high_affinity, True))
+                    consumer = threading.Thread(target = isolated_task_consumer, args = (engine, globalscheduler))
                 consumer.start()
                 total_threads.append(consumer)
             if j == 0:
@@ -511,22 +573,12 @@ if __name__ == "__main__":
             else:
                 consumers_num = args.instances_num * (args.gpus_per_instance // args.sp_size)
 
-                static_consumers_types = []
-                static_consumers_resolutions_distribution = [round(consumers_num * (ratios[0] / total_ratios)),
-                                                             round(consumers_num * (ratios[1] / total_ratios))]
-                static_consumers_resolutions_distribution.append(consumers_num - static_consumers_resolutions_distribution[0] -
-                                                                 static_consumers_resolutions_distribution[1])
-                for k, distribution in enumerate(static_consumers_resolutions_distribution):
-                    for _ in range(distribution):
-                        static_consumers_types.append(resolutions[k])
-
             total_threads: List[threading.Thread] = []
             for t in range(consumers_num):
                 if j == 0:
                     consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, high_affinity, False))
                 else:
-                    consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, high_affinity, True, 
-                                                                                static_consumers_types[t]))
+                    consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, high_affinity, True))
                 consumer.start()
                 total_threads.append(consumer)
             if j == 0:
