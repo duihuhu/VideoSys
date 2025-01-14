@@ -259,7 +259,7 @@ def gs(global_scheduler: GlobalScheduler, sp_size: Optional[int] = None) -> None
             tasks_queue.put(request)
             if sp_size:
                 print("request ", request)
-                time.sleep()
+                time.sleep(1)
     return
 
 class Engine:
