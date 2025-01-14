@@ -439,7 +439,11 @@ if __name__ == "__main__":
                 requests_cur_steps = {}
                 tasks_queue = Queue()
             
-            consumers_num = args.instances_num * (args.gpus_per_instance // args.sp_size)
+            if j == 0:
+                consumers_num = args.instances_num * args.gpus_per_instance
+            else:
+                consumers_num = args.instances_num * (args.gpus_per_instance // args.sp_size)
+                
             for request in add_requests:
                 globalscheduler.add_request(request = request)
             
