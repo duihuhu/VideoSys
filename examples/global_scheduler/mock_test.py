@@ -333,6 +333,7 @@ class Engine:
         print(f"request {id} resolution {resolution} ends") # add for log
         with open(self.log_file_path, 'a') as file:
             file.write(f"request {id} ends at {end_time}\n")
+        return
 
 def task_consumer(engine: Engine, global_scheduler: GlobalScheduler, high_affinity: Optional[bool] = True, 
                   static: Optional[bool] = False) -> None:
