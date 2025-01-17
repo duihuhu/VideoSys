@@ -224,7 +224,7 @@ class VideoSysEngine:
         """Runs the given method on all workers."""
 
         # Start the workers first.
-        worker_outputs = [self.workers[id].execute_method(method, *args, **kwargs) for id in worker_ids]
+        worker_outputs = [self.workers[id].execute_method_async(method, *args, **kwargs) for id in worker_ids]
 
         if async_run_tensor_parallel_workers_only:
             # Just return futures
@@ -302,7 +302,7 @@ class VideoSysEngine:
         await self._run_workers_by_id_async(worker_ids, "prepare_generate", *args, **kwargs)
 
     async def index_iteration_generate(self, worker_ids, *args, **kwargs):
-        await self._run_workers_by_id_aync(worker_ids, "index_iteration_generate", *args, **kwargs)
+        await self._run_workers_by_id_async(worker_ids, "index_iteration_generate", *args, **kwargs)
         
     async def async_generate_vae(self, worker_ids, *args, **kwargs):
         video = await self._run_workers_vae_aync("generate_vae", worker_ids, *args, **kwargs)
