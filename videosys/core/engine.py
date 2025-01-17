@@ -48,6 +48,7 @@ class VideoSysEngine:
         self.recv_kv_trans_scheduler = RecvKvTransScheduler(1, config.worker_type)
 
         self._init_worker(config.pipeline_cls)
+        self._init_all_process_group()
 
     def _init_worker(self, pipeline_cls):
         world_size = self.config.num_gpus
@@ -83,6 +84,7 @@ class VideoSysEngine:
                             pipeline_cls=pipeline_cls,
                             rank=0,
                             local_rank=0,
+                            world_size=world_size,
                             distributed_init_method=distributed_init_method,
                         ),
                     )
@@ -101,7 +103,7 @@ class VideoSysEngine:
                         pipeline_cls=pipeline_cls,
                         rank=rank,
                         local_rank=rank,
-                        world_size = world_size,
+                        world_size=world_size,
                         distributed_init_method=distributed_init_method,
                     ),
                 )
@@ -163,28 +165,54 @@ class VideoSysEngine:
         # Get the results of the workers.
         return [driver_worker_output] + [output.get() for output in worker_outputs]
 
-    async def _run_workers_aync(self,
-        method: str,
-        worker_ids,
+
+
+    def _init_all_process_group(self):
+        res = self._run_workers("init_all_process_group")
+        return res
+
+    async def _set_curr_parallel_mgr(
+        self,
+        worker_ids: List[int],
+    ) -> Any:
+        res = await self._run_workers_by_id_async(worker_ids, "set_curr_parallel_mgr", worker_ids)
+        return res
+        
+    async def _run_workers_async(
+        self,
+        method: str, 
         *args,
         async_run_tensor_parallel_workers_only: bool = False,
         max_concurrent_workers: Optional[int] = None,
         **kwargs,):
-        # print("run_worker_aync")
-        # worker_outputs = [worker.execute_method_async(method, *args, **kwargs) for worker in self.workers]
         
-        worker_outputs = [self.workers[worker_id].execute_method_async(method, *args, **kwargs) for worker_id in worker_ids]
-
-        
+        worker_outputs = [worker.execute_method_async(method, *args, **kwargs) for worker in self.workers]
         if async_run_tensor_parallel_workers_only:
             # Just return futures
             return worker_outputs
-        # dirver_worker_outputs = [self.driver_worker.execute_method_async(method, *args, **kwargs)]
         results = await asyncio.gather(*worker_outputs)
-        # driver_results = await asyncio.gather(*dirver_worker_outputs)
-        # return [driver_results] + [results]
         return [results]
 
+    async def _run_workers_by_id_async(
+        self,
+        worker_ids: List[int],
+        method: str,
+        *args,
+        async_run_tensor_parallel_workers_only: bool = False,
+        max_concurrent_workers: Optional[int] = None,
+        **kwargs,
+    ) -> Any:
+        """Runs the given method on all workers."""
+
+        # Start the workers first.
+        worker_outputs = [self.workers[id].execute_method(method, *args, **kwargs) for id in worker_ids]
+
+        if async_run_tensor_parallel_workers_only:
+            # Just return futures
+            return worker_outputs
+        results = await asyncio.gather(*worker_outputs)
+        return [results]
+    
     async def _run_workers_dit_aync(self,
         method: str,
         worker_ids,
@@ -228,8 +256,10 @@ class VideoSysEngine:
         return self.driver_worker.generate(*args, **kwargs)
 
     async def build_worker_comm(self, worker_ids):
-        for worker_id in worker_ids:
-            self.workers[worker_id].execute_method("build_worker_comm", worker_ids)
+        res = await self._set_curr_parallel_mgr(worker_ids)
+        return res
+        # for worker_id in worker_ids:
+        #     self.workers[worker_id].execute_method("build_worker_comm", worker_ids)
 
     async def build_worker_comm_data(self, worker_ids):
         distributed_init_method = get_distributed_init_method("127.0.0.1", get_open_port())
@@ -242,7 +272,7 @@ class VideoSysEngine:
             self.workers[worker_id].execute_method("destory_worker_comm")
 
     async def async_generate(self, worker_ids, *args, **kwargs):
-        video = await self._run_workers_aync("generate", worker_ids, *args, **kwargs)
+        video = await self._run_workers_by_id_async(worker_ids, "generate", *args, **kwargs)
         return video[0]
     
     async def async_generate_dit(self, worker_ids, *args, **kwargs):
@@ -250,10 +280,10 @@ class VideoSysEngine:
         return video[0]
 
     async def prepare_generate(self, worker_ids, *args, **kwargs):
-        await self._run_workers_aync("prepare_generate", worker_ids, *args, **kwargs)
+        await self._run_workers_by_id_async(worker_ids, "prepare_generate", *args, **kwargs)
 
     async def index_iteration_generate(self, worker_ids, *args, **kwargs):
-        await self._run_workers_aync("index_iteration_generate", worker_ids, *args, **kwargs)
+        await self._run_workers_by_id_aync(worker_ids, "index_iteration_generate", *args, **kwargs)
         
     async def async_generate_vae(self, worker_ids, *args, **kwargs):
         video = await self._run_workers_vae_aync("generate_vae", worker_ids, *args, **kwargs)

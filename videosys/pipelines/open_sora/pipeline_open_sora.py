@@ -1,8 +1,9 @@
 import html
+import itertools
 import json
 import os
 import re
-from typing import Optional, Tuple, Union, List
+from typing import Dict, Optional, Tuple, Union, List
 
 import ftfy
 import torch
@@ -22,7 +23,7 @@ from .data_process import get_image_size, get_num_frames, prepare_multi_resoluti
 import time
 import videosys
 import torch.distributed as dist
-
+from torch.distributed import ProcessGroup
 os.environ["TOKENIZERS_PARALLELISM"] = "true"
 
 
@@ -259,13 +260,15 @@ class OpenSoraPipeline(VideoSysPipeline):
         self.register_modules(
             text_encoder=text_encoder, vae=vae, transformer=transformer, scheduler=scheduler, tokenizer=tokenizer
         )
-        
+
         self.dit_video_data = {}
         self.vae_record_data = {}
+        self._ranks_to_pg: Dict[Tuple[int, ...], ProcessGroup] = {}
+        self._pg_to_ranks: Dict[ProcessGroup, Tuple[int, ...]] = {}
         # if config.enable_separate:
-            # print("trans manager ", config.rank, config.worker_type)
-            # if config.rank == 0:
-            #     self.trans_manager = trans_ops.TransManager(config.rank, config.local_rank, config.worker_type)
+        # print("trans manager ", config.rank, config.worker_type)
+        # if config.rank == 0:
+        #     self.trans_manager = trans_ops.TransManager(config.rank, config.local_rank, config.worker_type)
 
     def get_text_embeddings(self, texts):
         text_tokens_and_mask = self.tokenizer(
@@ -633,6 +636,7 @@ class OpenSoraPipeline(VideoSysPipeline):
 
             masks = apply_mask_strategy(z, refs, ms, loop_i, align=align)
             t1 = time.time()
+            # DiT
             samples = self.scheduler.sample(
                 self.transformer,
                 z=z,
@@ -645,6 +649,7 @@ class OpenSoraPipeline(VideoSysPipeline):
             torch.cuda.synchronize() 
             print("type samples ", type(samples), samples.shape, samples.element_size() * samples.nelement(), samples.device)
             t2 = time.time()
+            # VAE
             samples = self.vae.decode(samples.to(self._dtype), num_frames=num_frames)
             torch.cuda.synchronize() 
             t3 = time.time()
@@ -665,7 +670,7 @@ class OpenSoraPipeline(VideoSysPipeline):
 
         if not return_dict:
             return (video,)
-        
+
         print("video info ", type(video), video.shape)
         return VideoSysPipelineOutput(video=video)
 
@@ -899,7 +904,7 @@ class OpenSoraPipeline(VideoSysPipeline):
         print("generate_vae start ")
         video_clips = []
         samples = self.dit_video_data[request_id]
-        
+
         t1 = time.time()
         samples = self.vae.decode(samples.to(self._dtype), num_frames=num_frames)
         torch.cuda.synchronize() 
@@ -1068,10 +1073,10 @@ class OpenSoraPipeline(VideoSysPipeline):
         batch_prompts = []
         for prompt_segment_list, loop_idx_list in zip(batched_prompt_segment_list, batched_loop_idx_list):
             batch_prompts.append(merge_prompt(prompt_segment_list, loop_idx_list))
-            
+
         # == Iter over loop generation ==
         # for loop_i in range(loop):
-            # == get prompt for loop i ==
+        # == get prompt for loop i ==
         batch_prompts_loop = extract_prompts_loop(batch_prompts, 0)
 
         # == add condition frames for loop ==
@@ -1103,8 +1108,8 @@ class OpenSoraPipeline(VideoSysPipeline):
         self.y_null = y_null
         self.verbose = verbose
         self.masks = masks
-        
-    # def prepare_sample(self):
+
+        # def prepare_sample(self):
         self.scheduler.prepare_sample(
             self.transformer,
             z=self.z,
@@ -1144,25 +1149,25 @@ class OpenSoraPipeline(VideoSysPipeline):
         self.maybe_free_model_hooks()
 
         # if not return_dict:
-            # return (video,)
+        # return (video,)
 
         return VideoSysPipelineOutput(video=video)
- 
+
     def get_nccl_id(self, dst_channel, worker_type):
         # nccl_id = self.trans_manager.get_nccl_id(dst_channel, worker_type)
         return
-    
+
     def create_comm(self, nccl_id, dst_channel, worker_type):
         # self.trans_manager.create_comm(nccl_id, dst_channel, worker_type)
         return 
     def transfer_dit(self, request_id):
         samples = self.dit_video_data[request_id]
         print("transfer_dit ", type(samples), samples.shape, samples.device)
-    
+
     def remove_dit(self, send_finished_reqs):
         for request_id in send_finished_reqs:
             del self.dit_video_data[request_id]
-            
+
     def allocate_kv(self, request_id, prompt, shape):
         free_mem = torch.cuda.mem_get_info()[0] 
         print("free mem, ", free_mem, shape)
@@ -1173,7 +1178,7 @@ class OpenSoraPipeline(VideoSysPipeline):
             print("allocated_video addr ",shape, allocated_video.dtype, allocated_video.data_ptr(), allocated_video.device)
             return True, allocated_video.data_ptr(), allocated_video.numel() * allocated_video.element_size()
         return False, None, None
-    
+
     def del_dit_req(self, request_id):
         if request_id in self.dit_video_data:
             del self.dit_video_data[request_id]
@@ -1183,16 +1188,16 @@ class OpenSoraPipeline(VideoSysPipeline):
             print("fetch_video_addr ", self.dit_video_data[request_id].device, self.dit_video_data[request_id].dtype)
             return self.dit_video_data[request_id].data_ptr(), \
                 self.dit_video_data[request_id].numel() * self.dit_video_data[request_id].element_size()
-        
+
     def trans_blocks(self,         
                      send_tasks,
                      recv_tasks):
         # if send_tasks:
         #     self.trans_manager.add_tasks(send_tasks)
         # if recv_tasks:
-        #     self.trans_manager.add_tasks(recv_tasks) 
+        #     self.trans_manager.add_tasks(recv_tasks)
         return  
-        
+
     def get_finished_transfer_tasks(self):
         # return self.trans_manager.get_finished_transfer_tasks()
         return  
@@ -1203,14 +1208,49 @@ class OpenSoraPipeline(VideoSysPipeline):
     def build_worker_comm(self, worker_ids):
         parallel_group = dist.new_group(ranks=worker_ids)
         videosys.initialize_manager(parallel_group=parallel_group)
-    
+
+    def init_all_process_group(self):
+        assert dist.is_initialized(), "the default process group should be initialized"
+        assert len(self._ranks_to_pg) == 0, "ranks_to_pg should be empty" 
+        assert len(self._pg_to_ranks) == 0, "pg_to_ranks should be empty"
+        world_size = dist.get_world_size()
+        global_rank = dist.get_rank()
+        print(f"[rank {global_rank}] before init_all_process_group")
+        # generate permutation of all process groups
+        parallel_sizes = [2 ** i for i in range(int.bit_length(world_size)) if 2 ** i <= world_size]
+        for parallel_size in parallel_sizes:
+            for pg_ranks in itertools.combinations(list(range(world_size)), parallel_size):
+                self._ranks_to_pg[pg_ranks] = None 
+        for ranks in self._ranks_to_pg.keys():
+            pg = dist.new_group(ranks, use_local_synchronization=True)
+            self._ranks_to_pg[ranks] = pg
+            self._pg_to_ranks[pg] = ranks
+        # print(self._ranks_to_pg)
+        print(f"[rank {global_rank}] after init_all_process_group") 
+
+    def set_curr_parallel_mgr(self, worker_ids: List[int]):
+        print(f"[rank {global_rank}] before set_curr_parallel_mgr")
+        worker_ids = tuple(sorted(worker_ids))
+        global_rank = dist.get_rank()
+        assert (
+            global_rank in worker_ids
+        ), f"rank {global_rank} should in worker_ids {worker_ids}"
+
+        sp_size = len(worker_ids)
+        cp_size = 1
+        dp_size = 1
+        videosys.set_parallel_manager(
+            dp_size, cp_size, sp_size, worker_ids, self._ranks_to_pg
+        )
+        print(f"[rank {global_rank}] after set_curr_parallel_mgr")
+
     def build_worker_comm_comm(self, rank=0, num_gpus=1, distributed_init_method=None):
         # videosys.initialize_postposition(rank=rank, world_size=num_gpus, init_method=distributed_init_method, seed=42)
         if rank == 0:
             videosys.send(self.z)
         else:
             videosys.recv(self.z)
-    
+
     def destory_worker_comm(self, alloc_rank=0, num_gpus=1, distributed_init_method=None):
         videosys.destroy()
 
