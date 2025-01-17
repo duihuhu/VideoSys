@@ -1229,9 +1229,10 @@ class OpenSoraPipeline(VideoSysPipeline):
         print(f"[rank {global_rank}] after init_all_process_group") 
 
     def set_curr_parallel_mgr(self, worker_ids: List[int]):
-        print(f"[rank {global_rank}] before set_curr_parallel_mgr")
         worker_ids = tuple(sorted(worker_ids))
         global_rank = dist.get_rank()
+        print(f"[rank {global_rank}] before set_curr_parallel_mgr")
+
         assert (
             global_rank in worker_ids
         ), f"rank {global_rank} should in worker_ids {worker_ids}"
