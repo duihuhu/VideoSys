@@ -175,7 +175,7 @@ class ParallelManager:
 
         self.enable_sp = sp_size > 1
 
-        print(f"[rank {global_rank}] dp_ranks: {self.dp_ranks}. cp_ranks: {self.cp_ranks}. sp_ranks: {self.sp_ranks}. dp_rank: {self.dp_rank}. cp_rank: {self.cp_rank}. sp_rank: {self.sp_rank}")
+        print(f"[rank {global_rank}] ParallelMgr. dp_ranks: {self.dp_ranks}. cp_ranks: {self.cp_ranks}. sp_ranks: {self.sp_ranks}. dp_rank: {self.dp_rank}. cp_rank: {self.cp_rank}. sp_rank: {self.sp_rank}. worker_ids: {worker_ids}")
         logger.info(
             f"Init parallel manager with dp_size: {dp_size}, cp_size: {cp_size}, sp_size: {sp_size} \n"
         )       

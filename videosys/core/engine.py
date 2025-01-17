@@ -88,7 +88,8 @@ class VideoSysEngine:
                             distributed_init_method=distributed_init_method,
                         ),
                     )
-            self.dirver_worker_monitor = WorkerMonitor(self.driver_worker, driver_result_handler)
+            self.dirver_worker_monitor = WorkerMonitor([self.driver_worker], driver_result_handler)
+            self.workers.append(self.driver_worker)
             driver_result_handler.start()
             self.dirver_worker_monitor.start()
         else:
@@ -165,10 +166,28 @@ class VideoSysEngine:
         # Get the results of the workers.
         return [driver_worker_output] + [output.get() for output in worker_outputs]
 
+    def _run_workers_without_driver_worker(
+        self,
+        method: str,
+        *args,
+        async_run_tensor_parallel_workers_only: bool = False,
+        max_concurrent_workers: Optional[int] = None,
+        **kwargs,
+    ) -> Any:
+        """Runs the given method on all workers."""
 
+        # Start the workers first.
+        worker_outputs = [worker.execute_method(method, *args, **kwargs) for worker in self.workers]
+
+        if async_run_tensor_parallel_workers_only:
+            # Just return futures
+            return worker_outputs
+        # Get the results of the workers.
+        return [output.get() for output in worker_outputs]
+    
 
     def _init_all_process_group(self):
-        res = self._run_workers("init_all_process_group")
+        res = self._run_workers_without_driver_worker("init_all_process_group")
         return res
 
     async def _set_curr_parallel_mgr(
