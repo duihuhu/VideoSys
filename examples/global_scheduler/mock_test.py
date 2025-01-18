@@ -6,7 +6,6 @@ import threading
 import argparse
 import random
 import sys
-import os
 
 class Request:
     def __init__(self, id: int, resolution: str):
@@ -19,7 +18,6 @@ finished_requests: List[int] = []
 requests_new_workers_ids: Dict[int, List[int]] = {}
 requests_new_workers_ids2: Dict[int, List[Tuple[int, int]]] = {}
 requests_cur_steps: Dict[int, int] = {}
-
 if sys.version_info >= (3, 9):
     tasks_queue: Queue[Request] = Queue()
 else:
@@ -129,7 +127,7 @@ class GlobalScheduler:
             if len(cur_free_gpus2[0]) < 1:
                 return None
         #----------process hungry queue in starvation descending order while num = N----------#
-        '''temp_hungry_requests = list(self.hungry_requests.values())
+        temp_hungry_requests = list(self.hungry_requests.values())
         # sort in descending order by starvation time
         if self.high_affinity:
             temp_hungry_requests.sort(key = lambda x: (requests_cur_steps[x.id] - self.requests_last_steps[x.id])
@@ -171,10 +169,12 @@ class GlobalScheduler:
                         self.gpu_status[gpu_id] = 1
                         self.requests_workers_ids[cur_hungry_request.id].append(gpu_id)
                     else:
-                        gpu_id_row, gpu_id_column = cur_free_gpus2[0].pop(0) # update the max row itself
+                        gpu_id_row, gpu_id_column = cur_free_gpus2[0] # update the max row itself
                         #cur_free_gpus2[0][0] -= 1 # update free gpu num in the max row
-                        self.gpu_status2[gpu_id_row][gpu_id_column] = 1
-                        self.requests_workers_ids2[cur_hungry_request.id].append((gpu_id_row, gpu_id_column))
+                        if gpu_id_row == self.requests_workers_ids2[cur_hungry_request.id][0][0]: # add only when within a single machine
+                            cur_free_gpus2.pop(0)
+                            self.gpu_status2[gpu_id_row][gpu_id_column] = 1
+                            self.requests_workers_ids2[cur_hungry_request.id].append((gpu_id_row, gpu_id_column))
                 # sort again in case the max row not be the max
                 if not self.high_affinity:
                     cur_free_gpus2.sort(key = lambda x: len(x), reverse = True)
@@ -190,7 +190,7 @@ class GlobalScheduler:
                 else:
                     if cur_hungry_request.id in self.requests_last_steps:
                         self.requests_last_steps[cur_hungry_request.id] = requests_cur_steps[cur_hungry_request.id]     
-        #----------process waiting queue in FCFS while num = 1----------#'''
+        #----------process waiting queue in FCFS while num = 1----------#
         if self.waiting_requests:
             if self.high_affinity:
                 if cur_free_gpus.qsize() < 1:
@@ -235,10 +235,10 @@ class GlobalScheduler:
                 # sort again in case the max row not be the max
                 #if not self.high_affinity:
                 #    cur_free_gpus2.sort(key = lambda x: x[0], reverse = True)
-                '''if j > 0:
+                if j > 0:
+                    self.hungry_requests[cur_waiting_request.id] = cur_waiting_request
                     requests_cur_steps[cur_waiting_request.id] = 0
                     self.requests_last_steps[cur_waiting_request.id] = 0
-                    self.hungry_requests[cur_waiting_request.id] = cur_waiting_request'''
                 if self.high_affinity:
                     cur_waiting_request.workers_ids = copy.deepcopy(self.requests_workers_ids[cur_waiting_request.id])
                 else:
@@ -532,11 +532,9 @@ if __name__ == "__main__":
     parser.add_argument("--batch", type = int, default = 1)
     parser.add_argument("--arrival-ratio", type = float, default = 8.0)
     parser.add_argument("--high-affinity", type = int, default = 1)
-    #parser.add_argument("--static", type = bool, default = False)
     parser.add_argument("--sp-size", type = int, default = 4)
     args = parser.parse_args()
     print(args) # add for debug
-    #os.makedirs(args.log_file_path, exist_ok = True)
 
     random.seed(42)
 
@@ -560,7 +558,8 @@ if __name__ == "__main__":
         add_requests: List[Request] = []
         for i, resolution in enumerate(add_resolutions):
             add_requests.append(Request(id = i, resolution = resolution))
-        for j in range(1):
+        
+        for j in range(2):
             if j == 0:
                 log_file_path = args.log_file_path + "ddit.txt"
             else:
@@ -569,6 +568,7 @@ if __name__ == "__main__":
             globalscheduler = GlobalScheduler(instances_num = args.instances_num, jobs_num = jobs_num, 
                                               high_affinity = high_affinity,
                                               gpus_per_instance = args.gpus_per_instance)
+            
             '''ws = [round(16 * (ratios[0] / total_ratios)),
                   round(16 * (ratios[1] / total_ratios)),
                   16 - round(16 * (ratios[0] / total_ratios)) - round(16 * (ratios[1] / total_ratios))]
