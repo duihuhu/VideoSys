@@ -16,13 +16,14 @@ from comm import CommData, CommEngine, CommonHeader, ReqMeta
 from videosys.utils.config import DeployConfig
 import videosys.entrypoints.server_config as cfg
 from videosys.core.outputs import KvPreparedResponse
-import torch.distributed as dist
+import os
 
 AIOHTTP_TIMEOUT = aiohttp.ClientTimeout(total=6 * 60 * 60)
 TIMEOUT_KEEP_ALIVE = 5  # seconds.
 app = FastAPI()
 engine = None
 
+log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "end_log.txt")
 
 async def asyc_forward_request(request_dict, api_url):
     headers = {"User-Agent": "Test Client"}
@@ -169,7 +170,7 @@ async def async_generate(request: Request) -> Response:
     await engine.worker_generate_homo(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
     
     # await engine.destory_worker_comm(worker_ids)
-    print(request_id, "144p's dit&vae end")
+    print(f"request {request_id}  resolution{resolution} dit&vae end")
 
 @app.post("/async_generate_dit")
 async def async_generate_dit(request: Request) -> Response:
@@ -189,7 +190,7 @@ async def async_generate_dit(request: Request) -> Response:
         #print(request_id, "vae end")
         
     # await engine.destory_worker_comm(worker_ids)
-    print(request_id, " dit end")
+    print(f"request {request_id} resolution{resolution} dit ends")
 
 
 # @app.post("/async_generate_vae")
@@ -209,7 +210,11 @@ async def async_generate_vae_step(request: Request) -> Response:
     await engine.build_worker_comm(worker_ids)
     await engine.worker_generate_vae_step(worker_ids=worker_ids, request_id=request_id)
     await engine.destory_worker_comm(worker_ids)
-    print(request_id, " vae end")
+    
+    end_time = time.time()
+    print(f"request {request_id} vae ends")
+    with open(log_path, 'a') as file:
+        file.write(f"request {request_id} ends at {end_time}\n")
     
 @app.post("/request_workers")
 async def request_workers(request: Request) -> Response:
@@ -246,4 +251,3 @@ if __name__ == "__main__":
                 port=args.port,
                 log_level="debug",
                 timeout_keep_alive=TIMEOUT_KEEP_ALIVE)
-

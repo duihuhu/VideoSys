@@ -238,14 +238,34 @@ class AsyncSched:
     def update_requests_cur_steps(self, request_id, cur_step):
         self.video_sched.update_requests_cur_steps(request_id, cur_step)
     
+    def process2(self) -> None:
+        while True:
+            if self.task_queue.empty():
+                continue
+            task = self.task_queue.get()
+            print(f"request {task.request_id} resolution {task.resolution} worker ids {task.worker_ids}")
+            api_url = "http://127.0.0.1:8000/async_generate"
+            pload = {
+                "request_id": task.request_id,
+                "prompt": task.prompt,
+                "resolution": task.resolution, 
+                "aspect_ratio": task.aspect_ratio,
+                "num_frames": task.num_frames,
+                "worker_ids": task.worker_ids,
+            }
+            _ = self.post_http_request(pload = pload, api_url = api_url)
+            self.video_sched.scheduler.navie_update_gpu_status(group_id = task.request_id)
+            #self.video_sched.scheduler.naive_baseline_update_gpu_status(resolution = task.resolution, worker_ids = task.worker_ids)
+            #self.video_sched.scheduler.smart_baseline_update_gpu_status(worker_ids = task.worker_ids)
+    
     def process(self,):
         while True:
-            #if self.task_queue.empty():
-            #    continue
+            if self.task_queue.empty():
+                continue
             task = self.task_queue.get()  # 阻塞，直到有任务
             if task is None:
                 break  # 如果任务是 None，表示结束
-            print("task.worker_ids for dit", task.worker_ids, task.request_id, task.resolution)
+            print(f"request {task.request_id} resolution {task.resolution} dit's worker ids {task.worker_ids}")
             
             if task.resolution == "144p":
                 api_url = "http://127.0.0.1:8000/async_generate"
@@ -257,8 +277,7 @@ class AsyncSched:
                     "num_frames": task.num_frames,
                     "worker_ids": task.worker_ids,
                 }
-                response = self.post_http_request(pload=pload, api_url=api_url)
-                #self.video_sched.scheduler.update_and_schedule(last = True, group_id = task.request_id)
+                _ = self.post_http_request(pload=pload, api_url=api_url)
                 self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id)
             else:
                 api_url = "http://127.0.0.1:8000/async_generate_dit"
@@ -270,35 +289,21 @@ class AsyncSched:
                     "num_frames": task.num_frames,
                     "worker_ids": task.worker_ids,
                 }
-                response = self.post_http_request(pload=pload, api_url=api_url)
-                #self.video_sched.scheduler.update_and_schedule(last = False, group_id = task.request_id)
+                _ = self.post_http_request(pload=pload, api_url=api_url)
                 self.video_sched.scheduler.update_gpu_status(last = False, group_id = task.request_id)
                 api_url = "http://127.0.0.1:8000/async_generate_vae"
                 pload = {
                     "request_id": task.request_id,
                     "worker_ids": [task.worker_ids[0]],
                 }
-                response = self.post_http_request(pload=pload, api_url=api_url)
-                #self.video_sched.scheduler.update_and_schedule(last = True, group_id = task.request_id)
+                _ = self.post_http_request(pload=pload, api_url=api_url)
                 self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id)
-
-            #if len(task.worker_ids) > 1:
-                #print("before update ", self.video_sched.scheduler.gpu_status, task.request_id, task.resolution)
-                #for i in range(1, len(task.worker_ids)):
-                    #self.video_sched.scheduler.gpu_status[task.worker_ids[i]] = 0
-                #self.video_sched.scheduler.gpu_status[task.worker_ids[-1]] = 0
-            
-                #print("after dit update ", self.video_sched.scheduler.gpu_status, task.request_id, task.resolution)            
-                #print("after vae update ", self.video_sched.scheduler.gpu_status, task.request_id, task.resolution)
-            #else:
-                #print("before update ", self.video_sched.scheduler.gpu_status, task.request_id, task.resolution)
-                #self.video_sched.scheduler.update_and_schedule(last = True, group_id = task.request_id)
-                #print("after dit&vae update ", self.video_sched.scheduler.gpu_status, task.request_id, task.resolution)
         return 
     
     def create_consumer(self, instances_num: int):
         for _ in range(instances_num):
             consumer = threading.Thread(target=self.process)
+            #consumer = threading.Thread(target=self.process2)
             consumer.daemon = True
             consumer.start()
             self.consumers.append(consumer)
@@ -339,26 +344,23 @@ class AsyncSched:
     #     return
         
     async def step_async(self):
-        #seq_group = self.video_sched.scheduler.schedule()
         seq_group = self.video_sched.scheduler.hungry_first_priority_schedule()
+        #seq_group = self.video_sched.scheduler.naive_baseline_schedule()
+        #seq_group = self.video_sched.scheduler.naive_partition_schedule()
+        #seq_group = self.video_sched.scheduler.smart_static_partition_schedule()
+        #seq_group = self.video_sched.scheduler.smart_dynamic_partition_schedule()
         if seq_group:
-            print("add to task_queue ", seq_group.request_id)
             self.task_queue.put(seq_group)
+            #return True
         return None
      
     async def engine_step(self) -> bool:
-        new_requests, finished_requests = (
-            self._request_tracker.get_new_and_finished_requests())
-        # print("engine_step ")
-        
+        new_requests, _ = (
+            self._request_tracker.get_new_and_finished_requests())        
         for new_request in new_requests:
             self.video_sched.add_request(**new_request)
-        
         request_outputs = await self.step_async()
-
-        # if request_outputs:
-        #     self._request_tracker.process_request_output(self.video_engine.get_global_ranks(), request_outputs)
-        return request_outputs!=None
+        return request_outputs != None
     
     @property
     def is_running(self) -> bool:
@@ -773,12 +775,12 @@ class AsyncEngine:
                 "cur_step": cur_step,
             }
             _ = self.post_http_request(pload = pload, api_url = self.gs_url)
-    
+            
     def create_update_threads(self, instances_num: int) -> None:
         for _ in range(instances_num): # can't be sure if we need instances_num's threads, may be one is enough
             cur_thread = threading.Thread(target = self.update_requests_cur_steps)
             cur_thread.daemon = True
-            cur_thread.start
+            cur_thread.start()
     
     async def worker_generate_dit(self, worker_ids, request_id, prompt, resolution, aspect_ratio, num_frames) -> None:
         await self.video_engine.prepare_generate(
@@ -787,10 +789,8 @@ class AsyncEngine:
             resolution=resolution,
             aspect_ratio=aspect_ratio,
             num_frames=num_frames,
-        )
-                
-        t1 = time.time()
-
+        )            
+        #t1 = time.time()
         for index in range(self.video_engine.config.num_sampling_steps):
             #use request_id check sched req to and get worker_ids, if true, need rebuild comm and trans data.
             # new worker need execute prepare_generate
@@ -812,10 +812,9 @@ class AsyncEngine:
                         aspect_ratio=aspect_ratio,
                         num_frames=num_frames,
                     )
-                print("new_worker_ids, worker_ids ", self.request_workers[request_id], worker_ids)
+                print(f"request {request_id} resolution {resolution} new worker ids {self.request_workers[request_id]} old worker ids {worker_ids}")
                 worker_ids = copy.deepcopy(self.request_workers[request_id])
                 await self.build_worker_comm(worker_ids)
-
             '''if request_id in self.request_workers:
                 #     print("no new gpus ", request_id)
                 # else:
@@ -834,14 +833,10 @@ class AsyncEngine:
                     worker_ids = copy.deepcopy(new_worker_ids)
                     await self.build_worker_comm(worker_ids)
                     del self.request_workers[request_id]'''
-
             self.update_cur_step_tasks.put((request_id, index + 1)) # comnunicate first then the scheduler will re-allocate while worker exectuing
-            await self.video_engine.index_iteration_generate(worker_ids=worker_ids, i=index)
-            
-        t2 = time.time()
-        print("t2-t1 " , t2-t1)
-            
-            
+            await self.video_engine.index_iteration_generate(worker_ids = worker_ids, i = index)
+        #t2 = time.time()
+        #print("t2-t1 " , t2-t1)
         # await self.video_engine.async_generate_dit(worker_ids=worker_ids, request_id=request_id, prompt=prompt,
         #             resolution=resolution,
         #             aspect_ratio=aspect_ratio,

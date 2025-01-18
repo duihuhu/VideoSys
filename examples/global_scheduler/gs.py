@@ -1,18 +1,20 @@
 #python3 async_server.py --port 8001 --rank 1 --dworld-size 2
 # python3 client.py --rank 0 --world-size 2 --group-name g1 --op create --dport 8000
 import argparse
-from typing import AsyncGenerator
 import aiohttp
 import uvicorn
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse, Response, StreamingResponse
+from fastapi.responses import JSONResponse, Response
 from videosys.core.async_engine import AsyncSched
+import os
+import time
 
 AIOHTTP_TIMEOUT = aiohttp.ClientTimeout(total=6 * 60 * 60)
 TIMEOUT_KEEP_ALIVE = 5  # seconds.
 app = FastAPI()
 engine = None
 
+log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "start_log.txt")
 
 async def asyc_forward_request(request_dict, api_url):
     headers = {"User-Agent": "Test Client"}
@@ -46,8 +48,12 @@ async def recv_request(request: Request) -> Response:
     resolution = request_dict.pop("resolution")
     aspect_ratio = request_dict.pop("aspect_ratio")
     num_frames = request_dict.pop("num_frames")
-    results_generator = await sched.generate(request_id = request_id, prompt = prompt, \
+    _ = await sched.generate(request_id = request_id, prompt = prompt, \
         resolution = resolution, aspect_ratio = aspect_ratio,num_frames = num_frames)
+    
+    start_time = time.time()
+    with open(log_path, 'a') as file:
+        file.write(f"request {request_id} starts at {start_time}\n")
 
 @app.post("/update_cur_step")
 async def update_cur_step(request: Request) -> Response:

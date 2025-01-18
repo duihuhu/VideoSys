@@ -1215,7 +1215,7 @@ class OpenSoraPipeline(VideoSysPipeline):
         assert len(self._pg_to_ranks) == 0, "pg_to_ranks should be empty"
         world_size = dist.get_world_size()
         global_rank = dist.get_rank()
-        print(f"[rank {global_rank}] before init_all_process_group")
+        #print(f"[rank {global_rank}] before init_all_process_group")
         # generate permutation of all process groups
         parallel_sizes = [2 ** i for i in range(int.bit_length(world_size)) if 2 ** i <= world_size]
         for parallel_size in parallel_sizes:
@@ -1226,10 +1226,10 @@ class OpenSoraPipeline(VideoSysPipeline):
             self._ranks_to_pg[ranks] = pg
             self._pg_to_ranks[pg] = ranks
         # print(self._ranks_to_pg)
-        print(f"[rank {global_rank}] after init_all_process_group") 
+        #print(f"[rank {global_rank}] after init_all_process_group") 
 
     def set_curr_parallel_mgr(self, worker_ids: List[int]):
-        print(f"[rank {global_rank}] before set_curr_parallel_mgr")
+        #print(f"[rank {global_rank}] before set_curr_parallel_mgr")
         worker_ids = tuple(sorted(worker_ids))
         global_rank = dist.get_rank()
         assert (
@@ -1242,7 +1242,7 @@ class OpenSoraPipeline(VideoSysPipeline):
         videosys.set_parallel_manager(
             dp_size, cp_size, sp_size, worker_ids, self._ranks_to_pg
         )
-        print(f"[rank {global_rank}] after set_curr_parallel_mgr")
+        #print(f"[rank {global_rank}] after set_curr_parallel_mgr")
 
     def build_worker_comm_comm(self, rank=0, num_gpus=1, distributed_init_method=None):
         # videosys.initialize_postposition(rank=rank, world_size=num_gpus, init_method=distributed_init_method, seed=42)

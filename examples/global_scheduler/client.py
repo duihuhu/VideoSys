@@ -4,9 +4,10 @@ from typing import Iterable, List
 import requests
 import uuid
 import time
-import random
+import pickle
+import numpy as np
+import os
 G_URL = "http://127.0.0.1:8001/recv_request"  #GS服务器的地址 P
-
 
 def random_uuid() -> str:
     return str(uuid.uuid4().hex)
@@ -21,7 +22,7 @@ def clear_line(n: int = 1) -> None:
 def post_http_request(prompt, resolution, aspect_ratio, num_frames, api_url: str) -> requests.Response:
     headers = {"User-Agent": "Test Client"}
     request_id =  random_uuid()
-    print("request_id ", request_id, "resolution ", resolution)
+    print(f"send request {request_id} resolution {resolution}")
     pload = {
         "request_id": request_id,
         "prompt": prompt,
@@ -52,32 +53,24 @@ def post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames):
     rsp = post_http_request(prompt, resolution, aspect_ratio, num_frames, G_URL)
     # for h in get_streaming_response(rsp):
     #     print("res", time.time(), h)
-    print("rsp ", rsp)
+    #print("rsp ", rsp)
             
-def main(prompt, aspect_ratio, num_frames, ratios: List[int], recv_ratio: float, total_num: int, batch: bool):
-    t1 = time.time()
-    resolutions = ["144p", "240p", "360p"]
+def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, batch: bool):
+    #t1 = time.time()
+    add_resolutions = []
+    with open(res_path, 'r') as file:
+        add_resolutions = pickle.load(add_resolutions, file)
+
     if not batch:
-        for _ in range(total_num):
-            resolution = random.choices(resolutions, weights = ratios, k = 1)[0]
+        for resolution in add_resolutions:
+            sleep_time = np.random.exponential(scale = 1 / recv_ratio, size = 1)[0]
             post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
-            time.sleep(1 / recv_ratio)
+            time.sleep(sleep_time)
     else:
-        total_ratios = sum(ratios)
-        total_nums = [round(total_num * (ratios[i] / total_ratios)) for i in range(len(resolutions))] 
-        # if total_num can't divide total_ratios this will make the reall total_num be different from the args
-        # but the error can be ignored since is too small
-        print(f"real req num {sum(total_nums)} args num {total_num}")
-        add_resolutions = []
-        for i, num in enumerate(total_nums):
-            for _ in range(num):
-                add_resolutions.append(resolutions[i])
-        random.shuffle(add_resolutions)
         for resolution in add_resolutions:
             post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)        
-            # time.sleep(2)
-    t2 = time.time()
-    print(t2-t1)
+    #t2 = time.time()
+    #print(t2-t1)
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -88,14 +81,15 @@ if __name__ == "__main__":
     parser.add_argument("--ratio2", type = int, default = 1)
     parser.add_argument("--ratio3", type = int, default = 1)
     parser.add_argument("--recv-ratio", type = float, default = 8.0)
-    parser.add_argument("--total-num", type = int, default = 128)
-    parser.add_argument("--batch", action = "store_true", default = False)
+    parser.add_argument("--batch", type = int, default = 1)
     args = parser.parse_args()
     
-    random.seed(42)
+    np.random.seed(42)
 
     prompt = args.prompt
     aspect_ratio = args.aspect_ratio
     num_frames = args.num_frames
     
-    main(prompt, aspect_ratio, num_frames, [args.ratio1, args.ratio2, args.ratio3], args.recv_ratio, args.total_num, args.batch)
+    temp_path = "resolution_" + str(args.ratio1) + "_" + str(args.ratio2) + "_" + str(args.ratio3) + ".pkl"
+    file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), temp_path)
+    main(prompt, aspect_ratio, num_frames, file_path, args.recv_ratio, args.batch)
