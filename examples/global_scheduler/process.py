@@ -81,7 +81,7 @@ with open(end_log_path, 'r') as file:
         datas = line.strip().split(' ')
         req_id = str(datas[1])
         end_time = float(datas[-1])
-        if req_id not in starts:
+        if req_id not in ends:
             ends[req_id] = end_time
 outputs = []
 for key, value in starts.items():
