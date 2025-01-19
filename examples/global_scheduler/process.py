@@ -1,9 +1,7 @@
-prefix_path = "/home/jovyan/hcch/hucc/VideoSys/examples/global_scheduler/batch_high_affinity2/"
+'''prefix_path = "/home/jovyan/hcch/hucc/VideoSys/examples/global_scheduler/batch_high_affinity2/"
 prefix_path2 = "/home/jovyan/hcch/hucc/VideoSys/examples/global_scheduler/logs_temp/"
 prefix_path3 = "/home/jovyan/hhy/logs/"
 ratios = [(1,1,8),(2,2,6),(3,3,4),(1,8,1),(2,6,2),(3,4,3),(8,1,1),(6,2,2),(4,3,3),(2,4,4),(4,2,4),(4,4,2),(1,3,6),(6,1,3),(3,6,1),(1,1,1)]
-
-
 ddits = []
 ddits2 = []
 statics = []
@@ -40,7 +38,7 @@ for item in ddits2:
     print(item)
 print(f"----------Static----------")
 for item in statics2:
-    print(item)
+    print(item)'''
 
 '''for j, cls in enumerate(["ddit.txt", "static.txt"]):
     file_path = prefix_path2 + cls
@@ -64,3 +62,30 @@ for item in ddits:
 print(f"----------Static----------")
 for item in statics:
     print(item)'''
+
+start_log_path = "/data/home/scyb091/VideoSys/examples/global_scheduler/start_log.txt"
+end_log_path = "/data/home/scyb091/VideoSys/examples/open_sora/end_log.txt"
+starts = {}
+ends = {}
+with open(start_log_path, 'r') as file:
+    lines = file.readlines()
+    for line in lines:
+        datas = line.strip().split(' ')
+        req_id = str(datas[1])
+        start_time = float(datas[-1])
+        if req_id not in starts:
+            starts[req_id] = start_time
+with open(end_log_path, 'r') as file:
+    lines = file.readlines()
+    for line in lines:
+        datas = line.strip().split(' ')
+        req_id = str(datas[1])
+        end_time = float(datas[-1])
+        if req_id not in starts:
+            ends[req_id] = end_time
+outputs = []
+for key, value in starts.items():
+    outputs.append(ends[key] - value)
+outputs.sort(key = lambda x: x)
+for item in outputs:
+    print(item)
