@@ -59,7 +59,7 @@ def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, bat
     #t1 = time.time()
     add_resolutions = []
     with open(res_path, 'r') as file:
-        add_resolutions = pickle.load(add_resolutions, file)
+        add_resolutions = pickle.load(file)
 
     if not batch:
         for resolution in add_resolutions:
@@ -67,7 +67,9 @@ def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, bat
             post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
             time.sleep(sleep_time)
     else:
-        for resolution in add_resolutions:
+        for i, resolution in enumerate(add_resolutions):
+            if i == 16:
+                break # add for debug
             post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)        
     #t2 = time.time()
     #print(t2-t1)
