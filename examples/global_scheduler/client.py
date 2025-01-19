@@ -58,7 +58,7 @@ def post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames):
 def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, batch: bool):
     #t1 = time.time()
     add_resolutions = []
-    with open(res_path, 'r') as file:
+    with open(res_path, 'rb') as file:
         add_resolutions = pickle.load(file)
 
     if not batch:
