@@ -1229,10 +1229,6 @@ class OpenSoraPipeline(VideoSysPipeline):
         #print(f"[rank {global_rank}] after init_all_process_group") 
 
     def set_curr_parallel_mgr(self, worker_ids: List[int]):
-<<<<<<< HEAD
-        #print(f"[rank {global_rank}] before set_curr_parallel_mgr")
-=======
->>>>>>> gitee_videosys_worker_step_hhy_real_hw_new
         worker_ids = tuple(sorted(worker_ids))
         global_rank = dist.get_rank()
         print(f"[rank {global_rank}] before set_curr_parallel_mgr")
