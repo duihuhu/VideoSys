@@ -170,7 +170,10 @@ async def async_generate(request: Request) -> Response:
     await engine.worker_generate_homo(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
     
     # await engine.destory_worker_comm(worker_ids)
+    end_time = time.time()
     print(f"request {request_id}  resolution{resolution} dit&vae end")
+    with open(log_path, 'a') as file:
+        file.write(f"request {request_id} ends at {end_time}\n")
 
 @app.post("/async_generate_dit")
 async def async_generate_dit(request: Request) -> Response:
@@ -190,11 +193,7 @@ async def async_generate_dit(request: Request) -> Response:
         #print(request_id, "vae end")
         
     # await engine.destory_worker_comm(worker_ids)
-    end_time = time.time()
     print(f"request {request_id} resolution{resolution} dit ends")
-    with open(log_path, 'a') as file:
-        file.write(f"request {request_id} ends at {end_time}\n")
-
 
 # @app.post("/async_generate_vae")
 # async def async_generate_vae(request: Request) -> Response:
