@@ -190,7 +190,10 @@ async def async_generate_dit(request: Request) -> Response:
         #print(request_id, "vae end")
         
     # await engine.destory_worker_comm(worker_ids)
+    end_time = time.time()
     print(f"request {request_id} resolution{resolution} dit ends")
+    with open(log_path, 'a') as file:
+        file.write(f"request {request_id} ends at {end_time}\n")
 
 
 # @app.post("/async_generate_vae")
