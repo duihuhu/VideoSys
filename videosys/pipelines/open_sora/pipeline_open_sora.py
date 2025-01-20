@@ -671,7 +671,7 @@ class OpenSoraPipeline(VideoSysPipeline):
         if not return_dict:
             return (video,)
 
-        print("video info ", type(video), video.shape)
+        #print("video info ", type(video), video.shape)
         return VideoSysPipelineOutput(video=video)
 
     @torch.no_grad()
@@ -925,7 +925,7 @@ class OpenSoraPipeline(VideoSysPipeline):
 
         if not return_dict:
             return (video,)
-        print("video info ", type(video), video.shape)
+        #print("video info ", type(video), video.shape)
         del self.dit_video_data[request_id]
         return VideoSysPipelineOutput(video=video)
 
@@ -1231,7 +1231,7 @@ class OpenSoraPipeline(VideoSysPipeline):
     def set_curr_parallel_mgr(self, worker_ids: List[int]):
         worker_ids = tuple(sorted(worker_ids))
         global_rank = dist.get_rank()
-        print(f"[rank {global_rank}] before set_curr_parallel_mgr")
+        #print(f"[rank {global_rank}] before set_curr_parallel_mgr")
 
         assert (
             global_rank in worker_ids
