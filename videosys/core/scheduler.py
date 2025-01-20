@@ -33,7 +33,7 @@ class VideoScheduler:
         self.update_tasks: Queue[Tuple[str, List[int]]] = Queue()
         self.async_server_url = "http://127.0.0.1:8000/request_workers"
 
-        self.static_dop = 1 #2 add for test
+        self.static_dop = 2 #2 add for test
         self.w1: List[Tuple[int, int]] = [(0, 1), (2, 3)]
         self.w2: List[Tuple[int, int]] = [(4, 5)]
         self.w3: List[Tuple[int, int]] = [(6, 7)]
