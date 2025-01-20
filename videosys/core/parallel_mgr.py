@@ -145,9 +145,9 @@ class ParallelManager:
             self.sp_rank = dist.get_rank(self.sp_group)
 
             self.enable_sp = sp_size > 1
-            logger.info(
-                f"Init parallel manager with dp_size: {dp_size}, cp_size: {cp_size}, sp_size: {sp_size} \n"
-            )
+            #logger.info(
+            #    f"Init parallel manager with dp_size: {dp_size}, cp_size: {cp_size}, sp_size: {sp_size} \n"
+            #)
             return
         # All possible process group are already generated. We just select suitable process groups
         global_rank = dist.get_rank()
