@@ -86,6 +86,10 @@ with open(end_log_path, 'r') as file:
 outputs = []
 for key, value in starts.items():
     outputs.append(ends[key] - value)
-outputs.sort(key = lambda x: x)
-for item in outputs:
-    print(item)
+print(f"----------Avg----------")
+print(sum(outputs) / len(outputs))
+print(f"----------Tail----------")
+print(max(outputs))
+#outputs.sort(key = lambda x: x)
+#for item in outputs:
+#    print(item)
