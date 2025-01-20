@@ -23,6 +23,7 @@ TIMEOUT_KEEP_ALIVE = 5  # seconds.
 app = FastAPI()
 engine = None
 
+end_num = 0
 log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "end_log.txt")
 
 async def asyc_forward_request(request_dict, api_url):
@@ -171,7 +172,8 @@ async def async_generate(request: Request) -> Response:
     
     # await engine.destory_worker_comm(worker_ids)
     end_time = time.time()
-    print(f"request {request_id}  resolution{resolution} dit&vae end")
+    end_num += 1
+    print(f"request {request_id}  resolution{resolution} dit&vae end {end_num}")
     with open(log_path, 'a') as file:
         file.write(f"request {request_id} ends at {end_time}\n")
 
@@ -213,7 +215,8 @@ async def async_generate_vae_step(request: Request) -> Response:
     await engine.worker_generate_vae_step(worker_ids=worker_ids, request_id=request_id)
     
     end_time = time.time()
-    print(f"request {request_id} vae ends")
+    end_num += 1
+    print(f"request {request_id} vae ends {end_num}")
     with open(log_path, 'a') as file:
         file.write(f"request {request_id} ends at {end_time}\n")
     # await engine.destory_worker_comm(worker_ids)
