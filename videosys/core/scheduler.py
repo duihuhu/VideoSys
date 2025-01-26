@@ -67,7 +67,7 @@ class VideoScheduler:
         cur_thread.daemon = True # kill gs -> kill AsyncSched -> Kill VideoSched -> Kill VideoScheduler -> Kill thread
         cur_thread.start()
 
-    def update_gpu_status(self, last: bool, group_id: str) -> None:
+    def update_gpu_status(self, last: bool, group_id: str, sjf: bool) -> None:
         if last:
             self.gpu_status[self.requests_workers_ids[group_id][0]] = 0
             self.requests_workers_ids.pop(group_id, None)
@@ -76,7 +76,8 @@ class VideoScheduler:
                 self.gpu_status[self.requests_workers_ids[group_id][i]] = 0
             self.hungry_requests.pop(group_id, None) 
             self.requests_cur_steps.pop(group_id, None)
-            self.requests_last_steps.pop(group_id, None)
+            if not sjf:
+                self.requests_last_steps.pop(group_id, None)
     
     def hungry_first_priority_schedule(self) -> SequenceGroup:
         cur_free_gpus: Queue[int] = Queue()
