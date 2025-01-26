@@ -34,13 +34,13 @@ class VideoScheduler:
         self.async_server_url = "http://127.0.0.1:8000/request_workers"
 
         self.static_dop = 1 #1, 4 add for test
-        self.w1: List[Tuple[int, int]] = [(0, 1), (2, 3)]
-        self.w2: List[Tuple[int, int]] = [(4, 5)]
-        self.w3: List[Tuple[int, int]] = [(6, 7)]
+        self.w1_num: List[Tuple[int, int]] = [(0, 1), (2, 3)]
+        self.w2_num: List[Tuple[int, int]] = [(4, 5)]
+        self.w3_num: List[Tuple[int, int]] = [(6, 7)]
 
-        self.r1: List[int] = [0, 1]
-        self.r2: List[Tuple[int, int]] = [(2, 3)]
-        self.r3: List[Tuple[int, int, int, int]] = [(4, 5, 6, 7)]
+        self.r1_num: List[int] = [0, 1]
+        self.r2_num: List[Tuple[int, int]] = [(2, 3)]
+        self.r3_num: List[Tuple[int, int, int, int]] = [(4, 5, 6, 7)]
     
     def post_http_request(self, pload, api_url) -> requests.Response:
         headers = {"User-Agent": "Test Client"}
