@@ -236,24 +236,63 @@ class VideoScheduler:
     def smart_dynamic_partition_schedule(self) -> SequenceGroup:
         if self.waiting:
             cur_req = self.waiting[0]
-            if len(self.r1_num) >= 1:
-                x = self.r1_num.pop(0)
-                temp_worker_ids = [x]
-                cur_req.worker_ids = temp_worker_ids
-                self.waiting.popleft()
-                return cur_req
-            elif len(self.r2_num) >= 1:
-                x, y = self.r2_num.pop(0)
-                temp_worker_ids = [x, y]
-                cur_req.worker_ids = temp_worker_ids
-                self.waiting.popleft()
-                return cur_req
-            elif len(self.r3_num) >= 1:
-                x, y, z, l = self.r3_num.pop(0)
-                temp_worker_ids = [x, y, z, l]
-                cur_req.worker_ids = temp_worker_ids
-                self.waiting.popleft()
-                return cur_req
+            if cur_req.resolution == '144p':
+                if len(self.r1_num) >= 1:
+                    x = self.r1_num.pop(0)
+                    temp_worker_ids = [x]
+                    cur_req.worker_ids = temp_worker_ids
+                    self.waiting.popleft()
+                    return cur_req
+                elif len(self.r2_num) >= 1:
+                    x, y = self.r2_num.pop(0)
+                    temp_worker_ids = [x, y]
+                    cur_req.worker_ids = temp_worker_ids
+                    self.waiting.popleft()
+                    return cur_req
+                elif len(self.r3_num) >= 1:
+                    x, y, z, l = self.r3_num.pop(0)
+                    temp_worker_ids = [x, y, z, l]
+                    cur_req.worker_ids = temp_worker_ids
+                    self.waiting.popleft()
+                    return cur_req
+            elif cur_req.resolution == '240p':
+                if len(self.r2_num) >= 1:
+                    x, y = self.r2_num.pop(0)
+                    temp_worker_ids = [x, y]
+                    cur_req.worker_ids = temp_worker_ids
+                    self.waiting.popleft()
+                    return cur_req
+                elif len(self.r1_num) >= 1:
+                    x = self.r1_num.pop(0)
+                    temp_worker_ids = [x]
+                    cur_req.worker_ids = temp_worker_ids
+                    self.waiting.popleft()
+                    return cur_req
+                elif len(self.r3_num) >= 1:
+                    x, y, z, l = self.r3_num.pop(0)
+                    temp_worker_ids = [x, y, z, l]
+                    cur_req.worker_ids = temp_worker_ids
+                    self.waiting.popleft()
+                    return cur_req
+            elif cur_req.resolution == '360p':
+                if len(self.r3_num) >= 1:
+                    x, y, z, l = self.r3_num.pop(0)
+                    temp_worker_ids = [x, y, z, l]
+                    cur_req.worker_ids = temp_worker_ids
+                    self.waiting.popleft()
+                    return cur_req
+                elif len(self.r1_num) >= 1:
+                    x = self.r1_num.pop(0)
+                    temp_worker_ids = [x]
+                    cur_req.worker_ids = temp_worker_ids
+                    self.waiting.popleft()
+                    return cur_req
+                elif len(self.r2_num) >= 1:
+                    x, y = self.r2_num.pop(0)
+                    temp_worker_ids = [x, y]
+                    cur_req.worker_ids = temp_worker_ids
+                    self.waiting.popleft()
+                    return cur_req
         return None
     
     def sjf_priority_schedule(self) -> SequenceGroup:
