@@ -326,7 +326,7 @@ class VideoScheduler:
                 update_gpu_num = cur_max_gpus_num - len(self.requests_workers_ids[cur_hungry_request.request_id])
         update = False
         cur_waiting_request = self.waiting[0]
-        cur_waiting_opt_gpus_num = self.opt_gpus_num[cur_waiting_request.request_id]
+        cur_waiting_opt_gpus_num = self.opt_gpus_num[cur_waiting_request.resolution]
         cur_demand_gpus_num = cur_free_gpus.qsize()
         hungry_level = 0
         while cur_waiting_opt_gpus_num > 0:
