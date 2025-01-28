@@ -318,7 +318,7 @@ class VideoScheduler:
                     break
                 cur_opt_gpus_num //= 2
                 cur_priority += 1
-            temp_remaining_time = (1 - self.requests_cur_steps / self.denoising_steps) * self.dit_times[cur_hungry_request.resolution][cur_max_gpus_num]
+            temp_remaining_time = (1 - self.requests_cur_steps[cur_hungry_request.request_id] / self.denoising_steps) * self.dit_times[cur_hungry_request.resolution][cur_max_gpus_num]
             if temp_remaining_time < minn_time:
                 minn_time = temp_remaining_time
                 update_request_id = cur_hungry_request.request_id
