@@ -235,7 +235,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", type=str, default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8000)
-    parser.add_argument("--gpus-num", type=int, default=1)
+    parser.add_argument("--gpus-num", type=int, default=8)
     parser.add_argument('--enable-separate', action="store_true", help=('separate or not '))
     parser.add_argument('--worker-type', type=str, choices=['dit', 'vae'], default=None, help=('instance '))
     parser.add_argument('--rank', type=int, default=0)

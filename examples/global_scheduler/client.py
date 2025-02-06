@@ -67,7 +67,7 @@ def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, bat
             post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
             time.sleep(sleep_time)
     else:
-        add_resolutions = ['360p'] * 11
+        #add_resolutions = ['360p'] * 14
         for i, resolution in enumerate(add_resolutions):
             #if i == 32:
             #    break # add for debug

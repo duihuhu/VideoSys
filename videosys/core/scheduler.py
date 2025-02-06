@@ -24,19 +24,28 @@ class VideoScheduler:
         self.requests_last_steps: Dict[str, int] = {}
         self.requests_cur_steps: Dict[str, int] = {}
         
-        self.dit_times: Dict[str, Dict[int, float]] = {"144p": {1: 3, 2: 3.4, 4: 3.5}, 
+        '''self.dit_times: Dict[str, Dict[int, float]] = {"144p": {1: 3, 2: 3.4, 4: 3.5}, 
                                                        "240p": {1: 8.3, 2: 4.6, 4: 3.7}, 
-                                                       "360p": {1: 19.2, 2: 10.4, 4: 6.1}}
-        self.opt_gpus_num: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 4}
+                                                       "360p": {1: 19.2, 2: 10.4, 4: 6.1}}'''
+        self.dit_times: Dict[str, Dict[int, float]] = {"144p": {1: 2.81, 2: 2.06, 4: 2.06}, 
+                                                       "240p": {1: 6.83, 2: 3.20, 4: 2.17}, 
+                                                       "360p": {1: 14.49, 2: 6.65, 4: 3.73, 8: 2.38}}
+        
+        #self.opt_gpus_num: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 4}
+        self.opt_gpus_num: Dict[str, int] = {"144p": 2, "240p": 2, "360p": 8}
+
         self.denoising_steps = 30
 
         self.update_tasks: Queue[Tuple[str, List[int]]] = Queue()
         self.async_server_url = "http://127.0.0.1:8000/request_workers"
 
-        self.static_dop = 8 #1, 4 add for test
-        self.w1_num: List[Tuple[int, int]] = [(0, 1), (2, 3)]
-        self.w2_num: List[Tuple[int, int]] = [(4, 5)]
-        self.w3_num: List[Tuple[int, int]] = [(6, 7)]
+        self.static_dop = 2 #1, 4 add for test
+        #self.w1_num: List[Tuple[int, int]] = [(0, 1), (2, 3)]
+        #self.w2_num: List[Tuple[int, int]] = [(4, 5)]
+        #self.w3_num: List[Tuple[int, int]] = [(6, 7)]
+        self.w1_num: List[int] = [0, 1]
+        self.w2_num: List[int] = [2, 3]
+        self.w3_num: List[int] = [4, 5, 6, 7]
 
         self.r1_num: List[int] = [0, 1]
         self.r2_num: List[Tuple[int, int]] = [(2, 3)]
@@ -174,30 +183,39 @@ class VideoScheduler:
     
     def naive_baseline_update_gpu_status(self, resolution: str, worker_ids: List[int]) -> None:
         if resolution == '144p':
-            self.w1_num.append((worker_ids[0], worker_ids[1]))
+            #self.w1_num.append((worker_ids[0], worker_ids[1]))
+            self.w1_num.append((worker_ids[0]))
         elif resolution == '240p':
-            self.w2_num.append((worker_ids[0], worker_ids[1]))
+            #self.w2_num.append((worker_ids[0], worker_ids[1]))
+            self.w2_num.append((worker_ids[0]))
         elif resolution == '360p':
-            self.w3_num.append((worker_ids[0], worker_ids[1]))
+            #self.w3_num.append((worker_ids[0], worker_ids[1]))
+            self.w3_num.append((worker_ids[0]))
 
     def naive_partition_schedule(self) -> SequenceGroup:
         if self.waiting:
             cur_req = self.waiting[0]
             if cur_req.resolution == '144p' and len(self.w1_num) >= 1:
-                x, y = self.w1_num.pop(0)
-                temp_worker_ids = [x, y]
+                #x, y = self.w1_num.pop(0)
+                x = self.w1_num.pop(0)
+                #temp_worker_ids = [x, y]
+                temp_worker_ids = [x]
                 cur_req.worker_ids = temp_worker_ids
                 self.waiting.popleft()
                 return cur_req
             elif cur_req.resolution == '240p' and len(self.w2_num) >= 1:
-                x, y = self.w2_num.pop(0)
-                temp_worker_ids = [x, y]
+                #x, y = self.w2_num.pop(0)
+                x = self.w2_num.pop(0)
+                #temp_worker_ids = [x, y]
+                temp_worker_ids = [x]
                 cur_req.worker_ids = temp_worker_ids
                 self.waiting.popleft()
                 return cur_req
             elif cur_req.resolution == '360p' and len(self.w3_num) >= 1:
-                x, y = self.w3_num.pop(0)
-                temp_worker_ids = [x, y]
+                #x, y = self.w3_num.pop(0)
+                x = self.w3_num.pop(0)
+                #temp_worker_ids = [x, y]
+                temp_worker_ids = [x]
                 cur_req.worker_ids = temp_worker_ids
                 self.waiting.popleft()
                 return cur_req
