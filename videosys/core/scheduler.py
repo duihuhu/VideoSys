@@ -43,9 +43,9 @@ class VideoScheduler:
         #self.w1_num: List[Tuple[int, int]] = [(0, 1), (2, 3)]
         #self.w2_num: List[Tuple[int, int]] = [(4, 5)]
         #self.w3_num: List[Tuple[int, int]] = [(6, 7)]
-        self.w1_num: List[int] = [0, 1, 2]
-        self.w2_num: List[int] = [3, 4, 5]
-        self.w3_num: List[int] = [6, 7]
+        self.w1_num: List[int] = [0]
+        self.w2_num: List[int] = [1, 2]
+        self.w3_num: List[int] = [3, 4, 5, 6, 7]
 
         self.r1_num: List[int] = [0, 1]
         self.r2_num: List[Tuple[int, int]] = [(2, 3)]
