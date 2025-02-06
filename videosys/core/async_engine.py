@@ -254,9 +254,9 @@ class AsyncSched:
                 "worker_ids": task.worker_ids,
             }
             _ = self.post_http_request(pload = pload, api_url = api_url)
-            #self.video_sched.scheduler.navie_update_gpu_status(group_id = task.request_id)
+            self.video_sched.scheduler.navie_update_gpu_status(group_id = task.request_id)
             #self.video_sched.scheduler.naive_baseline_update_gpu_status(resolution = task.resolution, worker_ids = task.worker_ids)
-            self.video_sched.scheduler.smart_baseline_update_gpu_status(worker_ids = task.worker_ids)
+            #self.video_sched.scheduler.smart_baseline_update_gpu_status(worker_ids = task.worker_ids)
     
     def process(self,):
         while True:
@@ -305,8 +305,8 @@ class AsyncSched:
     
     def create_consumer(self, instances_num: int):
         for _ in range(instances_num):
-            consumer = threading.Thread(target=self.process)
-            #consumer = threading.Thread(target=self.process2)
+            #consumer = threading.Thread(target=self.process)
+            consumer = threading.Thread(target=self.process2)
             consumer.daemon = True
             consumer.start()
             self.consumers.append(consumer)
@@ -348,11 +348,11 @@ class AsyncSched:
         
     async def step_async(self):
         #seq_group = self.video_sched.scheduler.hungry_first_priority_schedule()
-        #seq_group = self.video_sched.scheduler.naive_baseline_schedule()
+        seq_group = self.video_sched.scheduler.naive_baseline_schedule()
         #seq_group = self.video_sched.scheduler.naive_partition_schedule()
         #seq_group = self.video_sched.scheduler.smart_static_partition_schedule()
         #seq_group = self.video_sched.scheduler.smart_dynamic_partition_schedule()
-        seq_group = self.video_sched.scheduler.sjf_priority_schedule()
+        #seq_group = self.video_sched.scheduler.sjf_priority_schedule()
         if seq_group:
             self.task_queue.put(seq_group)
             #return True

@@ -171,7 +171,7 @@ async def async_generate(request: Request) -> Response:
     
     # await engine.destory_worker_comm(worker_ids)
     end_time = time.time()
-    print(f"request {request_id}  resolution{resolution} dit&vae end")
+    print(f"request {request_id} resolution{resolution} dit&vae end")
     with open(log_path, 'a') as file:
         file.write(f"request {request_id} ends at {end_time}\n")
 

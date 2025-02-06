@@ -653,7 +653,7 @@ class OpenSoraPipeline(VideoSysPipeline):
             samples = self.vae.decode(samples.to(self._dtype), num_frames=num_frames)
             torch.cuda.synchronize() 
             t3 = time.time()
-            #print("transformer, vae ", t2-t1, t3-t2)
+            print("transformer, vae ", t2-t1, t3-t2)
             video_clips.append(samples)
 
         for i in range(1, loop):
