@@ -267,7 +267,7 @@ class AsyncSched:
                 break  # 如果任务是 None，表示结束
             print(f"request {task.request_id} resolution {task.resolution} dit's worker ids {task.worker_ids}")
             
-            if task.resolution == "144p":
+            '''if task.worker_ids == "144p":
                 api_url = "http://127.0.0.1:8000/async_generate"
                 pload = {
                     "request_id": task.request_id,
@@ -280,27 +280,27 @@ class AsyncSched:
                 _ = self.post_http_request(pload=pload, api_url=api_url)
                 #self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id, sjf = True)
                 self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id, sjf = False)
-            else:
-                api_url = "http://127.0.0.1:8000/async_generate_dit"
-                pload = {
-                    "request_id": task.request_id,
-                    "prompt": task.prompt,
-                    "resolution": task.resolution, 
-                    "aspect_ratio": task.aspect_ratio,
-                    "num_frames": task.num_frames,
-                    "worker_ids": task.worker_ids,
-                }
-                _ = self.post_http_request(pload=pload, api_url=api_url)
-                #self.video_sched.scheduler.update_gpu_status(last = False, group_id = task.request_id, sjf = True)
-                self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id, sjf = False)
-                api_url = "http://127.0.0.1:8000/async_generate_vae"
-                pload = {
-                    "request_id": task.request_id,
-                    "worker_ids": [task.worker_ids[0]],
-                }
-                _ = self.post_http_request(pload=pload, api_url=api_url)
-                #self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id, sjf = True)
-                self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id, sjf = False)
+            else:'''
+            api_url = "http://127.0.0.1:8000/async_generate_dit"
+            pload = {
+                "request_id": task.request_id,
+                "prompt": task.prompt,
+                "resolution": task.resolution, 
+                "aspect_ratio": task.aspect_ratio,
+                "num_frames": task.num_frames,
+                "worker_ids": task.worker_ids,
+            }
+            _ = self.post_http_request(pload=pload, api_url=api_url)
+            #self.video_sched.scheduler.update_gpu_status(last = False, group_id = task.request_id, sjf = True)
+            self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id, sjf = False)
+            api_url = "http://127.0.0.1:8000/async_generate_vae"
+            pload = {
+                "request_id": task.request_id,
+                "worker_ids": [task.worker_ids[0]],
+            }
+            _ = self.post_http_request(pload=pload, api_url=api_url)
+            #self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id, sjf = True)
+            self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id, sjf = False)
         return 
     
     def create_consumer(self, instances_num: int):
