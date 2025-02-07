@@ -27,9 +27,9 @@ class VideoScheduler:
         '''self.dit_times: Dict[str, Dict[int, float]] = {"144p": {1: 3, 2: 3.4, 4: 3.5}, 
                                                        "240p": {1: 8.3, 2: 4.6, 4: 3.7}, 
                                                        "360p": {1: 19.2, 2: 10.4, 4: 6.1}}'''
-        self.dit_times: Dict[str, Dict[int, float]] = {"144p": {1: 2.81, 2: 2.06, 4: 2.06}, 
-                                                       "240p": {1: 6.83, 2: 3.20, 4: 2.17}, 
-                                                       "360p": {1: 14.49, 2: 6.65, 4: 3.73, 8: 2.38}}
+        self.dit_times: Dict[str, Dict[int, float]] = {"144p": {1: 2.63, 2: 2.05, 4: 2.10, 8: 2.17}, 
+                                                       "240p": {1: 6.66, 2: 3.21, 4: 2.17, 8: 2.24}, 
+                                                       "360p": {1: 14.31, 2: 6.66, 4: 3.73, 8: 2.23}}
         
         self.opt_gpus_num: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 2}
 
@@ -38,7 +38,7 @@ class VideoScheduler:
         self.update_tasks: Queue[Tuple[str, List[int]]] = Queue()
         self.async_server_url = "http://127.0.0.1:8000/request_workers"
 
-        self.static_dop = 2 #1, 4 add for test
+        self.static_dop = 2 #1, 4, 8 add for test
         #self.w1_num: List[Tuple[int, int]] = [(0, 1), (2, 3)]
         #self.w2_num: List[Tuple[int, int]] = [(4, 5)]
         #self.w3_num: List[Tuple[int, int]] = [(6, 7)]
