@@ -63,7 +63,7 @@ print(f"----------Static----------")
 for item in statics:
     print(item)'''
 
-start_log_path = "/data/home/scyb091/VideoSys/examples/global_scheduler/start_log.txt"
+'''start_log_path = "/data/home/scyb091/VideoSys/examples/global_scheduler/start_log.txt"
 end_log_path = "/data/home/scyb091/VideoSys/examples/open_sora/end_log.txt"
 starts = {}
 ends = {}
@@ -92,4 +92,20 @@ print(f"----------Tail----------")
 print(max(outputs))
 #outputs.sort(key = lambda x: x)
 #for item in outputs:
-#    print(item)
+#    print(item)'''
+
+file_path = "/data/home/scyb091/VideoSys/examples/global_scheduler/log.txt"
+with open(file_path, 'r') as file:
+    dits = []
+    vaes = []
+    lines = file.readlines()
+    for i, line in enumerate(lines):
+        if i < 8: # 4 2 1
+            continue
+        data = line.strip().split(' ')
+        dits.append(float(data[-2]))
+        vaes.append(float(data[-1]))
+    print(f"----------DiT----------")
+    print(sum(dits) / len(dits))
+    print(f"----------Vae----------")
+    print(sum(vaes) / len(vaes))
