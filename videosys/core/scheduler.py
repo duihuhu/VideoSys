@@ -82,10 +82,10 @@ class VideoScheduler:
         else:
             for i in range(1, len(self.requests_workers_ids[group_id])):
                 self.gpu_status[self.requests_workers_ids[group_id][i]] = 0
-            self.hungry_requests.pop(group_id, None) 
-            self.requests_cur_steps.pop(group_id, None)
-            if not sjf:
-                self.requests_last_steps.pop(group_id, None)
+            #self.hungry_requests.pop(group_id, None) 
+            #self.requests_cur_steps.pop(group_id, None)
+            #if not sjf:
+            #    self.requests_last_steps.pop(group_id, None)
     
     def hungry_first_priority_schedule(self) -> SequenceGroup:
         cur_free_gpus: Queue[int] = Queue()
@@ -152,6 +152,37 @@ class VideoScheduler:
                 cur_waiting_request.worker_ids = copy.deepcopy(self.requests_workers_ids[cur_waiting_request.request_id])
                 self.waiting.popleft()
                 return cur_waiting_request
+        return None
+    
+    def continuous_batching_schedule(self) -> SequenceGroup:
+        cur_free_gpus: Queue[int] = Queue()
+        for gpu_id, status in enumerate(self.gpu_status):
+            if status == 0:
+                cur_free_gpus.put(gpu_id)
+        if cur_free_gpus.qsize() < 1:
+            return None
+        
+        if self.waiting:
+            cur_waiting_request = self.waiting[0]
+            cur_demand_gpus_num = []
+            cur_max_gpus_num = self.opt_gpus_num[cur_waiting_request.resolution]
+            while cur_max_gpus_num > 0:
+                cur_demand_gpus_num.append(cur_max_gpus_num)
+                cur_max_gpus_num //= 2
+            for demand_gpus_num in cur_demand_gpus_num:
+                if cur_free_gpus.qsize() < demand_gpus_num:
+                    continue
+                for _ in range(demand_gpus_num):
+                    gpu_id = cur_free_gpus.get()
+                    self.gpu_status[gpu_id] = 1
+                    if cur_waiting_request.request_id not in self.requests_workers_ids:
+                        self.requests_workers_ids[cur_waiting_request.request_id] = [gpu_id]
+                    else:
+                        self.requests_workers_ids[cur_waiting_request.request_id].append(gpu_id)
+                cur_waiting_request.worker_ids = copy.deepcopy(self.requests_workers_ids[cur_waiting_request.request_id])
+                self.waiting.popleft()
+                return cur_waiting_request
+        
         return None
     
     def navie_update_gpu_status(self, group_id: str) -> None:
