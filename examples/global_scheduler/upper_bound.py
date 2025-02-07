@@ -20,7 +20,7 @@ def try_best_allocate(st: int, ed: int, gpus_per_instance: int, process_group_si
         ans += ((ed_column + 1) // process_group_size)
         mid_row_num = ed_row - st_row -1
         if mid_row_num >= 1:
-            ans += (gpus_per_instance // process_group_size)
+            ans += ((gpus_per_instance // process_group_size) * mid_row_num)
     else:
         ans += ((ed_column - st_column + 1) // process_group_size)
     return ans
@@ -37,7 +37,9 @@ def upper_bound_solver(batch: bool,
     tasks_per_type: List[int] = []
     for weight in weights:
         tasks_per_type.append(round((weight / total_weights) * requests_num))
-    dp = [[0.0 for _ in range(tpyes_num + 1)] for _ in range(gpus_num + 1)]
+    dp = [[float('inf') for _ in range(tpyes_num + 1)] for _ in range(gpus_num + 1)]
+    for i in range(1, gpus_num + 1):
+        dp[i][0] = 0.0
     for j in range(1, tpyes_num + 1):
         dp[0][j] = float('inf')
   
@@ -65,6 +67,8 @@ def upper_bound_solver(batch: bool,
                         p0 = 1 / (ra / (af * (1 - utilization_ratio)) + ps)
                         cumulative_resource_occupancy_time = (iteration_time + ((ra * iteration_time) / (af * model_replicas * (1 - utilization_ratio) ** 2)) * p0) / 2
                         dp[i][j] = min(dp[i][j], dp[i - k][j - 1] + k * cumulative_resource_occupancy_time)
+    
+    return dp[gpus_num][tpyes_num]
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
