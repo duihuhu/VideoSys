@@ -2,12 +2,12 @@ from typing import List, Optional, Dict
 import math
 import argparse
 
-dit_times: Dict[str, Dict[int, float]] = {0: {1: 2.63, 2: 2.05, 4: 2.10, 8: 2.17}, 
-                                          1: {1: 6.66, 2: 3.21, 4: 2.17, 8: 2.24}, 
-                                          2: {1: 14.31, 2: 6.66, 4: 3.73, 8: 2.23}}
-vae_times: Dict[int, Dict[int, float]] = {0: {1: 0.16, 2: 0.16, 4: 0.16, 8: 0.16}, 
-                                          1: {1: 0.38, 2: 0.38, 4: 0.38, 8: 0.38}, 
-                                          2: {1: 0.87, 2: 0.87, 4: 0.87, 8: 0.87}}
+dit_times: Dict[str, Dict[int, float]] = {0: {1: 2.633189726, 2: 2.045935887, 4: 2.10466114}, 
+                                          1: {1: 6.660509109, 2: 3.207396257, 4: 2.170124942}, 
+                                          2: {1: 14.30886201, 2: 6.659627545, 4: 3.727769458}}
+vae_times: Dict[int, Dict[int, float]] = {0: {1: 0.1586879134, 2: 0.1586879134, 4: 0.1586879134}, 
+                                          1: {1: 0.3828430176, 2: 0.3828430176, 4: 0.3828430176}, 
+                                          2: {1: 0.8714578629, 2: 0.8714578629, 4: 0.8714578629}}
 
 def try_best_allocate(st: int, ed: int, gpus_per_instance: int, process_group_size: int) -> int:
     st_row = st // gpus_per_instance
