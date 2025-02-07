@@ -2,12 +2,12 @@ from typing import List, Optional, Dict
 import math
 import argparse
 
-dit_times: Dict[int, Dict[int, float]] = {0: {1: 3, 2: 3.4, 4: 3.5}, 
-                                          1: {1: 8.3, 2: 4.6, 4: 3.7}, 
-                                          2: {1: 19.2, 2: 10.4, 4: 6.1}}
-vae_times: Dict[int, Dict[int, float]] = {0: {1: 0.16, 2: 0.16, 4: 0.16}, 
-                                          1: {1: 0.38, 2: 0.38, 4: 0.38}, 
-                                          2: {1: 0.87, 2: 0.87, 4: 0.87}}
+dit_times: Dict[str, Dict[int, float]] = {0: {1: 2.63, 2: 2.05, 4: 2.10, 8: 2.17}, 
+                                          1: {1: 6.66, 2: 3.21, 4: 2.17, 8: 2.24}, 
+                                          2: {1: 14.31, 2: 6.66, 4: 3.73, 8: 2.23}}
+vae_times: Dict[int, Dict[int, float]] = {0: {1: 0.16, 2: 0.16, 4: 0.16, 8: 0.16}, 
+                                          1: {1: 0.38, 2: 0.38, 4: 0.38, 8: 0.38}, 
+                                          2: {1: 0.87, 2: 0.87, 4: 0.87, 8: 0.87}}
 
 def try_best_allocate(st: int, ed: int, gpus_per_instance: int, process_group_size: int) -> int:
     st_row = st // gpus_per_instance
@@ -68,7 +68,7 @@ def upper_bound_solver(batch: bool,
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--instances", type = int, default = 8)
+    parser.add_argument("--instances", type = int, default = 1)
     parser.add_argument("--gpus", type = int, default = 8)
     parser.add_argument("--weight1", type = int, default = 1)
     parser.add_argument("--weight2", type = int, default = 1)
