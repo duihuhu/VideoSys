@@ -31,7 +31,7 @@ class VideoScheduler:
                                                        "240p": {1: 6.66, 2: 3.21, 4: 2.17, 8: 2.24}, 
                                                        "360p": {1: 14.31, 2: 6.66, 4: 3.73, 8: 2.23}}
         
-        self.opt_gpus_num: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 2}
+        self.opt_gpus_num: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 4}
 
         self.denoising_steps = 30
 
