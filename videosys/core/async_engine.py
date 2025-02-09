@@ -296,7 +296,7 @@ class AsyncSched:
                 api_url = "http://127.0.0.1:8000/async_generate_vae"
                 pload = {
                     "request_id": task.request_id,
-                    "worker_ids": task.worker_ids, #[task.worker_ids[0]],
+                    "worker_ids": [task.worker_ids[0]], #task.worker_ids
                 }
                 _ = self.post_http_request(pload=pload, api_url=api_url)
                 #self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id, sjf = True)
