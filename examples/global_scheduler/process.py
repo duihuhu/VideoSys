@@ -90,9 +90,9 @@ print(f"----------Avg----------")
 print(sum(outputs) / len(outputs))
 print(f"----------Tail----------")
 print(max(outputs))
-#outputs.sort(key = lambda x: x)
-#for item in outputs:
-#    print(item)
+outputs.sort(key = lambda x: x)
+for item in outputs:
+    print(item)
 
 '''file_path = "/data/home/scyb091/VideoSys/examples/global_scheduler/log.txt"
 with open(file_path, 'r') as file:
