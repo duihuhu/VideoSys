@@ -63,9 +63,9 @@ def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, bat
 
     if not batch:
         for resolution in add_resolutions:
-            sleep_time = np.random.exponential(scale = 1 / recv_ratio, size = 1)[0]
+            #sleep_time = np.random.exponential(scale = 1 / recv_ratio, size = 1)[0]
             post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
-            time.sleep(sleep_time)
+            time.sleep(1)
     else:
         #add_resolutions = ['360p'] * 5
         for i, resolution in enumerate(add_resolutions):
