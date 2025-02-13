@@ -4,8 +4,9 @@ import copy
 import time
 import threading
 import argparse
-import random
+import pickle
 import sys
+import numpy as np
 
 class Request:
     def __init__(self, id: int, resolution: str):
@@ -25,17 +26,21 @@ else:
 
 class GlobalScheduler:
     def __init__(self, instances_num: int, jobs_num: int, high_affinity: bool = True, gpus_per_instance: int = 8,
-                 w1_num: Optional[int] = 10, w2_num: Optional[int] = 9, w3_num: Optional[int] = 9):
+                 w1_num: Optional[int] = 12, w2_num: Optional[int] = 13, w3_num: Optional[int] = 13):
         self.gpu_status = [0 for _ in range(instances_num * gpus_per_instance)]
         self.hungry_requests: Dict[int, Request] = {}
         self.waiting_requests: Deque[Request] = Deque()
         self.requests_workers_ids: Dict[int, List[int]] = {}
         self.requests_workers_ids2: Dict[int, List[Tuple[int, int]]] = {}
         self.requests_last_steps: Dict[int, int] = {}
-        self.dit_times: Dict[str, Dict[int, float]] = {"144p": {1: 3, 2: 3.4, 4: 3.5}, 
+        '''self.dit_times: Dict[str, Dict[int, float]] = {"144p": {1: 3, 2: 3.4, 4: 3.5}, 
                                                        "240p": {1: 8.3, 2: 4.6, 4: 3.7}, 
-                                                       "360p": {1: 19.2, 2: 10.4, 4: 6.1}}
-        self.opt_gpus_num: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 4}
+                                                       "360p": {1: 19.2, 2: 10.4, 4: 6.1}}'''
+        self.dit_times: Dict[str, Dict[int, float]] = {"144p": {1: 2.63, 2: 2.05, 4: 2.10, 8: 2.17}, 
+                                                       "240p": {1: 6.66, 2: 3.21, 4: 2.17, 8: 2.24}, 
+                                                       "360p": {1: 14.31, 2: 6.66, 4: 3.73, 8: 2.23}}
+        #self.opt_gpus_num: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 4}
+        self.opt_gpus_num: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 2}
         self.denoising_steps: int = 30
         self.jobs_num = jobs_num
         self.high_affinity = high_affinity
@@ -350,13 +355,17 @@ def gs(global_scheduler: GlobalScheduler, sp_size: Optional[int] = None) -> None
 
 class Engine:
     def __init__(self, log_file_path: str, jobs_num: int, high_affinity: bool = True):
-        self.dit_times: Dict[str, Dict[int, float]] = {"144p": {1: 3, 2: 3.4, 4: 3.5}, 
+        '''self.dit_times: Dict[str, Dict[int, float]] = {"144p": {1: 3, 2: 3.4, 4: 3.5}, 
                                                        "240p": {1: 8.3, 2: 4.6, 4: 3.7}, 
-                                                       "360p": {1: 19.2, 2: 10.4, 4: 6.1}}
+                                                       "360p": {1: 19.2, 2: 10.4, 4: 6.1}}'''
+        self.dit_times: Dict[str, Dict[int, float]] = {"144p": {1: 2.63, 2: 2.05, 4: 2.10, 8: 2.17}, 
+                                                       "240p": {1: 6.66, 2: 3.21, 4: 2.17, 8: 2.24}, 
+                                                       "360p": {1: 14.31, 2: 6.66, 4: 3.73, 8: 2.23}}
         self.vae_times: Dict[str, Dict[int, float]] = {"144p": {1: 0.16, 2: 0.16, 4: 0.16}, 
                                                        "240p": {1: 0.38, 2: 0.38, 4: 0.38}, 
                                                        "360p": {1: 0.87, 2: 0.87, 4: 0.87}}
-        self.opt_gpus_num: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 4}
+        #self.opt_gpus_num: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 4}
+        self.opt_gpus_num: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 2}
         self.denoising_steps: int = 30
         self.log_file_path = log_file_path
         self.jobs_num = jobs_num
@@ -404,7 +413,7 @@ class Engine:
         elif resolution == "240p":
             time.sleep(self.vae_times[resolution][2])
         elif resolution == "360p":
-            time.sleep(self.vae_times[resolution][4])
+            time.sleep(self.vae_times[resolution][2])
         end_time = time.time()
         finished_requests.append(0)
         print(f"request {id} resolution {resolution} ends") # add for log
@@ -532,21 +541,24 @@ if __name__ == "__main__":
     parser.add_argument("--batch", type = int, default = 1)
     parser.add_argument("--arrival-ratio", type = float, default = 8.0)
     parser.add_argument("--high-affinity", type = int, default = 1)
-    parser.add_argument("--sp-size", type = int, default = 4)
+    parser.add_argument("--sp-size", type = int, default = 2)
     args = parser.parse_args()
     print(args) # add for debug
 
-    random.seed(42)
+    #random.seed(42)
 
-    resolutions = ["144p", "240p", "360p"]
+    #resolutions = ["144p", "240p", "360p"]
     ratios: List[int] = [args.low, args.middle, args.high]
     total_ratios = sum(ratios)
-    total_nums = [round(args.requests_num * (ratio / total_ratios)) for ratio in ratios] 
+    '''total_nums = [round(args.requests_num * (ratio / total_ratios)) for ratio in ratios] 
     add_resolutions: List[str] = []
     for i, num in enumerate(total_nums):
         for _ in range(num):
             add_resolutions.append(resolutions[i])
-    random.shuffle(add_resolutions)
+    random.shuffle(add_resolutions)'''
+    add_resolutions = []
+    with open('your_path', 'rb') as file:
+        add_resolutions = pickle.load(file)
     jobs_num = len(add_resolutions) # add to end the gs
 
     if args.high_affinity:
@@ -569,9 +581,9 @@ if __name__ == "__main__":
                                               high_affinity = high_affinity,
                                               gpus_per_instance = args.gpus_per_instance)
             
-            '''ws = [round(16 * (ratios[0] / total_ratios)),
-                  round(16 * (ratios[1] / total_ratios)),
-                  16 - round(16 * (ratios[0] / total_ratios)) - round(16 * (ratios[1] / total_ratios))]
+            '''ws = [round(32 * (ratios[0] / total_ratios)),
+                  round(32 * (ratios[1] / total_ratios)),
+                  16 - round(32 * (ratios[0] / total_ratios)) - round(16 * (ratios[1] / total_ratios))]
             globalscheduler = GlobalScheduler(instances_num = args.instances_num, jobs_num = jobs_num, 
                                               high_affinity = high_affinity,
                                               gpus_per_instance = args.gpus_per_instance,
@@ -648,7 +660,8 @@ if __name__ == "__main__":
                 if j == 0:
                     consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, high_affinity, False))
                 else:
-                    consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, high_affinity, True))
+                    #consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, high_affinity, True))
+                    consumer = threading.Thread(target = isolated_task_consumer, args = (engine, globalscheduler))
                 consumer.start()
                 total_threads.append(consumer)
             if j == 0:
@@ -663,7 +676,7 @@ if __name__ == "__main__":
                 start_time = time.time()
                 with open(log_file_path1, 'a') as file:
                     file.write(f"request {i} starts at {start_time}\n")
-                time.sleep(1 / args.arrival_ratio)
+                time.sleep(np.random.exponential(scale = 1 / args.arrival_ratio, size = 1)[0])
             
             #for consumer exit
             for _ in range(consumers_num):

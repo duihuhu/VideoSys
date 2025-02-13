@@ -9,8 +9,8 @@ ddits2 = []
 statics = []
 statics2 = []
 for j, cls in enumerate(["ddit.txt", "static.txt"]):
-    if j == 1:
-        break
+    #if j == 1:
+    #    break
     for x, y, z in ratios:
         file_path = prefix_path + str(x) + "_" + str(y) + "_" + str(z) + "_" + cls
         times = []
