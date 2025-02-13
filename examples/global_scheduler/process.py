@@ -83,13 +83,13 @@ with open(end_log_path, 'r') as file:
         end_time = float(datas[-1])
         if req_id not in ends:
             ends[req_id] = end_time
-start_times = list(starts.values())
-start_times.sort()
+#start_times = list(starts.values())
+#start_times.sort()
 outputs = []
-#for key, value in starts.items():
-#    outputs.append(ends[key] - value)
-for _, value in ends.items():
-    outputs.append(value - start_times[0])
+for key, value in starts.items():
+    outputs.append(ends[key] - value)
+#for _, value in ends.items():
+#    outputs.append(value - start_times[0])
 print(f"----------Avg----------")
 print(sum(outputs) / len(outputs))
 print(f"----------Tail----------")
