@@ -62,10 +62,10 @@ def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, bat
         add_resolutions = pickle.load(file)
 
     if not batch:
-        for resolution in add_resolutions:
-            #sleep_time = np.random.exponential(scale = 1 / recv_ratio, size = 1)[0]
+        sleep_times = np.random.exponential(scale = 1 / recv_ratio, size = len(add_resolutions))
+        for j, resolution in enumerate(add_resolutions):
             post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
-            time.sleep(1)
+            time.sleep(sleep_times[j])
     else:
         #add_resolutions = ['360p'] * 5
         for i, resolution in enumerate(add_resolutions):
