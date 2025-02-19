@@ -48,7 +48,7 @@ class VideoScheduler:
 
         self.r1_num: List[int] = [0, 1]
         self.r2_num: List[Tuple[int, int]] = [(2, 3)]
-        self.r3_num: List[Tuple[int, int, int, int]] = [(4, 5, 6, 7)]
+        self.r3_num: List[Tuple[int, int]] = [(4, 5), (6, 7)]
     
     def post_http_request(self, pload, api_url) -> requests.Response:
         headers = {"User-Agent": "Test Client"}
@@ -253,13 +253,16 @@ class VideoScheduler:
                 return cur_req
         return None
 
-    def smart_baseline_update_gpu_status(self, worker_ids: List[int]) -> None:
+    def smart_baseline_update_gpu_status(self, worker_ids: List[int], resolution: str) -> None:
         if len(worker_ids) == 1:
             self.r1_num.append(worker_ids[0])
         elif len(worker_ids) == 2:
-            self.r2_num.append((worker_ids[0], worker_ids[1]))
-        elif len(worker_ids) == 4:
-            self.r3_num.append((worker_ids[0], worker_ids[1], worker_ids[2], worker_ids[3]))
+            if resolution == '240p':
+                self.r2_num.append((worker_ids[0], worker_ids[1]))
+            elif resolution == '360p':
+                self.r3_num.append((worker_ids[0], worker_ids[1]))
+        #elif len(worker_ids) == 4:
+        #    self.r3_num.append((worker_ids[0], worker_ids[1], worker_ids[2], worker_ids[3]))
     
     def smart_static_partition_schedule(self) -> SequenceGroup:
         if self.waiting:
@@ -294,15 +297,15 @@ class VideoScheduler:
                     cur_req.worker_ids = temp_worker_ids
                     self.waiting.popleft()
                     return cur_req
-                elif len(self.r2_num) >= 1:
-                    x, y = self.r2_num.pop(0)
+                elif len(self.r3_num) >= 1:
+                    x, y = self.r3_num.pop(0)
                     temp_worker_ids = [x, y]
                     cur_req.worker_ids = temp_worker_ids
                     self.waiting.popleft()
                     return cur_req
-                elif len(self.r3_num) >= 1:
-                    x, y, z, l = self.r3_num.pop(0)
-                    temp_worker_ids = [x, y, z, l]
+                elif len(self.r2_num) >= 1:
+                    x, y = self.r2_num.pop(0)
+                    temp_worker_ids = [x, y]
                     cur_req.worker_ids = temp_worker_ids
                     self.waiting.popleft()
                     return cur_req
@@ -313,22 +316,22 @@ class VideoScheduler:
                     cur_req.worker_ids = temp_worker_ids
                     self.waiting.popleft()
                     return cur_req
+                elif len(self.r3_num) >= 1:
+                    x, y = self.r3_num.pop(0)
+                    temp_worker_ids = [x, y]
+                    cur_req.worker_ids = temp_worker_ids
+                    self.waiting.popleft()
+                    return cur_req
                 elif len(self.r1_num) >= 1:
                     x = self.r1_num.pop(0)
                     temp_worker_ids = [x]
                     cur_req.worker_ids = temp_worker_ids
                     self.waiting.popleft()
                     return cur_req
-                elif len(self.r3_num) >= 1:
-                    x, y, z, l = self.r3_num.pop(0)
-                    temp_worker_ids = [x, y, z, l]
-                    cur_req.worker_ids = temp_worker_ids
-                    self.waiting.popleft()
-                    return cur_req
             elif cur_req.resolution == '360p':
                 if len(self.r3_num) >= 1:
-                    x, y, z, l = self.r3_num.pop(0)
-                    temp_worker_ids = [x, y, z, l]
+                    x, y = self.r3_num.pop(0)
+                    temp_worker_ids = [x, y]
                     cur_req.worker_ids = temp_worker_ids
                     self.waiting.popleft()
                     return cur_req

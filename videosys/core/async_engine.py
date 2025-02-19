@@ -254,9 +254,9 @@ class AsyncSched:
                 "worker_ids": task.worker_ids,
             }
             _ = self.post_http_request(pload = pload, api_url = api_url)
-            self.video_sched.scheduler.navie_update_gpu_status(group_id = task.request_id)
+            #self.video_sched.scheduler.navie_update_gpu_status(group_id = task.request_id)
             #self.video_sched.scheduler.naive_baseline_update_gpu_status(resolution = task.resolution, worker_ids = task.worker_ids)
-            #self.video_sched.scheduler.smart_baseline_update_gpu_status(worker_ids = task.worker_ids)
+            self.video_sched.scheduler.smart_baseline_update_gpu_status(worker_ids = task.worker_ids, resolution = task.resolution)
     
     def process(self,):
         while True:
@@ -265,8 +265,10 @@ class AsyncSched:
             task = self.task_queue.get()  # 阻塞，直到有任务
             if task is None:
                 break  # 如果任务是 None，表示结束
+            #with open("/data/home/scyb091/VideoSys/examples/global_scheduler/gen.txt", "a") as file:
+            #        file.write(f"{task.request_id} {time.time()}\n")
             print(f"request {task.request_id} resolution {task.resolution} dit's worker ids {task.worker_ids}")
-            
+
             if task.worker_ids == "144p":
                 api_url = "http://127.0.0.1:8000/async_generate"
                 pload = {
@@ -348,10 +350,10 @@ class AsyncSched:
         
     async def step_async(self):
         #seq_group = self.video_sched.scheduler.hungry_first_priority_schedule()
-        seq_group = self.video_sched.scheduler.naive_baseline_schedule()
+        #seq_group = self.video_sched.scheduler.naive_baseline_schedule()
         #seq_group = self.video_sched.scheduler.naive_partition_schedule()
         #seq_group = self.video_sched.scheduler.smart_static_partition_schedule()
-        #seq_group = self.video_sched.scheduler.smart_dynamic_partition_schedule()
+        seq_group = self.video_sched.scheduler.smart_dynamic_partition_schedule()
         #seq_group = self.video_sched.scheduler.sjf_priority_schedule()
         #seq_group = self.video_sched.scheduler.continuous_batching_schedule()
         if seq_group:
