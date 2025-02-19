@@ -335,14 +335,14 @@ class VideoScheduler:
                     cur_req.worker_ids = temp_worker_ids
                     self.waiting.popleft()
                     return cur_req
-                elif len(self.r1_num) >= 1:
-                    x = self.r1_num.pop(0)
+                elif len(self.r2_num) >= 1:
+                    x = self.r2_num.pop(0)
                     temp_worker_ids = [x]
                     cur_req.worker_ids = temp_worker_ids
                     self.waiting.popleft()
                     return cur_req
-                elif len(self.r2_num) >= 1:
-                    x, y = self.r2_num.pop(0)
+                elif len(self.r1_num) >= 1:
+                    x, y = self.r1_num.pop(0)
                     temp_worker_ids = [x, y]
                     cur_req.worker_ids = temp_worker_ids
                     self.waiting.popleft()
