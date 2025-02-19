@@ -256,7 +256,7 @@ class AsyncSched:
             _ = self.post_http_request(pload = pload, api_url = api_url)
             #self.video_sched.scheduler.navie_update_gpu_status(group_id = task.request_id)
             #self.video_sched.scheduler.naive_baseline_update_gpu_status(resolution = task.resolution, worker_ids = task.worker_ids)
-            self.video_sched.scheduler.smart_baseline_update_gpu_status(worker_ids = task.worker_ids, resolution = task.resolution)
+            self.video_sched.scheduler.smart_baseline_update_gpu_status(worker_ids = task.worker_ids, req_id = task.request_id)
     
     def process(self,):
         while True:

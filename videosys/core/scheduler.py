@@ -49,6 +49,8 @@ class VideoScheduler:
         self.r1_num: List[int] = [0, 1]
         self.r2_num: List[Tuple[int, int]] = [(2, 3)]
         self.r3_num: List[Tuple[int, int]] = [(4, 5), (6, 7)]
+
+        self.home_town: Dict[str, int] = {}
     
     def post_http_request(self, pload, api_url) -> requests.Response:
         headers = {"User-Agent": "Test Client"}
@@ -253,14 +255,16 @@ class VideoScheduler:
                 return cur_req
         return None
 
-    def smart_baseline_update_gpu_status(self, worker_ids: List[int], resolution: str) -> None:
+    def smart_baseline_update_gpu_status(self, worker_ids: List[int], req_id: str) -> None:
         if len(worker_ids) == 1:
             self.r1_num.append(worker_ids[0])
+            self.home_town.pop(req_id, None)
         elif len(worker_ids) == 2:
-            if resolution == '240p':
+            if self.home_town[req_id] == 1:
                 self.r2_num.append((worker_ids[0], worker_ids[1]))
-            elif resolution == '360p':
+            elif self.home_town[req_id] == 2:
                 self.r3_num.append((worker_ids[0], worker_ids[1]))
+            self.home_town.pop(req_id, None)
         #elif len(worker_ids) == 4:
         #    self.r3_num.append((worker_ids[0], worker_ids[1], worker_ids[2], worker_ids[3]))
     
@@ -295,18 +299,21 @@ class VideoScheduler:
                     x = self.r1_num.pop(0)
                     temp_worker_ids = [x]
                     cur_req.worker_ids = temp_worker_ids
+                    self.home_town[cur_req.request_id] = 0
                     self.waiting.popleft()
                     return cur_req
                 elif len(self.r3_num) >= 1:
                     x, y = self.r3_num.pop(0)
                     temp_worker_ids = [x, y]
                     cur_req.worker_ids = temp_worker_ids
+                    self.home_town[cur_req.request_id] = 2
                     self.waiting.popleft()
                     return cur_req
                 elif len(self.r2_num) >= 1:
                     x, y = self.r2_num.pop(0)
                     temp_worker_ids = [x, y]
                     cur_req.worker_ids = temp_worker_ids
+                    self.home_town[cur_req.request_id] = 1
                     self.waiting.popleft()
                     return cur_req
             elif cur_req.resolution == '240p':
@@ -314,18 +321,21 @@ class VideoScheduler:
                     x, y = self.r2_num.pop(0)
                     temp_worker_ids = [x, y]
                     cur_req.worker_ids = temp_worker_ids
+                    self.home_town[cur_req.request_id] = 1
                     self.waiting.popleft()
                     return cur_req
                 elif len(self.r3_num) >= 1:
                     x, y = self.r3_num.pop(0)
                     temp_worker_ids = [x, y]
                     cur_req.worker_ids = temp_worker_ids
+                    self.home_town[cur_req.request_id] = 2
                     self.waiting.popleft()
                     return cur_req
                 elif len(self.r1_num) >= 1:
                     x = self.r1_num.pop(0)
                     temp_worker_ids = [x]
                     cur_req.worker_ids = temp_worker_ids
+                    self.home_town[cur_req.request_id] = 0
                     self.waiting.popleft()
                     return cur_req
             elif cur_req.resolution == '360p':
@@ -333,18 +343,21 @@ class VideoScheduler:
                     x, y = self.r3_num.pop(0)
                     temp_worker_ids = [x, y]
                     cur_req.worker_ids = temp_worker_ids
+                    self.home_town[cur_req.request_id] = 2
                     self.waiting.popleft()
                     return cur_req
                 elif len(self.r2_num) >= 1:
                     x, y = self.r2_num.pop(0)
                     temp_worker_ids = [x, y]
                     cur_req.worker_ids = temp_worker_ids
+                    self.home_town[cur_req.request_id] = 1
                     self.waiting.popleft()
                     return cur_req
                 elif len(self.r1_num) >= 1:
                     x = self.r1_num.pop(0)
                     temp_worker_ids = [x]
                     cur_req.worker_ids = temp_worker_ids
+                    self.home_town[cur_req.request_id] = 0
                     self.waiting.popleft()
                     return cur_req
         return None
