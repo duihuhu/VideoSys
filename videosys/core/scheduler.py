@@ -255,7 +255,7 @@ class VideoScheduler:
                 return cur_req
         return None
 
-    def smart_baseline_update_gpu_status(self, worker_ids: List[int], req_id: Optional[str], res: Optional[str]) -> None:
+    def smart_baseline_update_gpu_status(self, worker_ids: List[int], res: str) -> None:
         if len(worker_ids) == 1:
             self.r1_num.append(worker_ids[0])
             #self.home_town.pop(req_id, None)
