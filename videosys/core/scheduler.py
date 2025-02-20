@@ -255,16 +255,16 @@ class VideoScheduler:
                 return cur_req
         return None
 
-    def smart_baseline_update_gpu_status(self, worker_ids: List[int], req_id: str) -> None:
+    def smart_baseline_update_gpu_status(self, worker_ids: List[int], req_id: Optional[str], res: Optional[str]) -> None:
         if len(worker_ids) == 1:
             self.r1_num.append(worker_ids[0])
-            self.home_town.pop(req_id, None)
+            #self.home_town.pop(req_id, None)
         elif len(worker_ids) == 2:
-            if self.home_town[req_id] == 1:
+            if res == '240p': #self.home_town[req_id] == 1:
                 self.r2_num.append((worker_ids[0], worker_ids[1]))
-            elif self.home_town[req_id] == 2:
+            elif res == '360p': #self.home_town[req_id] == 2:
                 self.r3_num.append((worker_ids[0], worker_ids[1]))
-            self.home_town.pop(req_id, None)
+            #self.home_town.pop(req_id, None)
         #elif len(worker_ids) == 4:
         #    self.r3_num.append((worker_ids[0], worker_ids[1], worker_ids[2], worker_ids[3]))
     
@@ -284,8 +284,8 @@ class VideoScheduler:
                 self.waiting.popleft()
                 return cur_req
             elif cur_req.resolution == '360p' and len(self.r3_num) >= 1:
-                x, y, z, l = self.r3_num.pop(0)
-                temp_worker_ids = [x, y, z, l]
+                x, y = self.r3_num.pop(0)
+                temp_worker_ids = [x, y]
                 cur_req.worker_ids = temp_worker_ids
                 self.waiting.popleft()
                 return cur_req
