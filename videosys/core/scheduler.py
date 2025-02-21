@@ -67,6 +67,11 @@ class VideoScheduler:
             if self.update_tasks.empty():
                 continue
             group_id, worker_ids = self.update_tasks.get()
+            #add for debug
+            if len(worker_ids) % 2 != 0:
+                self.gpu_status[worker_ids[-1]] = 0
+                self.requests_workers_ids[group_id].pop()
+                worker_ids.pop()
             pload = {
                 "request_id": group_id,
                 "worker_ids": worker_ids,
