@@ -818,6 +818,8 @@ class AsyncEngine:
                 pre_worker_ids = []
             if pre_worker_ids:
                 # await self.destory_worker_comm(worker_ids=worker_ids)
+                if len(pre_worker_ids) % 2 != 0:
+                    pre_worker_ids.pop()
                 await self.video_engine.prepare_generate(
                         worker_ids=pre_worker_ids,
                         prompt=prompt,
