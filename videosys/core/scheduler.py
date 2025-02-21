@@ -31,14 +31,15 @@ class VideoScheduler:
                                                        "240p": {1: 6.66, 2: 3.21, 4: 2.17, 8: 2.24}, 
                                                        "360p": {1: 14.31, 2: 6.66, 4: 3.73, 8: 2.23}}
         
-        self.opt_gpus_num: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 2, "480p": 4}
+        #self.opt_gpus_num: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 2, "480p": 4}
+        self.opt_gpus_num: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 2}
 
         self.denoising_steps = 30
 
         self.update_tasks: Queue[Tuple[str, List[int]]] = Queue()
         self.async_server_url = "http://127.0.0.1:8000/request_workers"
 
-        self.static_dop = 1 #1, 2, 4, 8 add for test
+        self.static_dop = 2 #1, 2, 4, 8 add for test
         #self.w1_num: List[Tuple[int, int]] = [(0, 1), (2, 3)]
         #self.w2_num: List[Tuple[int, int]] = [(4, 5)]
         #self.w3_num: List[Tuple[int, int]] = [(6, 7)]
@@ -189,6 +190,14 @@ class VideoScheduler:
         
         return None
     
+    def breakdown_update_gpu_status(self, group_id: str, last: bool) -> None:
+        if last:
+            self.gpu_status[self.requests_workers_ids[group_id][0]] = 0
+            self.requests_workers_ids.pop(group_id, None)
+        else:
+            for i in range(1, len(self.requests_workers_ids[group_id])):
+                self.gpu_status[self.requests_workers_ids[group_id][i]] = 0
+        
     def navie_update_gpu_status(self, group_id: str) -> None:
         for gpu_id in self.requests_workers_ids[group_id]:
             self.gpu_status[gpu_id] = 0
