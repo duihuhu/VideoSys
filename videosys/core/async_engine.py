@@ -351,13 +351,17 @@ class AsyncSched:
     #     return
         
     async def step_async(self):
-        #seq_group = self.video_sched.scheduler.hungry_first_priority_schedule()
+        t1 = time.time()
+        seq_group = self.video_sched.scheduler.hungry_first_priority_schedule()
+        t2 = time.time()
+        with open("costs.txt", "a") as file:    
+            file.write(f"{t2-t1}\n") 
         #seq_group = self.video_sched.scheduler.naive_baseline_schedule()
         #seq_group = self.video_sched.scheduler.naive_partition_schedule()
         #seq_group = self.video_sched.scheduler.smart_static_partition_schedule()
         #seq_group = self.video_sched.scheduler.smart_dynamic_partition_schedule()
         #seq_group = self.video_sched.scheduler.sjf_priority_schedule()
-        seq_group = self.video_sched.scheduler.continuous_batching_schedule()
+        #seq_group = self.video_sched.scheduler.continuous_batching_schedule()
         if seq_group:
             self.task_queue.put(seq_group)
             #return True
