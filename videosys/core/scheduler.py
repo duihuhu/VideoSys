@@ -90,9 +90,9 @@ class VideoScheduler:
             self.gpu_status[self.requests_workers_ids[group_id][0]] = 0
             self.requests_workers_ids.pop(group_id, None)
         else:
+            self.hungry_requests.pop(group_id, None)
             for i in range(1, len(self.requests_workers_ids[group_id])):
                 self.gpu_status[self.requests_workers_ids[group_id][i]] = 0
-            self.hungry_requests.pop(group_id, None) 
             self.requests_cur_steps.pop(group_id, None)
             if not sjf:
                 self.requests_last_steps.pop(group_id, None)
