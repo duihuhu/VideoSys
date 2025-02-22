@@ -269,7 +269,7 @@ class AsyncSched:
             #        file.write(f"{task.request_id} {time.time()}\n")
             print(f"request {task.request_id} resolution {task.resolution} dit's worker ids {task.worker_ids}")
 
-            if task.worker_ids == "144p":
+            '''if task.worker_ids == "144p":
                 api_url = "http://127.0.0.1:8000/async_generate"
                 pload = {
                     "request_id": task.request_id,
@@ -282,28 +282,28 @@ class AsyncSched:
                 _ = self.post_http_request(pload=pload, api_url=api_url)
                 #self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id, sjf = True)
                 self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id, sjf = False)
-            else:
-                api_url = "http://127.0.0.1:8000/async_generate_dit"
-                pload = {
-                    "request_id": task.request_id,
-                    "prompt": task.prompt,
-                    "resolution": task.resolution, 
-                    "aspect_ratio": task.aspect_ratio,
-                    "num_frames": task.num_frames,
-                    "worker_ids": task.worker_ids,
-                }
-                _ = self.post_http_request(pload=pload, api_url=api_url)
+            else:'''
+            api_url = "http://127.0.0.1:8000/async_generate_dit"
+            pload = {
+                "request_id": task.request_id,
+                "prompt": task.prompt,
+                "resolution": task.resolution, 
+                "aspect_ratio": task.aspect_ratio,
+                "num_frames": task.num_frames,
+                "worker_ids": task.worker_ids,
+            }
+            _ = self.post_http_request(pload=pload, api_url=api_url)
                     #self.video_sched.scheduler.update_gpu_status(last = False, group_id = task.request_id, sjf = True)
-                self.video_sched.scheduler.update_gpu_status(last = False, group_id = task.request_id, sjf = False)
+            self.video_sched.scheduler.update_gpu_status(last = False, group_id = task.request_id, sjf = False)
                 #self.video_sched.scheduler.breakdown_update_gpu_status(group_id = task.request_id, last = False)
-                api_url = "http://127.0.0.1:8000/async_generate_vae"
-                pload = {
-                    "request_id": task.request_id,
-                    "worker_ids": [task.worker_ids[0]], #task.worker_ids
-                }
-                _ = self.post_http_request(pload=pload, api_url=api_url)
+            api_url = "http://127.0.0.1:8000/async_generate_vae"
+            pload = {
+                "request_id": task.request_id,
+                "worker_ids": [task.worker_ids[0]], #task.worker_ids
+            }
+            _ = self.post_http_request(pload=pload, api_url=api_url)
                     #self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id, sjf = True)
-                self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id, sjf = False)
+            self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id, sjf = False)
                 #self.video_sched.scheduler.breakdown_update_gpu_status(group_id = task.request_id, last = True)
         return 
     
@@ -352,7 +352,7 @@ class AsyncSched:
         
     async def step_async(self):
         #t1 = time.time()
-        #seq_group = self.video_sched.scheduler.hungry_first_priority_schedule()
+        seq_group = self.video_sched.scheduler.hungry_first_priority_schedule()
         #t2 = time.time()
         #with open("costs.txt", "a") as file:    
         #    file.write(f"{t2-t1}\n") 
@@ -361,7 +361,7 @@ class AsyncSched:
         #seq_group = self.video_sched.scheduler.smart_static_partition_schedule()
         #seq_group = self.video_sched.scheduler.smart_dynamic_partition_schedule()
         #seq_group = self.video_sched.scheduler.sjf_priority_schedule()
-        seq_group = self.video_sched.scheduler.continuous_batching_schedule()
+        #seq_group = self.video_sched.scheduler.continuous_batching_schedule()
         if seq_group:
             self.task_queue.put(seq_group)
             #return True

@@ -32,7 +32,7 @@ class VideoScheduler:
                                                        "360p": {1: 14.31, 2: 6.66, 4: 3.73, 8: 2.23}}
         
         #self.opt_gpus_num: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 2, "480p": 4}
-        self.opt_gpus_num: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 2}
+        self.opt_gpus_num: Dict[str, int] = {"144p": 2, "240p": 2, "360p": 4}
 
         self.denoising_steps = 30
 
@@ -92,10 +92,10 @@ class VideoScheduler:
         else:
             for i in range(1, len(self.requests_workers_ids[group_id])):
                 self.gpu_status[self.requests_workers_ids[group_id][i]] = 0
-            '''self.hungry_requests.pop(group_id, None) 
+            self.hungry_requests.pop(group_id, None) 
             self.requests_cur_steps.pop(group_id, None)
             if not sjf:
-                self.requests_last_steps.pop(group_id, None)'''
+                self.requests_last_steps.pop(group_id, None)
     
     def hungry_first_priority_schedule(self) -> SequenceGroup:
         cur_free_gpus: Queue[int] = Queue()
