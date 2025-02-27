@@ -8,8 +8,8 @@ for x, y, z in ratios:
     os.system(command)
     time.sleep(1)
 
-'''base_command = "python3 mock_test.py --low {x} --middle {y} --high {z} --log-file-path /home/jovyan/hcch/hucc/VideoSys/examples/global_scheduler/batch_high_affinity2/{x}_{y}_{z}_"
+base_command = "python3 mock_test.py --low {x} --middle {y} --high {z} --log-file-path /home/jovyan/hcch/hucc/VideoSys/examples/global_scheduler/batch_high_affinity2/{x}_{y}_{z}_"
 for x, y, z in ratios:
     command = base_command.format(x = x, y = y, z = z)
     os.system(command)
-    time.sleep(1)'''
+    time.sleep(1)
