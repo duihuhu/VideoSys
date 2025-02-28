@@ -489,7 +489,7 @@ def task_consumer(engine: Engine, global_scheduler: GlobalScheduler, high_affini
         if task == "exit":
             print("thread exit ", threading.get_native_id())
             break
-        print(f"request {task.id} resolution {task.resolution} starts") # add for log
+        print(f"request {task.id} resolution {task.resolution} starts with {task.workers_ids2}") # add for log
         if task.resolution == "144p":
             if high_affinity:
                 dit_thread = threading.Thread(target = engine.generate_dit, args = (task.id, task.resolution, task.workers_ids, None))
@@ -547,16 +547,15 @@ if __name__ == "__main__":
     print(args) # add for debug
     
     np.random.seed(42)
-
-    ratios: List[int] = [args.low, args.middle, args.high]
-    total_nums = [round(args.requests_num * (ratio / sum(ratios))) for ratio in ratios] 
-    jobs_num = sum(total_nums) # add to end the gs
     
+    ratios = [args.low, args.middle, args.high]
+
     temp_path = "resolution_" + str(args.low) + "_" + str(args.middle) + "_" + str(args.high) + ".pkl"
     res_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), temp_path)
     add_resolutions = []
     with open(res_path, 'rb') as file:
         add_resolutions = pickle.load(file)
+    jobs_num = len(add_resolutions) # add to end the gs
     add_requests: List[Request] = []
     for i, resolution in enumerate(add_resolutions):
         add_requests.append(Request(id = i, resolution = resolution))

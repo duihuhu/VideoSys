@@ -63,9 +63,50 @@ print(f"----------Static----------")
 for item in statics:
     print(item)'''
 
-start_log_path = "/data/home/scyb091/VideoSys/examples/global_scheduler/start_log.txt"
-end_log_path = "/data/home/scyb091/VideoSys/examples/open_sora/end_log.txt"
-starts = {}
+#start_log_path = "/data/home/scyb091/VideoSys/examples/global_scheduler/start_log.txt"
+#end_log_path = "/data/home/scyb091/VideoSys/examples/open_sora/end_log.txt"
+root_path = "/home/jovyan/hcch/hucc/VideoSys/examples/global_scheduler/mock_stream/"
+ratios = [(2,2,6),(2,6,2),(6,2,2),(2,4,4),(4,2,4),(4,4,2),(1,3,6),(6,1,3),(3,6,1),(1,1,1)]
+recv_ratio = [0.25, 0.5, 0.75, 1]
+types = [0, 1, 2, 3, 4]
+for x, y, z in ratios:
+    for rr in recv_ratio:
+        rr_avgs = []
+        rr_tails = []
+        for t in types:
+            start_log_path = root_path + str(x) + "_" + str(y) + "_" + str(z) + "_" + str(rr) + "_" + str(t) + "_start.txt"
+            end_log_path = root_path + str(x) + "_" + str(y) + "_" + str(z) + "_" + str(rr) + "_" + str(t) + "_end.txt"
+            starts = {}
+            ends = {}
+            with open(start_log_path, 'r') as file:
+                lines = file.readlines()
+                for line in lines:
+                    datas = line.strip().split(' ')
+                    req_id = str(datas[1])
+                    start_time = float(datas[-1])
+                    if req_id not in starts:
+                        starts[req_id] = start_time
+            with open(end_log_path, 'r') as file:
+                lines = file.readlines()
+                for line in lines:
+                    datas = line.strip().split(' ')
+                    req_id = str(datas[1])
+                    end_time = float(datas[-1])
+                    if req_id not in ends:
+                        ends[req_id] = end_time
+            outputs = []
+            for key, value in starts.items():
+                outputs.append(ends[key] - value)
+            rr_avgs.append(sum(outputs) / len(outputs))
+            rr_tails.append(max(outputs))
+        print(f"----------{x}_{y}_{z}_{t}----------")
+        print(f"----------Avg----------")
+        for item in rr_avgs:
+            print(item)
+        print(f"----------Tail----------")
+        for item in rr_tails:
+            print(item)
+'''starts = {}
 ends = {}
 with open(start_log_path, 'r') as file:
     lines = file.readlines()
@@ -94,11 +135,11 @@ print(f"----------Avg----------")
 print(sum(outputs) / len(outputs))
 print(f"----------Tail----------")
 print(max(outputs))
-'''outputs.sort(key = lambda x: x)
+outputs.sort(key = lambda x: x)
 for item in outputs:
-    print(item)'''
+    print(item)
 
-'''file_path = "/data/home/scyb091/VideoSys/examples/global_scheduler/log.txt"
+file_path = "/data/home/scyb091/VideoSys/examples/global_scheduler/log.txt"
 with open(file_path, 'r') as file:
     dits = []
     vaes = []
