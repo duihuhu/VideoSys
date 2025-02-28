@@ -552,7 +552,7 @@ if __name__ == "__main__":
     total_nums = [round(args.requests_num * (ratio / sum(ratios))) for ratio in ratios] 
     jobs_num = sum(total_nums) # add to end the gs
     
-    temp_path = "resolution_" + str(args.ratio1) + "_" + str(args.ratio2) + "_" + str(args.ratio3) + ".pkl"
+    temp_path = "resolution_" + str(args.low) + "_" + str(args.middle) + "_" + str(args.high) + ".pkl"
     res_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), temp_path)
     add_resolutions = []
     with open(res_path, 'rb') as file:
