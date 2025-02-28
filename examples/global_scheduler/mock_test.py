@@ -29,7 +29,7 @@ else:
 
 class GlobalScheduler:
     def __init__(self, instances_num: int, jobs_num: int, high_affinity: bool = True, gpus_per_instance: int = 8,
-                 w1_num: Optional[int] = 10, w2_num: Optional[int] = 9, w3_num: Optional[int] = 9):
+                 w1_num: Optional[int] = 6, w2_num: Optional[int] = 6, w3_num: Optional[int] = 7):
         self.gpu_status = [0 for _ in range(instances_num * gpus_per_instance)]
         self.hungry_requests: Dict[int, Request] = {}
         self.waiting_requests: Deque[Request] = Deque()
@@ -39,7 +39,7 @@ class GlobalScheduler:
         self.dit_times: Dict[str, Dict[int, float]] = {"144p": {1: 2.63, 2: 2.05, 4: 2.10, 8: 2.17}, 
                                                        "240p": {1: 6.66, 2: 3.21, 4: 2.17, 8: 2.24}, 
                                                        "360p": {1: 14.31, 2: 6.66, 4: 3.73, 8: 2.23}}
-        self.opt_gpus_num: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 4}
+        self.opt_gpus_num: Dict[str, int] = {"144p": 2, "240p": 4, "360p": 4}
         self.denoising_steps: int = 30
         self.jobs_num = jobs_num
         self.high_affinity = high_affinity
@@ -66,11 +66,6 @@ class GlobalScheduler:
         else:
             for x, y in self.requests_workers_ids2[request_id]:
                 self.gpu_status2[x][y] = 0
-    
-    def couple_helper(self, request_id: int) -> None:
-        self.hungry_requests.pop(request_id, None)
-        requests_cur_steps.pop(request_id, None)
-        self.requests_last_steps.pop(request_id, None)
     
     def update_gpu_status(self, last: bool, request_id: int) -> None:
         if self.high_affinity:
@@ -284,30 +279,7 @@ class GlobalScheduler:
             return cur_waiting_request
         return None
     
-    def static_sp_isolated_scheduler(self) -> Request:
-        if self.waiting_requests:
-            cur_req = self.waiting_requests[0]
-            if cur_req == "exit": # add to stop the consumer
-                self.waiting_requests.popleft()
-                return cur_req
-            if cur_req.resolution == "144p" and self.w1_num >= 1:
-                self.w1_num -= 1
-                self.waiting_requests.popleft()
-                cur_req.workers_type = 0
-                return cur_req
-            elif cur_req.resolution == "240p" and self.w2_num >= 1:
-                self.w2_num -= 1
-                self.waiting_requests.popleft()
-                cur_req.workers_type = 1
-                return cur_req
-            elif cur_req.resolution == "360p" and self.w3_num >= 1:
-                self.w3_num -= 1
-                self.waiting_requests.popleft()
-                cur_req.workers_type = 2
-                return cur_req
-        return None
-    
-    def dynamic_sp_isolated_scheduler(self) -> Request:
+    def static_and_dynamic_sp_isolated_scheduler(self) -> Request:
         if self.waiting_requests:
             cur_req = self.waiting_requests[0]
             if cur_req == "exit": # add to stop the consumer
@@ -394,10 +366,8 @@ def gs(global_scheduler: GlobalScheduler, type: Optional[int] = None, sp_size: O
             request = global_scheduler.ddit_schedule()
         elif type == 1:
             request = global_scheduler.static_sp_scheduler(sp_size = sp_size)
-        elif type == 2:
-            request = global_scheduler.static_sp_isolated_scheduler()
-        elif type == 3:
-            request = global_scheduler.dynamic_sp_isolated_scheduler()
+        elif type == 2 or type == 3:
+            request = global_scheduler.static_and_dynamic_sp_isolated_scheduler()
         elif type == 4:
             request = global_scheduler.dynamic_sp_scheduler()
         #request = global_scheduler.isolated_fcfs_scheduler()
@@ -477,7 +447,7 @@ class Engine:
         return
 
 def task_consumer2(engine: Engine, global_scheduler: GlobalScheduler, static_dop: Optional[bool] = None, 
-                   sp_size: Optional[int] = None) -> None:
+                   sp_size: Optional[int] = None, task_type: Optional[int] = None) -> None:
     while True:
         task = tasks_queue.get()
         if task == "exit":
@@ -485,12 +455,12 @@ def task_consumer2(engine: Engine, global_scheduler: GlobalScheduler, static_dop
             break
         print(f"request {task.id} resolution {task.resolution} starts") # add for log
         if static_dop:
-            dit_thread = threading.Thread(target = engine.generate_dit_isolated(), args = (sp_size,task.resolution))
+            dit_thread = threading.Thread(target = engine.generate_dit_isolated, args = (sp_size,task.resolution))
         else:
             if task.workers_type == 0:
-                dit_thread = threading.Thread(target = engine.generate_dit_isolated, args = (1, task.resolution))
-            elif task.workers_type == 1:
                 dit_thread = threading.Thread(target = engine.generate_dit_isolated, args = (2, task.resolution))
+            elif task.workers_type == 1:
+                dit_thread = threading.Thread(target = engine.generate_dit_isolated, args = (4, task.resolution))
             elif task.workers_type == 2:
                 dit_thread = threading.Thread(target = engine.generate_dit_isolated, args = (4, task.resolution))
         dit_thread.start()
@@ -499,14 +469,14 @@ def task_consumer2(engine: Engine, global_scheduler: GlobalScheduler, static_dop
             vae_thread = threading.Thread(target = engine.generate_vae_isolated, args = (task.id, sp_size, task.resolution))
         else:
             if task.workers_type == 0:
-                vae_thread = threading.Thread(target = engine.generate_vae_isolated, args = (task.id, 1, task.resolution))
-            elif task.workers_type == 1:
                 vae_thread = threading.Thread(target = engine.generate_vae_isolated, args = (task.id, 2, task.resolution))
+            elif task.workers_type == 1:
+                vae_thread = threading.Thread(target = engine.generate_vae_isolated, args = (task.id, 4, task.resolution))
             elif task.workers_type == 2:
                 vae_thread = threading.Thread(target = engine.generate_vae_isolated, args = (task.id, 4, task.resolution))
         vae_thread.start()
         vae_thread.join()
-        if static_dop:
+        if static_dop and task_type == 1:
             global_scheduler.update_gpu_status_static(request_id = task.id)
         else:
             global_scheduler.update_gpu_status_isolated(task.workers_type)
@@ -568,7 +538,7 @@ if __name__ == "__main__":
     parser.add_argument("--middle", type = int, default = 1)
     parser.add_argument("--high", type = int, default = 1)
     parser.add_argument("--requests-num", type = int, default = 128)
-    parser.add_argument("--batch", type = int, default = 1)
+    parser.add_argument("--batch", type = int, default = 0)
     parser.add_argument("--high-affinity", type = int, default = 0)
     parser.add_argument("--sp-size", type = int, default = 4)
     parser.add_argument("--type", type = int, default = 0)
@@ -617,7 +587,7 @@ if __name__ == "__main__":
         elif args.type == 1 or args.type == 2:
             consumers_num = args.instances_num * (args.gpus_per_instance // args.sp_size)
         else:
-            consumers_num = 10 + 9 + 9
+            consumers_num = 6 + 6 + 7
                 
         for request in add_requests:
             globalscheduler.add_request(request = request)
@@ -631,10 +601,10 @@ if __name__ == "__main__":
         for _ in range(consumers_num):
             if args.type == 0:
                 consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, high_affinity))
-            elif args.type == 1:
-                consumer = threading.Thread(target = task_consumer2, args = (engine, globalscheduler, True, args.sp_size))
+            elif args.type == 1 or args.type == 2:
+                consumer = threading.Thread(target = task_consumer2, args = (engine, globalscheduler, True, args.sp_size, args.type))
             else:
-                consumer = threading.Thread(target = task_consumer2, args = (engine, globalscheduler, False, args.sp_size))
+                consumer = threading.Thread(target = task_consumer2, args = (engine, globalscheduler, False, args.sp_size, args.type))
             consumer.start()
             total_threads.append(consumer)
         
@@ -666,16 +636,16 @@ if __name__ == "__main__":
         elif args.type == 1 or args.type == 2:
             consumers_num = args.instances_num * (args.gpus_per_instance // args.sp_size)
         else:
-            consumers_num = 10 + 9 + 9
+            consumers_num = 6 + 6 + 7
                               
         total_threads: List[threading.Thread] = []
         for _ in range(consumers_num):
             if args.type == 0:
                 consumer = threading.Thread(target = task_consumer, args = (engine, globalscheduler, high_affinity))
-            elif args.type == 1:
-                consumer = threading.Thread(target = task_consumer2, args = (engine, globalscheduler, True, args.sp_size))
+            elif args.type == 1 or args.type == 2:
+                consumer = threading.Thread(target = task_consumer2, args = (engine, globalscheduler, True, args.sp_size, args.type))
             else:
-                consumer = threading.Thread(target = task_consumer2, args = (engine, globalscheduler, False, args.sp_size))
+                consumer = threading.Thread(target = task_consumer2, args = (engine, globalscheduler, False, args.sp_size, args.type))
             consumer.start()
             total_threads.append(consumer)
         

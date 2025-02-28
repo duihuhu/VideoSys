@@ -8,8 +8,12 @@ for x, y, z in ratios:
     os.system(command)
     time.sleep(1)
 
-base_command = "python3 mock_test.py --low {x} --middle {y} --high {z} --log-file-path /home/jovyan/hcch/hucc/VideoSys/examples/global_scheduler/batch_high_affinity2/{x}_{y}_{z}_"
+recv_ratio = [0.25, 0.5, 0.75, 1]
+types = [0, 1, 2, 3, 4]
+base_command = "python3 mock_test.py --low {x} --middle {y} --high {z} --recv-ratio {a} --type {b} --log-file-path /home/jovyan/hcch/hucc/VideoSys/examples/global_scheduler/mock_stream/{x}_{y}_{z}_{a}_{b}_"
 for x, y, z in ratios:
-    command = base_command.format(x = x, y = y, z = z)
-    os.system(command)
-    time.sleep(1)
+    for rr in recv_ratio:
+        for t in types:
+            command = base_command.format(x = x, y = y, z = z, a = rr, b = t)
+            os.system(command)
+            time.sleep(5)
