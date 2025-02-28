@@ -542,7 +542,7 @@ if __name__ == "__main__":
     parser.add_argument("--high-affinity", type = int, default = 0)
     parser.add_argument("--sp-size", type = int, default = 4)
     parser.add_argument("--type", type = int, default = 0)
-    parser.add_argument("--recv-ratio", type = int, default = 0.25)
+    parser.add_argument("--recv-ratio", type = float, default = 0.25)
     args = parser.parse_args()
     print(args) # add for debug
     
