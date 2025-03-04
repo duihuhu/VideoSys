@@ -2,12 +2,12 @@ from typing import List, Optional, Dict
 import math
 import argparse
 
-dit_times: Dict[str, Dict[int, float]] = {0: {1: 2.633189726, 2: 2.045935887, 4: 2.10466114}, 
-                                          1: {1: 6.660509109, 2: 3.207396257, 4: 2.170124942}, 
-                                          2: {1: 14.30886201, 2: 6.659627545, 4: 3.727769458}}
-vae_times: Dict[int, Dict[int, float]] = {0: {1: 0.1586879134, 2: 0.1586879134, 4: 0.1586879134}, 
-                                          1: {1: 0.3828430176, 2: 0.3828430176, 4: 0.3828430176}, 
-                                          2: {1: 0.8714578629, 2: 0.8714578629, 4: 0.8714578629}}
+dit_times: Dict[str, Dict[int, float]] = {0: {1: 3, 2: 3.4, 4: 3.5}, 
+                                          1: {1: 8.3, 2: 4.6, 4: 3.7}, 
+                                          2: {1: 19.2, 2: 10.4, 4: 6.1}}
+vae_times: Dict[int, Dict[int, float]] = {0: {1: 0.16, 2: 0.16, 4: 0.16}, 
+                                          1: {1: 0.38, 2: 0.38, 4: 0.38}, 
+                                          2: {1: 0.87, 2: 0.87, 4: 0.87}}
 
 def try_best_allocate(st: int, ed: int, gpus_per_instance: int, process_group_size: int) -> int:
     st_row = st // gpus_per_instance
@@ -54,7 +54,7 @@ def upper_bound_solver(batch: bool,
                     if batch:
                         iterations_num = tasks_per_type[j - 1] // model_replicas + 1
                         cumulative_resource_occupancy_time = iteration_time * iterations_num
-                        dp[i][j] = min(dp[i][j], dp[i - k][j - 1] + k * cumulative_resource_occupancy_time)
+                        dp[i][j] = min(dp[i][j], max(dp[i - k][j - 1], cumulative_resource_occupancy_time))
                     else:
                         task_ratio = weights[j - 1] / total_weights
                         utilization_ratio = (arrival_ratio * task_ratio * iteration_time) / model_replicas
