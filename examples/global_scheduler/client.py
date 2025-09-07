@@ -55,23 +55,33 @@ def post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames):
     #     print("res", time.time(), h)
     #print("rsp ", rsp)
             
-def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, batch: bool):
+def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, batch: bool, sleep_path: str):
     #t1 = time.time()
     add_resolutions = []
     with open(res_path, 'rb') as file:
         add_resolutions = pickle.load(file)
+    
+    sleep_times = np.load(sleep_path)
 
     if not batch:
-        sleep_times = np.random.exponential(scale = 1 / recv_ratio, size = len(add_resolutions))
-        for j, resolution in enumerate(add_resolutions):
-            post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
-            time.sleep(sleep_times[j])
+        #sleep_times = np.random.exponential(scale = 1 / recv_ratio, size = len(add_resolutions))
+        #for j, resolution in enumerate(add_resolutions):
+        #    post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
+        #    time.sleep(sleep_times[j])
+        for i, temp in enumerate(add_resolutions):
+            for resolution in enumerate(temp):
+                post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
+                if i < len(sleep_times) - 1:
+                    time.sleep(sleep_times[i])
     else:
         #add_resolutions = ['360p'] * 5
-        for i, resolution in enumerate(add_resolutions):
+        #for i, resolution in enumerate(add_resolutions):
             #if i == 32:
             #    break # add for debug
-            post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)        
+        #    post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
+        for temp in add_resolutions:
+            for resolution in temp:
+                post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)        
     #t2 = time.time()
     #print(t2-t1)
     
@@ -85,6 +95,7 @@ if __name__ == "__main__":
     parser.add_argument("--ratio3", type = int, default = 1)
     parser.add_argument("--recv-ratio", type = float, default = 8.0)
     parser.add_argument("--batch", type = int, default = 1)
+    parser.add_argument("--sleep", type = str, default = "")
     args = parser.parse_args()
     
     np.random.seed(42)
@@ -95,4 +106,4 @@ if __name__ == "__main__":
     
     temp_path = "resolution_" + str(args.ratio1) + "_" + str(args.ratio2) + "_" + str(args.ratio3) + ".pkl"
     file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), temp_path)
-    main(prompt, aspect_ratio, num_frames, file_path, args.recv_ratio, args.batch)
+    main(prompt, aspect_ratio, num_frames, file_path, args.recv_ratio, args.batch, args.sleep)
