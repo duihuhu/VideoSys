@@ -63,9 +63,40 @@ print(f"----------Static----------")
 for item in statics:
     print(item)'''
 
-#start_log_path = "/data/home/scyb091/VideoSys/examples/global_scheduler/start_log.txt"
-#end_log_path = "/data/home/scyb091/VideoSys/examples/open_sora/end_log.txt"
-root_path = "/home/jovyan/hcch/hucc/VideoSys/examples/global_scheduler/mock_stream/"
+start_log_path = "/workspace/VideoSys/examples/global_scheduler/start_log.txt"
+end_log_path = "/workspace/VideoSys/examples/open_sora/end_log.txt"
+
+with open(start_log_path, 'r') as file:
+    lines = file.readlines()
+    starts = {}
+    for line in lines:
+        datas = line.strip().split(' ')
+        req_id = str(datas[1])
+        start_time = float(datas[-1])
+        if req_id not in starts:
+            starts[req_id] = start_time
+
+with open(end_log_path, 'r') as file:
+    lines = file.readlines()
+    ends = {}
+    for line in lines:
+        datas = line.strip().split(' ')
+        req_id = str(datas[1])
+        end_time = float(datas[-1])
+        if req_id not in ends:
+            ends[req_id] = end_time
+
+outputs = []
+for key, value in starts.items():
+    if key in ends:
+        outputs.append(ends[key] - value)
+    else:
+        print(f"Key {key} not found in ends dictionary.")
+
+print(f"----------Avg----------")
+print(sum(outputs[5:]) / len(outputs[5:]))
+
+'''root_path = "/home/jovyan/hcch/hucc/VideoSys/examples/global_scheduler/mock_stream/"
 ratios = [(2,2,6),(2,6,2),(6,2,2),(2,4,4),(4,2,4),(4,4,2),(1,3,6),(6,1,3),(3,6,1),(1,1,1)]
 recv_ratio = [0.25, 0.5, 0.75, 1]
 types = [0, 1, 2, 3, 4]
@@ -105,7 +136,7 @@ for x, y, z in ratios:
             print(item)
         print(f"----------Tail----------")
         for item in rr_tails:
-            print(item)
+            print(item)'''
 '''starts = {}
 ends = {}
 with open(start_log_path, 'r') as file:
