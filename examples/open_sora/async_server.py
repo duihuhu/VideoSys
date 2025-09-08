@@ -25,6 +25,9 @@ engine = None
 
 log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "end_log.txt")
 
+dit_log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dit_log.txt")
+vae_log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vae_log.txt")
+
 async def asyc_forward_request(request_dict, api_url):
     headers = {"User-Agent": "Test Client"}
     try:
@@ -187,14 +190,18 @@ async def async_generate_dit(request: Request) -> Response:
     worker_ids = request_dict.pop("worker_ids")
     await engine.build_worker_comm(worker_ids)
     #if len(worker_ids) > 1:
+    start_time = time.time()
     await engine.worker_generate_dit(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
     #else:
         #await engine.worker_generate(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
         #print(request_id, "vae end")
         
     # await engine.destory_worker_comm(worker_ids)
+    end_time = time.time()
     print(f"request {request_id} resolution{resolution} dit ends")
-
+    with open(dit_log_path, 'a') as file:
+        file.write(f"request {request_id} dit costs {end_time - start_time}\n")
+    
 # @app.post("/async_generate_vae")
 # async def async_generate_vae(request: Request) -> Response:
 #     request_dict = await request.json()
@@ -209,13 +216,19 @@ async def async_generate_vae_step(request: Request) -> Response:
     request_dict = await request.json()
     request_id = request_dict.pop("request_id")
     worker_ids = request_dict.pop("worker_ids")
-    await engine.build_worker_comm(worker_ids)
+    #await engine.build_worker_comm(worker_ids)
+    start_time = time.time()
     await engine.worker_generate_vae_step(worker_ids=worker_ids, request_id=request_id)
-    
     end_time = time.time()
+    
+    #video = await engine.worker_generate_vae_step(worker_ids=worker_ids, request_id=request_id)
+    #await engine.video_engine.async_save_video(worker_ids[0], 
+    #                                           video, 
+    #                                           os.path.join("/workspace/Videosys/outputs", f"{request_id}-final.mp4"))
+
     print(f"request {request_id} vae ends")
-    with open(log_path, 'a') as file:
-        file.write(f"request {request_id} ends at {end_time}\n")
+    with open(vae_log_path, 'a') as file:
+        file.write(f"request {request_id} vae costs {end_time - start_time}\n")
     # await engine.destory_worker_comm(worker_ids)
     # print(request_id, " vae end")
     

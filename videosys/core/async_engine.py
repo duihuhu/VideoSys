@@ -244,7 +244,8 @@ class AsyncSched:
                 continue
             task = self.task_queue.get()
             print(f"request {task.request_id} resolution {task.resolution} worker ids {task.worker_ids}")
-            api_url = "http://127.0.0.1:8000/async_generate"
+            #api_url = "http://127.0.0.1:8000/async_generate"
+            api_url = "http://127.0.0.1:8000/async_generate_dit"
             pload = {
                 "request_id": task.request_id,
                 "prompt": task.prompt,
@@ -254,6 +255,14 @@ class AsyncSched:
                 "worker_ids": task.worker_ids,
             }
             _ = self.post_http_request(pload = pload, api_url = api_url)
+
+            api_url2 = "http://127.0.0.1:8000/async_generate_vae"
+            pload = {
+                "request_id": task.request_id,
+                "worker_ids": task.worker_ids, #task.worker_ids
+            }
+            _ = self.post_http_request(pload=pload, api_url=api_url2)
+
             self.video_sched.scheduler.navie_update_gpu_status(group_id = task.request_id)
             #self.video_sched.scheduler.naive_baseline_update_gpu_status(resolution = task.resolution, worker_ids = task.worker_ids)
             #self.video_sched.scheduler.smart_baseline_update_gpu_status(worker_ids = task.worker_ids, res = task.resolution) #req_id = task.request_id)
@@ -862,6 +871,8 @@ class AsyncEngine:
     
     async def worker_generate_vae_step(self, worker_ids, request_id) -> None:
         await self.video_engine.worker_generate_vae_step(worker_ids=worker_ids)
+        #video = await self.video_engine.worker_generate_vae_step(worker_ids=worker_ids)
+        #return video
         
     async def update_request_workers(self, request_id, worker_ids) -> None:
         self.request_workers[request_id] = worker_ids
