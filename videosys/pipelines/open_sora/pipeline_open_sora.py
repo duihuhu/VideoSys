@@ -676,7 +676,7 @@ class OpenSoraPipeline(VideoSysPipeline):
         if not return_dict:
             return (video,)
 
-        print("VIDEO INFO IN PIPELINE: ", type(video), video.shape)
+        #print("VIDEO INFO IN PIPELINE: ", type(video), video.shape)
         return VideoSysPipelineOutput(video=video)
 
     @torch.no_grad()
