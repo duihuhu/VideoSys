@@ -294,8 +294,8 @@ class VideoSysEngine:
         await self._run_workers_by_id_async(worker_ids, "save_video", *args, **kwargs)
 
     async def async_generate(self, worker_ids, *args, **kwargs):
-        video = await self._run_workers_by_id_async(worker_ids, "generate", *args, **kwargs)
-        return video[0]
+        outputs = await self._run_workers_by_id_async(worker_ids, "generate", *args, **kwargs)
+        return outputs[0]
     
     async def async_generate_dit(self, worker_ids, *args, **kwargs):
         video = await self._run_workers_dit_aync("generate_dit", worker_ids, *args, **kwargs)

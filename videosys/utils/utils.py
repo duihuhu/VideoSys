@@ -76,7 +76,10 @@ def save_video(video, output_path, fps):
     """
     Save a video to disk.
     """
-    if dist.is_initialized() and dist.get_rank() != 0:
-        return
+    # In DDiT we will face the situation that not always rank 0 still exists in the VAE stage.
+    
+    #if dist.is_initialized() and dist.get_rank() != 0:
+    #    return
+    
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     imageio.mimwrite(output_path, video, fps=fps)
