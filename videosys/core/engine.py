@@ -230,7 +230,9 @@ class VideoSysEngine:
             # Just return futures
             return worker_outputs
         results = await asyncio.gather(*worker_outputs)
-        return [results]
+        #asyncio.gather is already a list, do not need to  wrap it again
+        return results
+        # return [results]
     
     async def _run_workers_dit_aync(self,
         method: str,
