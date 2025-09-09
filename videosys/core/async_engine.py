@@ -244,8 +244,8 @@ class AsyncSched:
                 continue
             task = self.task_queue.get()
             print(f"request {task.request_id} resolution {task.resolution} worker ids {task.worker_ids}")
-            #api_url = "http://127.0.0.1:8000/async_generate"
-            api_url = "http://127.0.0.1:8000/async_generate_dit"
+            api_url = "http://127.0.0.1:8000/async_generate"
+            #api_url = "http://127.0.0.1:8000/async_generate_dit"
             pload = {
                 "request_id": task.request_id,
                 "prompt": task.prompt,
@@ -256,12 +256,12 @@ class AsyncSched:
             }
             _ = self.post_http_request(pload = pload, api_url = api_url)
 
-            api_url2 = "http://127.0.0.1:8000/async_generate_vae"
+            '''api_url2 = "http://127.0.0.1:8000/async_generate_vae"
             pload = {
                 "request_id": task.request_id,
                 "worker_ids": task.worker_ids, #task.worker_ids
             }
-            _ = self.post_http_request(pload=pload, api_url=api_url2)
+            _ = self.post_http_request(pload=pload, api_url=api_url2)'''
 
             self.video_sched.scheduler.navie_update_gpu_status(group_id = task.request_id)
             #self.video_sched.scheduler.naive_baseline_update_gpu_status(resolution = task.resolution, worker_ids = task.worker_ids)

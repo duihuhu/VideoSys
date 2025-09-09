@@ -63,7 +63,7 @@ print(f"----------Static----------")
 for item in statics:
     print(item)'''
 
-dit_log_path = "/workspace/VideoSys/examples/global_scheduler/dit_log.txt"
+'''dit_log_path = "/workspace/VideoSys/examples/global_scheduler/dit_log.txt"
 vae_log_path = "/workspace/VideoSys/examples/open_sora/vae_log.txt"
 
 with open(dit_log_path, 'r') as file:
@@ -84,7 +84,36 @@ with open(vae_log_path, 'r') as file:
         costs = float(datas[-1])
         vaes.append(costs)
     print(f"----------Vae----------")
-    print(sum(vaes) / len(vaes))
+    print(sum(vaes) / len(vaes))'''
+
+start_log_path = "/workspace/VideoSys/examples/global_scheduler/start_log.txt"
+end_log_path = "/workspace/VideoSys/examples/open_sora/end_log.txt"
+
+with open(start_log_path, 'r') as file:
+    lines = file.readlines()
+    starts = {}
+    for line in lines:
+        datas = line.strip().split(' ')
+        req_id = str(datas[1])
+        start_time = float(datas[-1])
+        if req_id not in starts:
+            starts[req_id] = start_time
+
+with open(end_log_path, 'r') as file:
+    lines = file.readlines()
+    ends = {}
+    for line in lines:
+        datas = line.strip().split(' ')
+        req_id = str(datas[1])
+        end_time = float(datas[-1])
+        if req_id not in ends:
+            ends[req_id] = end_time
+
+outputs = []
+for key, value in starts.items():
+    outputs.append(ends[key] - value)
+print(f"----------Avg----------")
+print(sum(outputs[3:]) / len(outputs[3:]))
 
 '''root_path = "/home/jovyan/hcch/hucc/VideoSys/examples/global_scheduler/mock_stream/"
 ratios = [(2,2,6),(2,6,2),(6,2,2),(2,4,4),(4,2,4),(4,4,2),(1,3,6),(6,1,3),(3,6,1),(1,1,1)]

@@ -55,13 +55,13 @@ def post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames):
     #     print("res", time.time(), h)
     #print("rsp ", rsp)
             
-def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, batch: bool, sleep_path: str):
+def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, batch: bool, sleep_path: str, pbs: int):
     #t1 = time.time()
-    add_resolutions = []
-    with open(res_path, 'rb') as file:
-        add_resolutions = pickle.load(file)
+    #add_resolutions = []
+    #with open(res_path, 'rb') as file:
+    #    add_resolutions = pickle.load(file)
     
-    sleep_times = np.load(sleep_path)
+    #sleep_times = np.load(sleep_path)
 
     if not batch:
         #sleep_times = np.random.exponential(scale = 1 / recv_ratio, size = len(add_resolutions))
@@ -74,9 +74,13 @@ def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, bat
                 if i < len(sleep_times) - 1:
                     time.sleep(sleep_times[i])
     else:
-        add_resolutions = ['360p'] * 15
+        prompts = [prompt] * pbs
+        resolution = '144p'
+        for _ in range(8):
+            post_request_and_get_response(prompts, resolution, aspect_ratio, num_frames)
+        '''add_resolutions = ['360p'] * 15
         for resolution in add_resolutions:
-            post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
+            post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)'''
         #add_resolutions = ['360p'] * 5
         #for i, resolution in enumerate(add_resolutions):
             #if i == 32:
@@ -99,6 +103,7 @@ if __name__ == "__main__":
     parser.add_argument("--recv-ratio", type = float, default = 8.0)
     parser.add_argument("--batch", type = int, default = 1)
     parser.add_argument("--sleep", type = str, default = "")
+    parser.add_argument("--pbs", type = int, default = 1)
     args = parser.parse_args()
     
     np.random.seed(42)
@@ -109,4 +114,4 @@ if __name__ == "__main__":
     
     temp_path = "resolution_" + str(args.ratio1) + "_" + str(args.ratio2) + "_" + str(args.ratio3) + ".pkl"
     file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), temp_path)
-    main(prompt, aspect_ratio, num_frames, file_path, args.recv_ratio, args.batch, args.sleep)
+    main(prompt, aspect_ratio, num_frames, file_path, args.recv_ratio, args.batch, args.sleep, args.pbs)
