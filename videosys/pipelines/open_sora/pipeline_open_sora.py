@@ -1319,8 +1319,12 @@ def append_score_to_prompts(prompts, aes=None, flow=None, camera_motion=None):
 
 
 def extract_json_from_prompts(prompts, reference, mask_strategy):
+    if isinstance(prompts[0], list):
+        input_prompts = prompts[0]   
+    else:
+        input_prompts = prompts
     ret_prompts = []
-    for i, prompt in enumerate(prompts):
+    for i, prompt in enumerate(input_prompts):
         parts = re.split(r"(?=[{])", prompt)
         assert len(parts) <= 2, f"Invalid prompt: {prompt}"
         ret_prompts.append(parts[0])
