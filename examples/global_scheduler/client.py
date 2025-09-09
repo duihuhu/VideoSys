@@ -74,7 +74,7 @@ def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, bat
                 if i < len(sleep_times) - 1:
                     time.sleep(sleep_times[i])
     else:
-        prompts = [prompt] * pbs
+        prompts = prompt * pbs
         for _ in range(8):
             post_request_and_get_response(prompts, tres, aspect_ratio, num_frames)
         '''add_resolutions = ['360p'] * 15
