@@ -86,34 +86,74 @@ with open(vae_log_path, 'r') as file:
     print(f"----------Vae----------")
     print(sum(vaes) / len(vaes))'''
 
-start_log_path = "/workspace/VideoSys/examples/global_scheduler/start_log.txt"
-end_log_path = "/workspace/VideoSys/examples/open_sora/end_log.txt"
+import argparse
+import os
 
-with open(start_log_path, 'r') as file:
-    lines = file.readlines()
-    starts = {}
-    for line in lines:
-        datas = line.strip().split(' ')
-        req_id = str(datas[1])
-        start_time = float(datas[-1])
-        if req_id not in starts:
-            starts[req_id] = start_time
+def main(resolution: str, batch_size: int):
+    start_log_path = "/workspace/VideoSys/examples/global_scheduler/start_log.txt"
+    end_log_path = "/workspace/VideoSys/examples/open_sora/end_log.txt"
 
-with open(end_log_path, 'r') as file:
-    lines = file.readlines()
-    ends = {}
-    for line in lines:
-        datas = line.strip().split(' ')
-        req_id = str(datas[1])
-        end_time = float(datas[-1])
-        if req_id not in ends:
-            ends[req_id] = end_time
+    with open(start_log_path, 'r') as file:
+        lines = file.readlines()
+        starts = {}
+        for line in lines:
+            datas = line.strip().split(' ')
+            req_id = str(datas[1])
+            start_time = float(datas[-1])
+            if req_id not in starts:
+                starts[req_id] = start_time
 
-outputs = []
-for key, value in starts.items():
-    outputs.append(ends[key] - value)
-print(f"----------Avg----------")
-print(sum(outputs[3:]) / len(outputs[3:]))
+    with open(end_log_path, 'r') as file:
+        lines = file.readlines()
+        ends = {}
+        for line in lines:
+            datas = line.strip().split(' ')
+            req_id = str(datas[1])
+            end_time = float(datas[-1])
+            if req_id not in ends:
+                ends[req_id] = end_time
+
+    outputs = []
+    for key, value in starts.items():
+        outputs.append(ends[key] - value)
+    print(f"----------Avg----------")
+    print(sum(outputs[3:]) / len(outputs[3:]))
+
+    start_log_path2 = "/workspace/Videosys/profile/start_" + resolution + "_" + str(batch_size) + "_log.txt"
+    end_log_path2 = "/workspace/Videosys/profile/end_" + resolution + "_" + str(batch_size) + "_log.txt"
+    try:
+        # 检查源文件是否存在
+        if os.path.exists(start_log_path):
+            os.rename(start_log_path, start_log_path2)
+            print(f"文件已成功从 '{start_log_path}' 移动到 '{start_log_path2}'。")
+        else:
+            print(f"错误：源文件 '{start_log_path}' 不存在。")
+    except FileExistsError:
+        # 如果目标文件已存在且os.rename无法覆盖，会抛出此错误
+        print(f"错误：目标文件 '{start_log_path2}' 已存在。")
+    except OSError as e:
+        # 处理其他可能的操作系统错误，如权限不足
+        print(f"发生操作系统错误：{e}")
+    try:
+        # 检查源文件是否存在
+        if os.path.exists(end_log_path):
+            os.rename(end_log_path, end_log_path2)
+            print(f"文件已成功从 '{end_log_path}' 移动到 '{end_log_path2}'。")
+        else:
+            print(f"错误：源文件 '{end_log_path}' 不存在。")
+    except FileExistsError:
+        # 如果目标文件已存在且os.rename无法覆盖，会抛出此错误
+        print(f"错误：目标文件 '{end_log_path2}' 已存在。")
+    except OSError as e:
+        # 处理其他可能的操作系统错误，如权限不足
+        print(f"发生操作系统错误：{e}")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--resolution", type=str, default="144p")
+    parser.add_argument("--batch-size", type=int, default=1)
+    args = parser.parse_args()
+    main(args.resolution, args.batch_size)
 
 '''root_path = "/home/jovyan/hcch/hucc/VideoSys/examples/global_scheduler/mock_stream/"
 ratios = [(2,2,6),(2,6,2),(6,2,2),(2,4,4),(4,2,4),(4,4,2),(1,3,6),(6,1,3),(3,6,1),(1,1,1)]
