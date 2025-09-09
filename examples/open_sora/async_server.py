@@ -171,7 +171,7 @@ async def async_generate(request: Request) -> Response:
     await engine.build_worker_comm(worker_ids)
     # await engine.worker_generate(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
     video = await engine.worker_generate_homo(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
-    print("video info ", type(video))
+    print("VIDEO INFO IN SERVER: ", type(video), video.shape)
     await engine.video_engine.async_save_video([worker_ids[-1]], video, os.path.join("/workspace/Videosys/outputs", f"{request_id}-final.mp4"))
     # await engine.destory_worker_comm(worker_ids)
     end_time = time.time()
