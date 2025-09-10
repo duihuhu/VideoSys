@@ -157,6 +157,7 @@ async def create(request: Request) -> Response:
 @app.post("/async_generate")
 async def async_generate(request: Request) -> Response:
     #start_time = time.time()
+    global ANS
 
     request_dict = await request.json()
     request_id = request_dict.pop("request_id")
