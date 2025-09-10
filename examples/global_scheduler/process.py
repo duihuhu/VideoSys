@@ -103,7 +103,9 @@ def main(dop: int):
             start_time = float(datas[-1])
             if req_id not in starts:
                 starts[req_id] = start_time
-    
+    print(f"----------Starts----------")
+    for value in starts.values():
+        print(value)
 
     with open(end_log_path, 'r') as file:
         lines = file.readlines()
@@ -116,6 +118,9 @@ def main(dop: int):
             if req_id not in ends:
                 ends[req_id] = end_time
             #ends.append(end_time)
+    print(f"----------Ends----------")
+    for value in ends.values():
+        print(value)
 
     outputs = []
     for key, value in starts.items():
