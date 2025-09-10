@@ -119,8 +119,8 @@ def main(dop: int):
                 ends[req_id] = end_time
             #ends.append(end_time)
     print(f"----------Ends----------")
-    for value in ends.values():
-        print(value)
+    for key in starts.keys():
+        print(ends[key])
 
     outputs = []
     for key, value in starts.items():
