@@ -78,7 +78,7 @@ def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, bat
         total_time = 0
         while sleeps_st < sleep_times_per_sample_30min.size:
             total_time += sleep_times_per_sample_30min[sleeps_st]
-            if total_time > 300:
+            if total_time > 60:
                 break
             sleep_times_per_sample_5min.append(sleep_times_per_sample_30min[sleeps_st])
             reqs_per_sample_5min.append(reqs_per_sample_30min[reqs_st])
@@ -88,6 +88,7 @@ def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, bat
         ratio_360p = 12113
         ratio_720p = 4308
         total_reqs = sum(reqs_per_sample_5min)
+        print(f"TOTAL REQS: {total_reqs}")
         res_360p = round(total_reqs * (ratio_360p / (ratio_360p + ratio_720p)))
         res_720p = total_reqs - res_360p
         for _ in range(res_360p):

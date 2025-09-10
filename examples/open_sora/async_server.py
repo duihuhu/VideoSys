@@ -28,6 +28,8 @@ log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "end_log.txt
 dit_log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dit_log.txt")
 vae_log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vae_log.txt")
 
+ANS = 0
+
 async def asyc_forward_request(request_dict, api_url):
     headers = {"User-Agent": "Test Client"}
     try:
@@ -171,7 +173,8 @@ async def async_generate(request: Request) -> Response:
     await engine.video_engine.async_save_video([worker_ids[-1]], video[0], os.path.join("/workspace/VideoSys/outputs", f"{request_id}_final.mp4"))
     
     end_time = time.time()
-    print(f"request {request_id} resolution{resolution} dit&vae end")
+    ANS += 1
+    print(f"request {request_id} resolution{resolution} dit&vae end; {ANS}")
     with open(log_path, 'a') as file:
         file.write(f"request {request_id} ends at {end_time}\n")
 
