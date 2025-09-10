@@ -90,10 +90,10 @@ import argparse
 import os
 
 def main(resolution: str):
-    start_log_path = "/workspace/VideoSys/examples/global_scheduler/start_log.txt"
+    #start_log_path = "/workspace/VideoSys/examples/global_scheduler/start_log.txt"
     end_log_path = "/workspace/VideoSys/examples/open_sora/end_log.txt"
 
-    with open(start_log_path, 'r') as file:
+    '''with open(start_log_path, 'r') as file:
         lines = file.readlines()
         starts = {}
         for line in lines:
@@ -102,26 +102,31 @@ def main(resolution: str):
             start_time = float(datas[-1])
             if req_id not in starts:
                 starts[req_id] = start_time
+    '''
 
     with open(end_log_path, 'r') as file:
         lines = file.readlines()
-        ends = {}
+        #ends = {}
+        ends = []    
         for line in lines:
             datas = line.strip().split(' ')
-            req_id = str(datas[1])
+            #req_id = str(datas[1])
             end_time = float(datas[-1])
-            if req_id not in ends:
-                ends[req_id] = end_time
+            #if req_id not in ends:
+            #    ends[req_id] = end_time
+            ends.append(end_time)
 
-    outputs = []
+    '''outputs = []
     for key, value in starts.items():
         outputs.append(ends[key] - value)
+    '''
     print(f"----------Avg----------")
-    print(sum(outputs[3:]) / len(outputs[3:]))
+    #print(sum(outputs[3:]) / len(outputs[3:]))
+    print(sum(ends[3:]) / len(ends[3:]))
 
-    start_log_path2 = "/workspace/VideoSys/profile/slo_start_" + resolution + ".txt"
+    #start_log_path2 = "/workspace/VideoSys/profile/slo_start_" + resolution + ".txt"
     end_log_path2 = "/workspace/VideoSys/profile/slo_end_" + resolution + ".txt"
-    try:
+    '''try:
         # 检查源文件是否存在
         if os.path.exists(start_log_path):
             os.rename(start_log_path, start_log_path2)
@@ -134,6 +139,7 @@ def main(resolution: str):
     except OSError as e:
         # 处理其他可能的操作系统错误，如权限不足
         print(f"发生操作系统错误：{e}")
+    '''
     try:
         # 检查源文件是否存在
         if os.path.exists(end_log_path):

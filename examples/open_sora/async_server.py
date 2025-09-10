@@ -154,31 +154,26 @@ async def create(request: Request) -> Response:
 
 @app.post("/async_generate")
 async def async_generate(request: Request) -> Response:
+    start_time = time.time()
+
     request_dict = await request.json()
     request_id = request_dict.pop("request_id")
     prompt = request_dict.pop("prompt")
     resolution = request_dict.pop("resolution")
     aspect_ratio = request_dict.pop("aspect_ratio")
     num_frames = request_dict.pop("num_frames")
-    #print("async_generate")
     worker_ids = request_dict.pop("worker_ids")
-    #print(worker_ids)
-    #request_id = "111"
-    #prompt = "Sunset over the sea."
-    #resolution = "480p"
-    #aspect_ratio = "9:16"
-    #num_frames = "2s"
+    
     await engine.build_worker_comm(worker_ids)
-    # await engine.worker_generate(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
+    
     video = await engine.worker_generate_homo(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
-    #print("VIDEO INFO IN SERVER: ", type(video), video.shape)
-    vst = time.time()
+    
     await engine.video_engine.async_save_video([worker_ids[-1]], video[0], os.path.join("/workspace/VideoSys/outputs", f"{request_id}-final.mp4"))
-    # await engine.destory_worker_comm(worker_ids)
+    
     end_time = time.time()
-    print(f"request {request_id} resolution{resolution} dit&vae end; store video costs {end_time - vst}")
+    print(f"request {request_id} resolution{resolution} dit&vae end")
     with open(log_path, 'a') as file:
-        file.write(f"request {request_id} ends at {end_time}\n")
+        file.write(f"request {request_id} costs {end_time - start_time}\n")
 
 @app.post("/async_generate_dit")
 async def async_generate_dit(request: Request) -> Response:

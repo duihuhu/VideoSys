@@ -51,9 +51,9 @@ async def recv_request(request: Request) -> Response:
     _ = await sched.generate(request_id = request_id, prompt = prompt, \
         resolution = resolution, aspect_ratio = aspect_ratio,num_frames = num_frames)
     
-    start_time = time.time()
+    '''start_time = time.time()
     with open(log_path, 'a') as file:
-        file.write(f"request {request_id} starts at {start_time}\n")
+        file.write(f"request {request_id} starts at {start_time}\n")'''
 
 @app.post("/update_cur_step")
 async def update_cur_step(request: Request) -> Response:
