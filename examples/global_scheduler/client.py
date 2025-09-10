@@ -55,7 +55,7 @@ def post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames):
     #     print("res", time.time(), h)
     #print("rsp ", rsp)
             
-def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, batch: bool, sleep_path: str, pbs: int, tres: str):
+def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, batch: bool, sleep_path: str, tres: str):
     #t1 = time.time()
     #add_resolutions = []
     #with open(res_path, 'rb') as file:
@@ -74,12 +74,11 @@ def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, bat
                 if i < len(sleep_times) - 1:
                     time.sleep(sleep_times[i])
     else:
-        prompts = [prompt] * pbs
-        for _ in range(1):
-            post_request_and_get_response(prompts, tres, aspect_ratio, num_frames)
-        '''add_resolutions = ['360p'] * 15
+        #for _ in range(1):
+        #    post_request_and_get_response(prompt, tres, aspect_ratio, num_frames)
+        add_resolutions = [tres] * 6
         for resolution in add_resolutions:
-            post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)'''
+            post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
         #add_resolutions = ['360p'] * 5
         #for i, resolution in enumerate(add_resolutions):
             #if i == 32:
@@ -102,7 +101,6 @@ if __name__ == "__main__":
     parser.add_argument("--recv-ratio", type = float, default = 8.0)
     parser.add_argument("--batch", type = int, default = 1)
     parser.add_argument("--sleep", type = str, default = "")
-    parser.add_argument("--pbs", type = int, default = 1)
     parser.add_argument("--tres", type = str, default = "144p")
     args = parser.parse_args()
     
@@ -114,4 +112,4 @@ if __name__ == "__main__":
     
     temp_path = "resolution_" + str(args.ratio1) + "_" + str(args.ratio2) + "_" + str(args.ratio3) + ".pkl"
     file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), temp_path)
-    main(prompt, aspect_ratio, num_frames, file_path, args.recv_ratio, args.batch, args.sleep, args.pbs, args.tres)
+    main(prompt, aspect_ratio, num_frames, file_path, args.recv_ratio, args.batch, args.sleep, args.tres)

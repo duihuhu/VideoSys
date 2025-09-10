@@ -89,7 +89,7 @@ with open(vae_log_path, 'r') as file:
 import argparse
 import os
 
-def main(resolution: str, batch_size: int):
+def main(resolution: str):
     start_log_path = "/workspace/VideoSys/examples/global_scheduler/start_log.txt"
     end_log_path = "/workspace/VideoSys/examples/open_sora/end_log.txt"
 
@@ -119,8 +119,8 @@ def main(resolution: str, batch_size: int):
     print(f"----------Avg----------")
     print(sum(outputs[3:]) / len(outputs[3:]))
 
-    start_log_path2 = "/workspace/Videosys/profile/start_" + resolution + "_" + str(batch_size) + "_log.txt"
-    end_log_path2 = "/workspace/Videosys/profile/end_" + resolution + "_" + str(batch_size) + "_log.txt"
+    start_log_path2 = "/workspace/Videosys/profile/slo_start_" + resolution + ".txt"
+    end_log_path2 = "/workspace/Videosys/profile/slo_end_" + resolution + ".txt"
     try:
         # 检查源文件是否存在
         if os.path.exists(start_log_path):
@@ -150,10 +150,9 @@ def main(resolution: str, batch_size: int):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--resolution", type=str, default="144p")
-    parser.add_argument("--batch-size", type=int, default=1)
+    parser.add_argument("--res", type=str, default="144p")
     args = parser.parse_args()
-    main(args.resolution, args.batch_size)
+    main(args.res)
 
 '''root_path = "/home/jovyan/hcch/hucc/VideoSys/examples/global_scheduler/mock_stream/"
 ratios = [(2,2,6),(2,6,2),(6,2,2),(2,4,4),(4,2,4),(4,4,2),(1,3,6),(6,1,3),(3,6,1),(1,1,1)]
