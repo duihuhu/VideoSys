@@ -119,8 +119,8 @@ def main(resolution: str):
     print(f"----------Avg----------")
     print(sum(outputs[3:]) / len(outputs[3:]))
 
-    start_log_path2 = "/workspace/Videosys/profile/slo_start_" + resolution + ".txt"
-    end_log_path2 = "/workspace/Videosys/profile/slo_end_" + resolution + ".txt"
+    start_log_path2 = "/workspace/VideoSys/profile/slo_start_" + resolution + ".txt"
+    end_log_path2 = "/workspace/VideoSys/profile/slo_end_" + resolution + ".txt"
     try:
         # 检查源文件是否存在
         if os.path.exists(start_log_path):
