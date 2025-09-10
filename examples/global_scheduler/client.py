@@ -7,6 +7,7 @@ import time
 import pickle
 import numpy as np
 import os
+import random
 G_URL = "http://127.0.0.1:8001/recv_request"  #GS服务器的地址 P
 
 def random_uuid() -> str:
@@ -68,15 +69,44 @@ def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, bat
         #for j, resolution in enumerate(add_resolutions):
         #    post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
         #    time.sleep(sleep_times[j])
-        for i, temp in enumerate(add_resolutions):
-            for resolution in enumerate(temp):
+        reqs_per_sample_30min = np.load("samples.npy")
+        sleep_times_per_sample_30min = np.load("sleeps.npy")
+        reqs_per_sample_5min = [reqs_per_sample_30min[0]]
+        sleep_times_per_sample_5min = []
+        reqs_st = 1
+        sleeps_st = 0
+        total_time = 0
+        while sleeps_st < sleep_times_per_sample_30min.size:
+            total_time += sleep_times_per_sample_30min[sleeps_st]
+            if total_time > 300:
+                break
+            sleep_times_per_sample_5min.append(sleep_times_per_sample_30min[sleeps_st])
+            reqs_per_sample_5min.append(reqs_per_sample_30min[reqs_st])
+            sleeps_st += 1
+            reqs_st += 1
+        resolutions_5min = []
+        ratio_360p = 12113
+        ratio_720p = 4308
+        total_reqs = sum(reqs_per_sample_5min)
+        res_360p = round(total_reqs * (ratio_360p / (ratio_360p + ratio_720p)))
+        res_720p = total_reqs - res_360p
+        for _ in range(res_360p):
+            resolutions_5min.append('360p')
+        for _ in range(res_720p):
+            resolutions_5min.append('720p')
+        random.shuffle(resolutions_5min)
+        for i, reqs_num in enumerate(reqs_per_sample_5min):
+            for _ in range(reqs_num):
+                if len(resolutions_5min) == 0:
+                    break
+                resolution = resolutions_5min.pop()
                 post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
-                if i < len(sleep_times) - 1:
-                    time.sleep(sleep_times[i])
+            if i < len(sleep_times_per_sample_5min):
+                time.sleep(sleep_times_per_sample_5min[i])
     else:
         #for _ in range(1):
         #    post_request_and_get_response(prompt, tres, aspect_ratio, num_frames)
-        add_resolutions = [tres] * 6
+        add_resolutions = [tres] * 3
         for resolution in add_resolutions:
             post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
         #add_resolutions = ['360p'] * 5

@@ -88,12 +88,13 @@ with open(vae_log_path, 'r') as file:
 
 import argparse
 import os
+import numpy as np
 
-def main(resolution: str):
-    #start_log_path = "/workspace/VideoSys/examples/global_scheduler/start_log.txt"
+def main(dop: int):
+    start_log_path = "/workspace/VideoSys/examples/global_scheduler/start_log.txt"
     end_log_path = "/workspace/VideoSys/examples/open_sora/end_log.txt"
 
-    '''with open(start_log_path, 'r') as file:
+    with open(start_log_path, 'r') as file:
         lines = file.readlines()
         starts = {}
         for line in lines:
@@ -102,31 +103,40 @@ def main(resolution: str):
             start_time = float(datas[-1])
             if req_id not in starts:
                 starts[req_id] = start_time
-    '''
+    
 
     with open(end_log_path, 'r') as file:
         lines = file.readlines()
-        #ends = {}
-        ends = []    
+        ends = {}
+        #ends = []    
         for line in lines:
             datas = line.strip().split(' ')
-            #req_id = str(datas[1])
+            req_id = str(datas[1])
             end_time = float(datas[-1])
-            #if req_id not in ends:
-            #    ends[req_id] = end_time
-            ends.append(end_time)
+            if req_id not in ends:
+                ends[req_id] = end_time
+            #ends.append(end_time)
 
-    '''outputs = []
+    outputs = []
     for key, value in starts.items():
         outputs.append(ends[key] - value)
-    '''
-    print(f"----------Avg----------")
-    #print(sum(outputs[3:]) / len(outputs[3:]))
-    print(sum(ends[3:]) / len(ends[3:]))
+    final_outputs = np.array(outputs)
+    print(f"----------AVG----------")
+    print(np.mean(final_outputs))
+    print(f"----------P50----------")
+    print(np.median(final_outputs))
+    print(f"----------P90----------")
+    print(np.percentile(final_outputs, 90))
+    print(f"----------P99----------")
+    print(np.percentile(final_outputs, 99))
+    
+    #print(f"----------Avg----------")
+    #print(sum(ends[3:]) / len(ends[3:]))
+    
 
-    #start_log_path2 = "/workspace/VideoSys/profile/slo_start_" + resolution + ".txt"
-    end_log_path2 = "/workspace/VideoSys/profile/slo_end_" + resolution + ".txt"
-    '''try:
+    start_log_path2 = "/workspace/VideoSys/metrics/naive_start_" + str(dop) + ".txt"
+    end_log_path2 = "/workspace/VideoSys/metrics/naive_end_" + str(dop) + ".txt"
+    try:
         # 检查源文件是否存在
         if os.path.exists(start_log_path):
             os.rename(start_log_path, start_log_path2)
@@ -139,7 +149,7 @@ def main(resolution: str):
     except OSError as e:
         # 处理其他可能的操作系统错误，如权限不足
         print(f"发生操作系统错误：{e}")
-    '''
+    
     try:
         # 检查源文件是否存在
         if os.path.exists(end_log_path):
@@ -156,9 +166,9 @@ def main(resolution: str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--res", type=str, default="144p")
+    parser.add_argument("--dop", type=int, default=8)
     args = parser.parse_args()
-    main(args.res)
+    main(args.dop)
 
 '''root_path = "/home/jovyan/hcch/hucc/VideoSys/examples/global_scheduler/mock_stream/"
 ratios = [(2,2,6),(2,6,2),(6,2,2),(2,4,4),(4,2,4),(4,4,2),(1,3,6),(6,1,3),(3,6,1),(1,1,1)]

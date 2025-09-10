@@ -154,7 +154,7 @@ async def create(request: Request) -> Response:
 
 @app.post("/async_generate")
 async def async_generate(request: Request) -> Response:
-    start_time = time.time()
+    #start_time = time.time()
 
     request_dict = await request.json()
     request_id = request_dict.pop("request_id")
@@ -168,12 +168,12 @@ async def async_generate(request: Request) -> Response:
     
     video = await engine.worker_generate_homo(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
     
-    await engine.video_engine.async_save_video([worker_ids[-1]], video[0], os.path.join("/workspace/VideoSys/outputs", f"{request_id}-final.mp4"))
+    await engine.video_engine.async_save_video([worker_ids[-1]], video[0], os.path.join("/workspace/VideoSys/outputs", f"{request_id}_final.mp4"))
     
     end_time = time.time()
     print(f"request {request_id} resolution{resolution} dit&vae end")
     with open(log_path, 'a') as file:
-        file.write(f"request {request_id} costs {end_time - start_time}\n")
+        file.write(f"request {request_id} ends at {end_time}\n")
 
 @app.post("/async_generate_dit")
 async def async_generate_dit(request: Request) -> Response:
