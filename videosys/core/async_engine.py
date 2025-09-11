@@ -322,8 +322,8 @@ class AsyncSched:
     
     def create_consumer(self, instances_num: int):
         for _ in range(instances_num):
-            #consumer = threading.Thread(target=self.process)
-            consumer = threading.Thread(target=self.process2)
+            consumer = threading.Thread(target=self.process)
+            #consumer = threading.Thread(target=self.process2)
             consumer.daemon = True
             consumer.start()
             self.consumers.append(consumer)
@@ -369,8 +369,8 @@ class AsyncSched:
         #t2 = time.time()
         #with open("costs.txt", "a") as file:    
         #    file.write(f"{t2-t1}\n") 
-        #seq_group = self.video_sched.scheduler.least_remaining_time_schedule()
-        seq_group = self.video_sched.scheduler.naive_baseline_schedule()
+        seq_group = self.video_sched.scheduler.least_remaining_time_schedule()
+        #seq_group = self.video_sched.scheduler.naive_baseline_schedule()
         #seq_group = self.video_sched.scheduler.naive_partition_schedule()
         #seq_group = self.video_sched.scheduler.smart_static_partition_schedule()
         #seq_group = self.video_sched.scheduler.smart_dynamic_partition_schedule()
