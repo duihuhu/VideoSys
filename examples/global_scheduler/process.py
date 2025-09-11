@@ -93,7 +93,7 @@ import numpy as np
 def main(dop: int):
     start_log_path = "/workspace/VideoSys/examples/global_scheduler/start_log.txt"
     #end_log_path = "/workspace/VideoSys/examples/open_sora/end_log.txt"
-    dit_log_path = "/workspace/VideoSys/examples/global_scheduler/dit_log.txt"
+    dit_log_path = "/workspace/VideoSys/examples/open_sora/dit_log.txt"
     vae_log_path = "/workspace/VideoSys/examples/open_sora/vae_log.txt"
 
     slo_720p_5 = 118.9662282
