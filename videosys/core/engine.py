@@ -15,8 +15,10 @@ import asyncio
 T = TypeVar("T")
 
 class VideoSched:
-    def __init__(self, instances_num: int):
-        self.scheduler = VideoScheduler(instances_num = instances_num)
+    def __init__(self, instances_num: int, static_dop: Optional[int] = 8, window_size: Optional[int] = 10):
+        self.scheduler = VideoScheduler(instances_num = instances_num,
+                                        static_dop = static_dop,
+                                        window_size = window_size)
         
     def add_request(self, 
                 request_id,

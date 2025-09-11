@@ -219,8 +219,12 @@ class RequestTracker:
 class AsyncSched:
     def __init__(self, 
                  instances_num: int,
-                 start_engine_loop: bool = True):
-        self.video_sched = VideoSched(instances_num = instances_num)
+                 start_engine_loop: bool = True,
+                 static_dop: Optional[int] = 8,
+                 window_size: Optional[int] = 10):
+        self.video_sched = VideoSched(instances_num = instances_num,
+                                       static_dop = static_dop,
+                                       window_size = window_size)
         self.start_engine_loop = start_engine_loop
         
         self.background_loop = None

@@ -69,9 +69,13 @@ if __name__ == "__main__":
     parser.add_argument("--host", type=str, default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8001)
     parser.add_argument("--instances-num", type = int, default = 8)
+    parser.add_argument("--static-dop", type = int, default = 8)
+    parser.add_argument("--window-size", type = int, default = 10)
 
     args = parser.parse_args()
-    sched = AsyncSched(instances_num = args.instances_num) 
+    sched = AsyncSched(instances_num = args.instances_num,
+                       static_dop = args.static_dop,
+                       window_size = args.window_size)
     sched.create_consumer(instances_num = args.instances_num)
     sched.video_sched.scheduler.create_update_threads()
     uvicorn.run(app,
