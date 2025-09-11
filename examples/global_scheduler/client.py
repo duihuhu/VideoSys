@@ -70,7 +70,7 @@ def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, bat
         random.seed(42)
         start_time = time.time()
         while True:
-            if time.time() - start_time > 30:  # 30 seconds
+            if time.time() - start_time > 60:  # 30 seconds
                 break
             resolution = random.choices(choices, weights = weights, k = 1)[0]
             post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
@@ -140,7 +140,7 @@ if __name__ == "__main__":
     parser.add_argument("--ratio1", type = int, default = 1)
     parser.add_argument("--ratio2", type = int, default = 1)
     parser.add_argument("--ratio3", type = int, default = 1)
-    parser.add_argument("--recv-ratio", type = float, default = 0.6)
+    parser.add_argument("--recv-ratio", type = float, default = 1)
     parser.add_argument("--batch", type = int, default = 1)
     parser.add_argument("--sleep", type = str, default = "")
     parser.add_argument("--tres", type = str, default = "144p")
