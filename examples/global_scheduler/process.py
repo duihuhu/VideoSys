@@ -96,6 +96,10 @@ def main(dop: int):
     #dit_log_path = "/workspace/VideoSys/examples/global_scheduler/dit_log.txt"
     #vae_log_path = "/workspace/VideoSys/examples/open_sora/vae_log.txt"
 
+    slo_720p_5 = 118.9662282
+    slo_720p_10 = 237.9324563
+    slo_360p_5 = 31.24583801
+    slo_360p_10 = 62.49167601
     with open(start_log_path, 'r') as file:
         lines = file.readlines()
         starts = {}
@@ -150,8 +154,21 @@ def main(dop: int):
         print(reslo[key])
         
     outputs = []
+    slo5 = 0
+    slo10 = 0
     for key, value in starts.items():
         outputs.append(ends[key] - value)
+        cur_res = reslo[key]
+        if cur_res == "720p":
+            if outputs[-1] <= slo_720p_5:
+                slo5 += 1
+            if outputs[-1] <= slo_720p_10:
+                slo10 += 1
+        if cur_res == "360p":
+            if outputs[-1] <= slo_360p_5:
+                slo5 += 1
+            if outputs[-1] <= slo_360p_10:
+                slo10 += 1
     final_outputs = np.array(outputs)
     print(f"----------AVG----------")
     print(np.mean(final_outputs))
@@ -161,7 +178,10 @@ def main(dop: int):
     print(np.percentile(final_outputs, 90))
     print(f"----------P99----------")
     print(np.percentile(final_outputs, 99))
-    
+    print(f"----------SLO5----------")
+    print(slo5 / len(outputs))
+    print(f"----------SLO10----------")
+    print(slo10 / len(outputs))
     #print(f"----------Avg----------")
     #print(sum(ends[3:]) / len(ends[3:]))
     
