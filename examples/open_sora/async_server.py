@@ -156,7 +156,7 @@ async def create(request: Request) -> Response:
 
 @app.post("/async_generate")
 async def async_generate(request: Request) -> Response:
-    #start_time = time.time()
+    start_time = time.time()
     global ANS
 
     request_dict = await request.json()
@@ -177,7 +177,7 @@ async def async_generate(request: Request) -> Response:
     ANS += 1
     print(f"request {request_id} resolution{resolution} dit&vae end; {ANS}")
     with open(log_path, 'a') as file:
-        file.write(f"request {request_id} ends at {end_time}\n")
+        file.write(f"request {request_id} resolution {resolution} process starts at {start_time} ends at {end_time}\n")
 
 @app.post("/async_generate_dit")
 async def async_generate_dit(request: Request) -> Response:
