@@ -92,9 +92,9 @@ import numpy as np
 
 def main(dop: int):
     start_log_path = "/workspace/VideoSys/examples/global_scheduler/start_log.txt"
-    end_log_path = "/workspace/VideoSys/examples/open_sora/end_log.txt"
-    #dit_log_path = "/workspace/VideoSys/examples/global_scheduler/dit_log.txt"
-    #vae_log_path = "/workspace/VideoSys/examples/open_sora/vae_log.txt"
+    #end_log_path = "/workspace/VideoSys/examples/open_sora/end_log.txt"
+    dit_log_path = "/workspace/VideoSys/examples/global_scheduler/dit_log.txt"
+    vae_log_path = "/workspace/VideoSys/examples/open_sora/vae_log.txt"
 
     slo_720p_5 = 118.9662282
     slo_720p_10 = 237.9324563
@@ -113,27 +113,27 @@ def main(dop: int):
     for value in starts.values():
         print(value)
 
-    with open(end_log_path, 'r') as file:
-    #with open(start_log_path, 'r') as file:
+    #with open(end_log_path, 'r') as file:
+    with open(dit_log_path, 'r') as file:
         lines = file.readlines()
-        ends = {}
+        #ends = {}
         processes = {}
         reslo = {}
         #ends = []    
         for line in lines:
             datas = line.strip().split(' ')
             req_id = str(datas[1])
-            end_time = float(datas[-1])
+            #end_time = float(datas[-1])
             process_time = float(datas[-4])
             resolution = str(datas[3])
-            if req_id not in ends:
-                ends[req_id] = end_time
+            #if req_id not in ends:
+                #ends[req_id] = end_time
             if req_id not in processes:
                 processes[req_id] = process_time
             if req_id not in reslo:
                 reslo[req_id] = resolution
             #ends.append(end_time)
-    '''with open(vae_log_path, 'r') as file:
+    with open(vae_log_path, 'r') as file:
         lines = file.readlines()
         ends = {}
         for line in lines:
@@ -142,7 +142,7 @@ def main(dop: int):
             end_time = float(datas[-1])
             if req_id not in ends:
                 ends[req_id] = end_time
-    '''
+    
     print(f"----------Processes----------")
     for key in starts.keys():
         print(processes[key])
