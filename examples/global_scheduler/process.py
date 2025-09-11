@@ -124,8 +124,8 @@ def main(dop: int):
             datas = line.strip().split(' ')
             req_id = str(datas[1])
             end_time = float(datas[-1])
-            process_time = float(datas[-4])
-            #process_time = float(datas[-5])
+            #process_time = float(datas[-4])
+            process_time = float(datas[-5])
             resolution = str(datas[3])
             #if req_id not in ends:
             #    ends[req_id] = end_time
