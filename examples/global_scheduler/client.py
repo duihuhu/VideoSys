@@ -78,7 +78,7 @@ def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, bat
         total_time = 0
         while sleeps_st < sleep_times_per_sample_30min.size:
             total_time += sleep_times_per_sample_30min[sleeps_st]
-            if total_time > 60:
+            if total_time > 30:
                 break
             sleep_times_per_sample_5min.append(sleep_times_per_sample_30min[sleeps_st])
             reqs_per_sample_5min.append(reqs_per_sample_30min[reqs_st])
