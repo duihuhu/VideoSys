@@ -38,6 +38,8 @@ class VideoScheduler:
                                                        "480p": {1: 44.24, 2: 20.43, 4: 11.12, 8: 6.31},
                                                        "720p": {1: 112.76, 2: 48.64, 4: 25.08, 8: 13.39}}
         
+        self.vae_times: Dict[str, float] = {"144p": 0.34, "240p": 0.78, "360p": 1.81, "480p": 3.54, "720p": 8.70}
+        
         #self.opt_gpus_num: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 2, "480p": 4}
         self.opt_gpus_num: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 4, "480p": 8, "720p": 8}
 
@@ -536,7 +538,7 @@ class VideoScheduler:
                     temp_requests_max_gpus_num[request_id] = cur_gpus_num
                     break
                 cur_opt_gpus_num //= 2
-            temp_remaining_times[request_id] = self.dit_times[seq_group.resolution][cur_gpus_num] * (1 - (self.requests_cur_steps[request_id] / self.denoising_steps))
+            temp_remaining_times[request_id] = self.dit_times[seq_group.resolution][cur_gpus_num] * (1 - (self.requests_cur_steps[request_id] / self.denoising_steps)) + self.vae_times[seq_group.resolution]
         
         seqs_in_window: List[SequenceGroup] = []
         for _ in range(self.window_size):
@@ -555,7 +557,7 @@ class VideoScheduler:
                     temp_requests_max_gpus_num[seq.request_id] = max_gpus_num
                     break
                 temp_opt_gpus_num //= 2
-            temp_remaining_times[seq.request_id] = self.dit_times[seq.resolution][max_gpus_num]
+            temp_remaining_times[seq.request_id] = self.dit_times[seq.resolution][max_gpus_num] + self.vae_times[seq.resolution]
         
         temp_requests_list.sort(key = lambda x: temp_remaining_times[x.request_id])
 
