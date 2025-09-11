@@ -181,6 +181,8 @@ async def async_generate(request: Request) -> Response:
 
 @app.post("/async_generate_dit")
 async def async_generate_dit(request: Request) -> Response:
+    start_time = time.time()
+
     request_dict = await request.json()
     request_id = request_dict.pop("request_id")
     prompt = request_dict.pop("prompt")
@@ -196,7 +198,8 @@ async def async_generate_dit(request: Request) -> Response:
     end_time = time.time()
     print(f"request {request_id} resolution{resolution} dit ends")
     with open(dit_log_path, 'a') as file:
-        file.write(f"request {request_id} dit ends at {end_time}\n")
+        #file.write(f"request {request_id} dit ends at {end_time}\n")
+        file.write(f"request {request_id} resolution {resolution} process starts at {start_time} dit ends at {end_time}\n")
     
 # @app.post("/async_generate_vae")
 # async def async_generate_vae(request: Request) -> Response:

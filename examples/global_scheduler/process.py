@@ -93,6 +93,8 @@ import numpy as np
 def main(dop: int):
     start_log_path = "/workspace/VideoSys/examples/global_scheduler/start_log.txt"
     end_log_path = "/workspace/VideoSys/examples/open_sora/end_log.txt"
+    #dit_log_path = "/workspace/VideoSys/examples/global_scheduler/dit_log.txt"
+    #vae_log_path = "/workspace/VideoSys/examples/open_sora/vae_log.txt"
 
     with open(start_log_path, 'r') as file:
         lines = file.readlines()
@@ -108,6 +110,7 @@ def main(dop: int):
         print(value)
 
     with open(end_log_path, 'r') as file:
+    #with open(start_log_path, 'r') as file:
         lines = file.readlines()
         ends = {}
         processes = {}
@@ -126,6 +129,16 @@ def main(dop: int):
             if req_id not in reslo:
                 reslo[req_id] = resolution
             #ends.append(end_time)
+    '''with open(vae_log_path, 'r') as file:
+        lines = file.readlines()
+        ends = {}
+        for line in lines:
+            datas = line.strip().split(' ')
+            req_id = str(datas[1])
+            end_time = float(datas[-1])
+            if req_id not in ends:
+                ends[req_id] = end_time
+    '''
     print(f"----------Processes----------")
     for key in starts.keys():
         print(processes[key])
