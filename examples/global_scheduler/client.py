@@ -65,11 +65,21 @@ def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, bat
     #sleep_times = np.load(sleep_path)
 
     if not batch:
+        choices = ['360p', '720p']
+        weights = [12113, 4308]
+        random.seed(42)
+        start_time = time.time()
+        while True:
+            if time.time() - start_time > 30:  # 30 seconds
+                break
+            resolution = random.choices(choices, weights = weights, k = 1)[0]
+            post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
+            time.sleep(1 / recv_ratio)
         #sleep_times = np.random.exponential(scale = 1 / recv_ratio, size = len(add_resolutions))
         #for j, resolution in enumerate(add_resolutions):
         #    post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
         #    time.sleep(sleep_times[j])
-        reqs_per_sample_30min = np.load("samples.npy")
+        '''reqs_per_sample_30min = np.load("samples.npy")
         sleep_times_per_sample_30min = np.load("sleeps.npy")
         reqs_per_sample_5min = [reqs_per_sample_30min[0]]
         sleep_times_per_sample_5min = []
@@ -104,6 +114,7 @@ def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, bat
                 post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
             if i < len(sleep_times_per_sample_5min):
                 time.sleep(sleep_times_per_sample_5min[i])
+        '''
     else:
         #for _ in range(1):
         #    post_request_and_get_response(prompt, tres, aspect_ratio, num_frames)
@@ -129,7 +140,7 @@ if __name__ == "__main__":
     parser.add_argument("--ratio1", type = int, default = 1)
     parser.add_argument("--ratio2", type = int, default = 1)
     parser.add_argument("--ratio3", type = int, default = 1)
-    parser.add_argument("--recv-ratio", type = float, default = 8.0)
+    parser.add_argument("--recv-ratio", type = float, default = 0.6)
     parser.add_argument("--batch", type = int, default = 1)
     parser.add_argument("--sleep", type = str, default = "")
     parser.add_argument("--tres", type = str, default = "144p")

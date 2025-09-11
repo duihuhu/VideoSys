@@ -186,8 +186,10 @@ def main(dop: int):
     #print(sum(ends[3:]) / len(ends[3:]))
     
 
-    start_log_path2 = "/workspace/VideoSys/metrics/new_naive_start_" + str(dop) + ".txt"
-    end_log_path2 = "/workspace/VideoSys/metrics/new_naive_end_" + str(dop) + ".txt"
+    start_log_path2 = "/workspace/VideoSys/metrics/new_ljf_start.txt"
+    #end_log_path2 = "/workspace/VideoSys/metrics/new_naive_end_" + str(dop) + ".txt"
+    dit_log_path2 = "/workspace/VideoSys/metrics/new_ljf_dit.txt"
+    vae_log_path2 = "/workspace/VideoSys/metrics/new_ljf_vae.txt"
     try:
         # 检查源文件是否存在
         if os.path.exists(start_log_path):
@@ -204,14 +206,28 @@ def main(dop: int):
     
     try:
         # 检查源文件是否存在
-        if os.path.exists(end_log_path):
-            os.rename(end_log_path, end_log_path2)
-            print(f"文件已成功从 '{end_log_path}' 移动到 '{end_log_path2}'。")
+        if os.path.exists(dit_log_path):
+            os.rename(dit_log_path, dit_log_path2)
+            print(f"文件已成功从 '{dit_log_path}' 移动到 '{dit_log_path2}'。")
         else:
-            print(f"错误：源文件 '{end_log_path}' 不存在。")
+            print(f"错误：源文件 '{dit_log_path}' 不存在。")
     except FileExistsError:
         # 如果目标文件已存在且os.rename无法覆盖，会抛出此错误
-        print(f"错误：目标文件 '{end_log_path2}' 已存在。")
+        print(f"错误：目标文件 '{dit_log_path2}' 已存在。")
+    except OSError as e:
+        # 处理其他可能的操作系统错误，如权限不足
+        print(f"发生操作系统错误：{e}")
+    
+    try:
+        # 检查源文件是否存在
+        if os.path.exists(vae_log_path):
+            os.rename(vae_log_path, vae_log_path2)
+            print(f"文件已成功从 '{vae_log_path}' 移动到 '{vae_log_path2}'。")
+        else:
+            print(f"错误：源文件 '{vae_log_path}' 不存在。")
+    except FileExistsError:
+        # 如果目标文件已存在且os.rename无法覆盖，会抛出此错误
+        print(f"错误：目标文件 '{vae_log_path2}' 已存在。")
     except OSError as e:
         # 处理其他可能的操作系统错误，如权限不足
         print(f"发生操作系统错误：{e}")
