@@ -196,7 +196,7 @@ async def async_generate_dit(request: Request) -> Response:
     #start_time = time.time()
     await engine.worker_generate_dit(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)    
     end_time = time.time()
-    print(f"request {request_id} resolution{resolution} dit ends")
+    print(f"request {request_id} resolution {resolution} dit ends")
     with open(dit_log_path, 'a') as file:
         #file.write(f"request {request_id} dit ends at {end_time}\n")
         file.write(f"request {request_id} resolution {resolution} process starts at {start_time} dit ends at {end_time}\n")
