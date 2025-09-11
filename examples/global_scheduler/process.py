@@ -110,18 +110,32 @@ def main(dop: int):
     with open(end_log_path, 'r') as file:
         lines = file.readlines()
         ends = {}
+        processes = {}
+        reslo = {}
         #ends = []    
         for line in lines:
             datas = line.strip().split(' ')
             req_id = str(datas[1])
             end_time = float(datas[-1])
+            process_time = float(datas[-4])
+            resolution = str(datas[3])
             if req_id not in ends:
                 ends[req_id] = end_time
+            if req_id not in processes:
+                processes[req_id] = process_time
+            if req_id not in reslo:
+                reslo[req_id] = resolution
             #ends.append(end_time)
+    print(f"----------Processes----------")
+    for key in starts.keys():
+        print(processes[key])
     print(f"----------Ends----------")
     for key in starts.keys():
         print(ends[key])
-
+    print(f"----------Resolutions----------")
+    for key in starts.keys():
+        print(reslo[key])
+        
     outputs = []
     for key, value in starts.items():
         outputs.append(ends[key] - value)
