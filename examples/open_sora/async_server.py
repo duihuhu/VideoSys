@@ -187,21 +187,16 @@ async def async_generate_dit(request: Request) -> Response:
     resolution = request_dict.pop("resolution")
     aspect_ratio = request_dict.pop("aspect_ratio")
     num_frames = request_dict.pop("num_frames")
-    #print("async_generate", request_id)
     worker_ids = request_dict.pop("worker_ids")
+    
     await engine.build_worker_comm(worker_ids)
-    #if len(worker_ids) > 1:
-    start_time = time.time()
-    await engine.worker_generate_dit(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
-    #else:
-        #await engine.worker_generate(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)
-        #print(request_id, "vae end")
-        
-    # await engine.destory_worker_comm(worker_ids)
+   
+    #start_time = time.time()
+    await engine.worker_generate_dit(worker_ids=worker_ids, request_id=request_id, prompt=prompt, resolution=resolution, aspect_ratio=aspect_ratio, num_frames=num_frames)    
     end_time = time.time()
     print(f"request {request_id} resolution{resolution} dit ends")
     with open(dit_log_path, 'a') as file:
-        file.write(f"request {request_id} dit costs {end_time - start_time}\n")
+        file.write(f"request {request_id} dit ends at {end_time}\n")
     
 # @app.post("/async_generate_vae")
 # async def async_generate_vae(request: Request) -> Response:
@@ -214,24 +209,23 @@ async def async_generate_dit(request: Request) -> Response:
     
 @app.post("/async_generate_vae")
 async def async_generate_vae_step(request: Request) -> Response:
+    global ANS
+
     request_dict = await request.json()
     request_id = request_dict.pop("request_id")
     worker_ids = request_dict.pop("worker_ids")
-    #await engine.build_worker_comm(worker_ids)
-    start_time = time.time()
-    await engine.worker_generate_vae_step(worker_ids=worker_ids, request_id=request_id)
-    end_time = time.time()
-    
-    #video = await engine.worker_generate_vae_step(worker_ids=worker_ids, request_id=request_id)
-    #await engine.video_engine.async_save_video(worker_ids[0], 
-    #                                           video, 
-    #                                           os.path.join("/workspace/Videosys/outputs", f"{request_id}-final.mp4"))
 
-    print(f"request {request_id} vae ends")
+    video = await engine.worker_generate_vae_step(worker_ids=worker_ids, request_id=request_id)
+    await engine.video_engine.async_save_video([worker_ids[0]], 
+                                               video[0], 
+                                               os.path.join("/workspace/VideoSys/outputs", f"{request_id}_final.mp4"))
+    end_time = time.time()
+
+    ANS += 1
+    print(f"request {request_id} vae ends; {ANS}")
+
     with open(vae_log_path, 'a') as file:
-        file.write(f"request {request_id} vae costs {end_time - start_time}\n")
-    # await engine.destory_worker_comm(worker_ids)
-    # print(request_id, " vae end")
+        file.write(f"request {request_id} vae ends at {end_time}\n")
     
 @app.post("/request_workers")
 async def request_workers(request: Request) -> Response:

@@ -139,8 +139,8 @@ def main(dop: int):
     #print(sum(ends[3:]) / len(ends[3:]))
     
 
-    start_log_path2 = "/workspace/VideoSys/metrics/naive_start_" + str(dop) + ".txt"
-    end_log_path2 = "/workspace/VideoSys/metrics/naive_end_" + str(dop) + ".txt"
+    start_log_path2 = "/workspace/VideoSys/metrics/rjf_start_" + str(dop) + ".txt"
+    end_log_path2 = "/workspace/VideoSys/metrics/rjf_end_" + str(dop) + ".txt"
     try:
         # 检查源文件是否存在
         if os.path.exists(start_log_path):

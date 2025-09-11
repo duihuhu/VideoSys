@@ -132,7 +132,7 @@ if __name__ == "__main__":
     parser.add_argument("--recv-ratio", type = float, default = 8.0)
     parser.add_argument("--batch", type = int, default = 1)
     parser.add_argument("--sleep", type = str, default = "")
-    parser.add_argument("--tres", type = str, default = "144p")
+    parser.add_argument("--tres", type = str, default = "360p")
     args = parser.parse_args()
     
     np.random.seed(42)

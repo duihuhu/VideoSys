@@ -307,7 +307,7 @@ class AsyncSched:
             }
             _ = self.post_http_request(pload=pload, api_url=api_url)
                     #self.video_sched.scheduler.update_gpu_status(last = False, group_id = task.request_id, sjf = True)
-            self.video_sched.scheduler.update_gpu_status(last = False, group_id = task.request_id, sjf = False)
+            self.video_sched.scheduler.update_gpu_status(last = False, group_id = task.request_id, sjf = True)
                 #self.video_sched.scheduler.breakdown_update_gpu_status(group_id = task.request_id, last = False)
             api_url = "http://127.0.0.1:8000/async_generate_vae"
             pload = {
@@ -316,14 +316,14 @@ class AsyncSched:
             }
             _ = self.post_http_request(pload=pload, api_url=api_url)
                     #self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id, sjf = True)
-            self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id, sjf = False)
+            self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id, sjf = True)
                 #self.video_sched.scheduler.breakdown_update_gpu_status(group_id = task.request_id, last = True)
         return 
     
     def create_consumer(self, instances_num: int):
         for _ in range(instances_num):
-            #consumer = threading.Thread(target=self.process)
-            consumer = threading.Thread(target=self.process2)
+            consumer = threading.Thread(target=self.process)
+            #consumer = threading.Thread(target=self.process2)
             consumer.daemon = True
             consumer.start()
             self.consumers.append(consumer)
@@ -369,7 +369,8 @@ class AsyncSched:
         #t2 = time.time()
         #with open("costs.txt", "a") as file:    
         #    file.write(f"{t2-t1}\n") 
-        seq_group = self.video_sched.scheduler.naive_baseline_schedule()
+        seq_group = self.video_sched.scheduler.least_remaining_time_schedule()
+        #seq_group = self.video_sched.scheduler.naive_baseline_schedule()
         #seq_group = self.video_sched.scheduler.naive_partition_schedule()
         #seq_group = self.video_sched.scheduler.smart_static_partition_schedule()
         #seq_group = self.video_sched.scheduler.smart_dynamic_partition_schedule()
@@ -875,9 +876,9 @@ class AsyncEngine:
         await self.video_engine.async_generate_vae(worker_ids=worker_ids, request_id=request_id)
     
     async def worker_generate_vae_step(self, worker_ids, request_id) -> None:
-        await self.video_engine.worker_generate_vae_step(worker_ids=worker_ids)
-        #video = await self.video_engine.worker_generate_vae_step(worker_ids=worker_ids)
-        #return video
+        # await self.video_engine.worker_generate_vae_step(worker_ids=worker_ids)
+        output = await self.video_engine.worker_generate_vae_step(worker_ids=worker_ids)
+        return output.video
         
     async def update_request_workers(self, request_id, worker_ids) -> None:
         self.request_workers[request_id] = worker_ids

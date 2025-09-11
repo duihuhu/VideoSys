@@ -273,7 +273,7 @@ class VideoSysEngine:
             # Just return futures
             return worker_outputs
         results = await asyncio.gather(*worker_outputs)
-        return [results]
+        return results
 
     def _driver_execute_model(self, *args, **kwargs):
         return self.driver_worker.generate(*args, **kwargs)
@@ -316,8 +316,8 @@ class VideoSysEngine:
         return video[0]
 
     async def worker_generate_vae_step(self, worker_ids, *args, **kwargs):
-        video = await self._run_workers_vae_aync("video_generate", worker_ids, *args, **kwargs)
-        return video[0]
+        outputs = await self._run_workers_vae_aync("video_generate", worker_ids, *args, **kwargs)
+        return outputs[0]
   
     def generate(self, *args, **kwargs):
         return self._run_workers("generate", *args, **kwargs)[0]
