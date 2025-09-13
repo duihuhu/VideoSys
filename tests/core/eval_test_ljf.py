@@ -173,6 +173,8 @@ if __name__ == "__main__":
     requests: List[Request] = [Request(res="144p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid()),
                                Request(res="360p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid()),
                                Request(res="720p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid())]
+    for req in requests:
+        print(f"Request ID: {req.request_id}, res={req.res}, inflight={req.inflight}, cur_steps={req.cur_steps}, cur_gpus={req.cur_gpus}")
     results = enumerate_allocations(requests, M, Request.cost, max_k=None, cost_is_total=True, prune=False, verbose=False)
     print("前 5 个最优解（按总代价排序）：")
     for alloc, cost in results[:5]:
