@@ -1,5 +1,6 @@
 import heapq
 from typing import Callable, List, Optional, Tuple, Dict
+import uuid
 
 denoising_steps: int = 30
 res_to_dit_times: Dict[str, Dict[int, float]] = {"144p": {1: 4.45, 2: 3.67, 4: 3.69, 8: 3.98}, 
@@ -10,15 +11,23 @@ res_to_dit_times: Dict[str, Dict[int, float]] = {"144p": {1: 4.45, 2: 3.67, 4: 3
 res_to_vae_times: Dict[str, float] = {"144p": 0.34, "240p": 0.78, "360p": 1.81, "480p": 3.54, "720p": 8.70}
 #res_to_opt_gpu_nums: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 4, "480p": 8, "720p": 8}
 
+def random_uuid() -> str:
+    return str(uuid.uuid4().hex)
+
 class Request:
     def __init__(self, res: str, 
                  inflight: Optional[bool] = False, 
                  cur_steps: Optional[int] = 0,
-                 cur_gpus: Optional[int] = 0) -> None:
+                 cur_gpus: Optional[int] = 0,
+                 request_id: Optional[str] = None) -> None:
         self.res = res
         self.inflight = inflight
         self.cur_steps = cur_steps
         self.cur_gpus = cur_gpus
+        self.request_id = request_id
+    
+    def __lt__(self, other):
+        return self.request_id < other.request_id
     
     def cost(self, k: int) -> Optional[float]:
         """
@@ -208,8 +217,15 @@ if __name__ == "__main__":
     '''
     M = 8
     N = 8
-    requests: List[Request] = []
-    for _ in range(N):
+    requests: List[Request] = [Request(res="360p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid()),
+                               Request(res="360p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid()),
+                               Request(res="720p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid()),
+                               Request(res="360p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid()),
+                               Request(res="360p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid()),
+                               Request(res="720p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid()),
+                               Request(res="360p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid()),
+                               Request(res="360p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid())]
+    '''for _ in range(N):
         # 随机生成请求（res 任选，inflight 随机）
         import random
         random.seed(42)  # 为了可重复的随机结果
@@ -219,6 +235,7 @@ if __name__ == "__main__":
 
     for req in requests:
         print(f"Request: res={req.res}, inflight={req.inflight}, cur_steps={req.cur_steps}, cur_gpus={req.cur_gpus}")
+    '''
     
     Ki, total, remaining = allocate_unit_skip(Request.cost, requests, M, allow_jump=True, verbose=True)
     print("Final allocation: Ki =", Ki, "total cost =", total, "remaining =", remaining)
