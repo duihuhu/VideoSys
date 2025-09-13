@@ -1,5 +1,6 @@
 import math
 from typing import Callable, List, Optional, Tuple, Dict
+import uuid
 
 denoising_steps: int = 30
 res_to_dit_times: Dict[str, Dict[int, float]] = {"144p": {1: 4.45, 2: 3.67, 4: 3.69, 8: 3.98}, 
@@ -9,16 +10,21 @@ res_to_dit_times: Dict[str, Dict[int, float]] = {"144p": {1: 4.45, 2: 3.67, 4: 3
                                                  "720p": {1: 112.76, 2: 48.64, 4: 25.08, 8: 13.39}}
 res_to_vae_times: Dict[str, float] = {"144p": 0.34, "240p": 0.78, "360p": 1.81, "480p": 3.54, "720p": 8.70}
 
+def random_uuid() -> str:
+    return str(uuid.uuid4().hex)
+
 class Request:
     def __init__(self, res: str, 
                  inflight: Optional[bool] = False, 
                  cur_steps: Optional[int] = 0,
-                 cur_gpus: Optional[int] = 0) -> None:
+                 cur_gpus: Optional[int] = 0,
+                 request_id: Optional[str] = None) -> None:
         self.res = res
         self.inflight = inflight
         self.cur_steps = cur_steps
         self.cur_gpus = cur_gpus
-    
+        self.request_id = request_id
+
     def cost(self, k: int) -> Optional[float]:
         """
         计算该请求分配 k 个 GPU 时的单资源时间 Ci
@@ -37,7 +43,7 @@ class Request:
         dit_time = res_to_dit_times[self.res][k]
         vae_time = res_to_vae_times[self.res]
         remaining_steps = max(denoising_steps - self.cur_steps, 0) if self.inflight else denoising_steps
-        total_time = k * remaining_steps * dit_time + vae_time
+        total_time = k * dit_time * (remaining_steps / denoising_steps) + vae_time
         return total_time
 
 def enumerate_allocations(
@@ -164,7 +170,9 @@ if __name__ == "__main__":
         print(alloc, cost)'''
     M = 8
     N = 8
-    requests = [Request(i, 1) for i in range(N)]
+    requests: List[Request] = [Request(res="144p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid()),
+                               Request(res="360p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid()),
+                               Request(res="720p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid())]
     results = enumerate_allocations(requests, M, Request.cost, max_k=None, cost_is_total=True, prune=False, verbose=False)
     print("前 5 个最优解（按总代价排序）：")
     for alloc, cost in results[:5]:
