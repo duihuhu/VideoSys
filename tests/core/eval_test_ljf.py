@@ -170,8 +170,9 @@ if __name__ == "__main__":
         print(alloc, cost)'''
     M = 8
     N = 8
-    requests: List[Request] = [Request(res="144p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid()),
-                               Request(res="360p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid()),
+    requests: List[Request] = [Request(res="720p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid()),
+                               Request(res="720p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid()),
+                               Request(res="720p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid()),
                                Request(res="720p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid())]
     for req in requests:
         print(f"Request ID: {req.request_id}, res={req.res}, inflight={req.inflight}, cur_steps={req.cur_steps}, cur_gpus={req.cur_gpus}")

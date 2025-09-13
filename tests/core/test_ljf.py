@@ -219,10 +219,10 @@ if __name__ == "__main__":
     '''
     M = 8
     N = 8
-    requests: List[Request] = [Request(res="144p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid()),
-                               Request(res="360p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid()),
+    requests: List[Request] = [Request(res="720p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid()),
+                               Request(res="720p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid()),
+                               Request(res="720p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid()),
                                Request(res="720p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid())]
-                               #Request(res="360p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid()),
                                #Request(res="360p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid()),
                                #Request(res="720p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid()),
                                #Request(res="360p", inflight=False, cur_steps=0, cur_gpus=0, request_id=random_uuid()),
