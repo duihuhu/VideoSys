@@ -47,7 +47,8 @@ class Request:
         dit_time = res_to_dit_times[self.res][k + self.cur_gpus]
         vae_time = res_to_vae_times[self.res]
         remaining_steps = max(denoising_steps - self.cur_steps, 0) if self.inflight else denoising_steps
-        total_time = k * dit_time * (remaining_steps / denoising_steps) + vae_time
+        #total_time = k * dit_time * (remaining_steps / denoising_steps) + vae_time
+        total_time = dit_time * (remaining_steps / denoising_steps) + vae_time
         return total_time
 
 
