@@ -40,7 +40,7 @@ class Request:
         if k > max_k:
             return None'''
         # 计算剩余时间（秒）
-        dit_time = res_to_dit_times[self.res][k]
+        dit_time = res_to_dit_times[self.res][k + self.cur_gpus]
         vae_time = res_to_vae_times[self.res]
         remaining_steps = max(denoising_steps - self.cur_steps, 0) if self.inflight else denoising_steps
         total_time = k * dit_time * (remaining_steps / denoising_steps) + vae_time
