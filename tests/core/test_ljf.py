@@ -108,7 +108,7 @@ def allocate_unit_skip(
     # 堆元素：(marginal_cost, i, cur_k, next_k)
     # - cur_k 是当前该元素的 k（初始 0）
     # - next_k 是用于计算这个 marginal 的目标 k（通常 cur_k+1 或更大的跳跃 if allow_jump）
-    heap = []
+    heap: List[Tuple[float, Request, int, int]] = []
     for req in N:
         # try to see if we can give first unit
         try:
@@ -141,7 +141,7 @@ def allocate_unit_skip(
             # 我们选择跳过该项（不 push 回），继续尝试其他元素。
             # 如果 allow_jump == False 且 chunk_size == 1，这里不会走到这分支
             if verbose:
-                print(f"Skip operation for req={req} chunk_size={chunk_size} > remaining={remaining}")
+                print(f"Skip operation for req={req.request_id} ({req.res}) chunk_size={chunk_size} > remaining={remaining}")
             continue
 
         # 接受该操作：把 Ki[i] = next_k
@@ -157,7 +157,7 @@ def allocate_unit_skip(
         total_cost += (cost_next - cost_prev)
         remaining -= chunk_size
         if verbose:
-            print(f"Assign element {req}: {cur_k} -> {next_k}, delta={delta:.6g}, remaining={remaining}")
+            print(f"Assign element {req.request_id} ({req.res}): {cur_k} -> {next_k}, delta={delta:.6g}, remaining={remaining}")
 
         # 计算该元素的下一次候选（从 next_k 向前）
         if allow_jump:
@@ -238,4 +238,7 @@ if __name__ == "__main__":
     '''
     
     Ki, total, remaining = allocate_unit_skip(Request.cost, requests, M, allow_jump=True, verbose=True)
-    print("Final allocation: Ki =", Ki, "total cost =", total, "remaining =", remaining)
+   
+    print("Final allocation: ", "total cost =", total, "remaining =", remaining)
+    for key, value in Ki.items():
+        print(f"Request ID: {key}, Allocated GPUs: {value}")
