@@ -68,7 +68,7 @@ def allocate_unit_skip(
       - 当 allow_jump==False 如果 func(i, k+1) 不可用，则该元素不会再获得更多资源。
     """
     # 初始状态
-    Ki = [0] * N
+    Ki = [0] * len(N)
     total_cost = 0.0
     remaining = M
 
@@ -212,7 +212,7 @@ if __name__ == "__main__":
     for _ in range(N):
         # 随机生成请求（res 任选，inflight 随机）
         import random
-        random.seed(0)  # 为了可重复的随机结果
+        random.seed(42)  # 为了可重复的随机结果
         res = random.choice(list(res_to_dit_times.keys()))
         req = Request(res = res, inflight = False, cur_steps = 0, cur_gpus = 0)
         requests.append(req)

@@ -627,7 +627,7 @@ class VideoAutoencoderPipeline(PreTrainedModel):
         self.spatial_vae = VideoAutoencoderKL(
             from_pretrained=#"/data/home/scyb091/model/pixart_sigma_sdxlvae_T5_diffusers/models/snapshots/2c17b4e85261cd549b4068d086b7c2ba9d468e9f",
             #"/data/home/scyb091/model/pixart_sigma_sdxlvae_T5_diffusers/models/snapshots/2c17b4e85261cd549b4068d086b7c2ba9d468e9f",
-            "/workspace/OpenSora/pixart_vae",
+            "/workspace/OpenSora/pixart_vae", #"/workspace/OpenSora/PixArt" h200
             local_files_only=False,
             micro_batch_size=4,
             subfolder="vae",
@@ -735,7 +735,7 @@ def OpenSoraVAE_V1_2(
 ):
     vae_2d = dict(
         type="VideoAutoencoderKL",
-        from_pretrained="/workspace/OpenSora/pixart_vae",
+        from_pretrained="/workspace/OpenSora/pixart_vae", #"/workspace/OpenSora/PixArt" h200
         #"/data/home/scyb091/model/pixart_sigma_sdxlvae_T5_diffusers/models/snapshots/2c17b4e85261cd549b4068d086b7c2ba9d468e9f",
         subfolder="vae",
         micro_batch_size=micro_batch_size,
