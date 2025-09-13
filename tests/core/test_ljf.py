@@ -125,6 +125,7 @@ def allocate_unit_skip(
             continue
         # push (delta, i, cur_k=0, next_k=k1)
         heap.append((delta, req, 0, k1))
+        print(f"Init heap push: req={req.request_id} ({req.res}), delta={delta:.6g}, next_k={k1}")
     heapq.heapify(heap)
 
     # 分配循环：每次从堆里 pop 最小边际，接受该次“（可能跳跃的）+1”分配
@@ -179,6 +180,7 @@ def allocate_unit_skip(
             except ValueError:
                 new_delta = None
             if new_delta is not None:
+                print(f"Push back to heap: req={req.request_id} ({req.res}), delta={new_delta:.6g}, next_k={nk}")
                 heapq.heappush(heap, (new_delta, req, next_k, nk))
         # else: no further candidate for this element (it becomes inactive)
 
