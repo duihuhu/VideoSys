@@ -77,7 +77,7 @@ def allocate_unit_skip(
       - 当 allow_jump==False 如果 func(i, k+1) 不可用，则该元素不会再获得更多资源。
     """
     # 初始状态
-    Ki = [0] * len(N)
+    Ki: Dict[str, int] = {req.request_id: 0 for req in N}
     total_cost = 0.0
     remaining = M
 
@@ -153,7 +153,7 @@ def allocate_unit_skip(
             # 如果突然发现 next_k 无效（并发变化/异常），跳过
             continue
 
-        Ki[req] = next_k
+        Ki[req.request_id] = next_k
         total_cost += (cost_next - cost_prev)
         remaining -= chunk_size
         if verbose:
