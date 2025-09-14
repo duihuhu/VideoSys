@@ -41,7 +41,7 @@ class VideoScheduler:
         self.vae_times: Dict[str, float] = {"144p": 0.34, "240p": 0.78, "360p": 1.81, "480p": 3.54, "720p": 8.70}
         
         #self.opt_gpus_num: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 2, "480p": 4}
-        self.opt_gpus_num: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 4, "480p": 8, "720p": 8}
+        self.opt_gpus_num: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 4, "480p": 4, "720p": 8} #"480p": 8
 
         self.denoising_steps = 30
 

@@ -69,7 +69,7 @@ if __name__ == "__main__":
     parser.add_argument("--host", type=str, default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8001)
     parser.add_argument("--instances-num", type = int, default = 8)
-    parser.add_argument("--static-dop", type = int, default = 8)
+    parser.add_argument("--static-dop", type = int, default = 4)
     parser.add_argument("--window-size", type = int, default = 10)
 
     args = parser.parse_args()
