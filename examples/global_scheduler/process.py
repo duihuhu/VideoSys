@@ -100,6 +100,8 @@ def main(dop: int):
     slo_720p_10 = 237.9324563
     slo_360p_5 = 31.24583801
     slo_360p_10 = 62.49167601
+    slo_480p_5 = 51.75390204
+    slo_480p_10 = 103.5078041
     with open(start_log_path, 'r') as file:
         lines = file.readlines()
         starts = {}
@@ -169,6 +171,11 @@ def main(dop: int):
             if outputs[-1] <= slo_360p_5:
                 slo5 += 1
             if outputs[-1] <= slo_360p_10:
+                slo10 += 1
+        if cur_res == "480p":
+            if outputs[-1] <= slo_480p_5:
+                slo5 += 1
+            if outputs[-1] <= slo_480p_10:
                 slo10 += 1
     final_outputs = np.array(outputs)
     print(f"----------AVG----------")
