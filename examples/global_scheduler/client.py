@@ -70,7 +70,7 @@ def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, bat
         #random.seed(42)
         start_time = time.time()
         while True:
-            if time.time() - start_time > 30:  # 30 seconds
+            if time.time() - start_time > 10:  # 10 seconds
                 break
             #resolution = random.choices(choices, weights = weights, k = 1)[0]
             post_request_and_get_response(prompt, '720p', aspect_ratio, num_frames)
