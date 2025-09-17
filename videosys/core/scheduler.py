@@ -440,13 +440,13 @@ class VideoScheduler:
         
         
         temp_requests_list.sort(key = lambda x: temp_remaining_times[x.request_id])
-        
+
         print("Current Scheduling Status:")
         for seq in temp_requests_list:
             if seq.request_id in self.hungry_requests:
                 print(f"Hungry Request: {seq.request_id}, Remaining Time: {temp_remaining_times[seq.request_id]:.2f}s, Current Steps: {self.requests_cur_steps[seq.request_id]}")
-            else:
-                print(f"Waiting Request: {seq.request_id}, Remaining Time: {temp_remaining_times[seq.request_id]:.2f}s")
+            #else:
+            #    print(f"Waiting Request: {seq.request_id}, Remaining Time: {temp_remaining_times[seq.request_id]:.2f}s")
         print("--------------------------------------------------")
 
         cur_seq_group = temp_requests_list[0]
@@ -460,6 +460,7 @@ class VideoScheduler:
                 self.hungry_requests.pop(cur_seq_group.request_id, None)
                 self.requests_cur_steps.pop(cur_seq_group.request_id, None)
             self.update_tasks.put((cur_seq_group.request_id, self.requests_workers_ids[cur_seq_group.request_id]))
+            print(f"SJF Schedule Hungry Request: {cur_seq_group.request_id}, Allocated GPUs: {self.requests_workers_ids[cur_seq_group.request_id]}")
         else:
             for _ in range(temp_requests_max_gpus_num[cur_seq_group.request_id]):
                 gpu_id = cur_free_gpus.get()
