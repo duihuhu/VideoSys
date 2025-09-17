@@ -441,13 +441,14 @@ class VideoScheduler:
         
         temp_requests_list.sort(key = lambda x: temp_remaining_times[x.request_id])
 
-        print("Current Scheduling Status:")
+        '''print("Current Scheduling Status:")
         for seq in temp_requests_list:
             if seq.request_id in self.hungry_requests:
                 print(f"Hungry Request: {seq.request_id}, Remaining Time: {temp_remaining_times[seq.request_id]:.2f}s, Current Steps: {self.requests_cur_steps[seq.request_id]}")
-            #else:
-            #    print(f"Waiting Request: {seq.request_id}, Remaining Time: {temp_remaining_times[seq.request_id]:.2f}s")
+            else:
+                print(f"Waiting Request: {seq.request_id}, Remaining Time: {temp_remaining_times[seq.request_id]:.2f}s")
         print("--------------------------------------------------")
+        '''
 
         cur_seq_group = temp_requests_list[0]
         if cur_seq_group.request_id in self.hungry_requests:
@@ -475,6 +476,7 @@ class VideoScheduler:
             cur_seq_group.worker_ids = copy.deepcopy(self.requests_workers_ids[cur_seq_group.request_id])
             #self.waiting.popleft()
             self.waiting.pop(cur_seq_group.request_id, None)
+            print(f"SJF Schedule Hungry Request: {cur_seq_group.request_id}, Allocated GPUs: {self.requests_workers_ids[cur_seq_group.request_id]}")
             return cur_seq_group
         return None
         
