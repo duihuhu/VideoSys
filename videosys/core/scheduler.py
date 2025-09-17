@@ -390,7 +390,7 @@ class VideoScheduler:
         return None
     
     def sjf_priority_schedule(self) -> SequenceGroup:
-        print("waiting queue", self.waiting)
+        print("waiting queue length", len(self.waiting))
         cur_free_gpus: Queue[int] = Queue()
         for gpu_id, status in enumerate(self.gpu_status):
             if status == 0:
@@ -473,7 +473,7 @@ class VideoScheduler:
             for w_seq in reversed(window_seqs):
                 if w_seq.request_id != cur_seq_group.request_id:
                     self.waiting.appendleft(w_seq)
-            print("after sjf waiting queue", self.waiting)
+            print("after sjf waiting queue length", len(self.waiting))
             return cur_seq_group
         return None
         
