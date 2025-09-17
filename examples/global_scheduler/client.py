@@ -68,11 +68,13 @@ def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, bat
         #choices = ['360p', '720p']
         #weights = [12113, 4308]
         #random.seed(42)
-        start_time = time.time()
-        while True:
-            if time.time() - start_time > 151:  # 30 seconds
-                break
+        #start_time = time.time()
+        send = 0
+        while send < 30:
+            #if time.time() - start_time > 151:  # 30 seconds
+            #    break
             #resolution = random.choices(choices, weights = weights, k = 1)[0]
+            send += 1
             post_request_and_get_response(prompt, '360p', aspect_ratio, num_frames)
             time.sleep(1 / recv_ratio)
         #sleep_times = np.random.exponential(scale = 1 / recv_ratio, size = len(add_resolutions))
