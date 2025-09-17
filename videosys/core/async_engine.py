@@ -831,6 +831,8 @@ class AsyncEngine:
             # else:
             #     print("new gpus ", request_id, self.request_workers[request_id])
             if request_id in self.request_workers:
+                if len(self.request_workers[request_id]) % 2 != 0:
+                    self.request_workers[request_id].pop()
                 pre_worker_ids = list(set(self.request_workers[request_id]) - set(worker_ids))
             else:
                 pre_worker_ids = []

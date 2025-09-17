@@ -163,7 +163,7 @@ def main(dop: int):
     slo5 = 0
     slo10 = 0
     for key, value in starts.items():
-        if key not in ends:
+        if key not in ends or key not in reslo:
             continue
         outputs.append(ends[key] - value)
         cur_res = reslo[key]
