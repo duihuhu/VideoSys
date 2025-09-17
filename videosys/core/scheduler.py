@@ -412,7 +412,7 @@ class VideoScheduler:
                 cur_opt_gpus_num //= 2
             temp_remaining_times[request_id] = self.dit_times[seq_group.resolution][cur_gpus_num] * (1 - (self.requests_cur_steps[request_id] / self.denoising_steps))
         
-        seq = self.waiting[0]
+        '''seq = self.waiting[0]
         temp_requests_list.append(seq)
         max_gpus_num = cur_free_gpus.qsize()
         temp_opt_gpus_num = self.opt_gpus_num[seq.resolution]
@@ -423,8 +423,9 @@ class VideoScheduler:
                 break
             temp_opt_gpus_num //= 2
         temp_remaining_times[seq.request_id] = self.dit_times[seq.resolution][max_gpus_num]
+        '''
 
-        '''window_seqs: List[SequenceGroup] = []
+        window_seqs: List[SequenceGroup] = []
         while self.waiting:
             w_seq = self.waiting.popleft()
             window_seqs.append(w_seq)
@@ -439,7 +440,7 @@ class VideoScheduler:
                     break
                 temp_opt_gpus_num //= 2
             temp_remaining_times[w_seq.request_id] = self.dit_times[w_seq.resolution][max_gpus_num]
-        '''
+        
         
         temp_requests_list.sort(key = lambda x: temp_remaining_times[x.request_id])
 
@@ -466,11 +467,10 @@ class VideoScheduler:
                 self.hungry_requests[cur_seq_group.request_id] = cur_seq_group
                 self.requests_cur_steps[cur_seq_group.request_id] = 0
             cur_seq_group.worker_ids = copy.deepcopy(self.requests_workers_ids[cur_seq_group.request_id])
-            self.waiting.popleft()
-            '''for w_seq in window_seqs:
+            #self.waiting.popleft()
+            for w_seq in window_seqs:
                 if w_seq.request_id != cur_seq_group.request_id:
                     self.waiting.append(w_seq)
-            '''
             return cur_seq_group
         return None
         
