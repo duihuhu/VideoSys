@@ -70,7 +70,7 @@ def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, bat
         #random.seed(42)
         #start_time = time.time()
         send = 0
-        while send < 30:
+        while send < 10:
             #if time.time() - start_time > 151:  # 30 seconds
             #    break
             #resolution = random.choices(choices, weights = weights, k = 1)[0]

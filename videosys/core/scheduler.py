@@ -426,20 +426,28 @@ class VideoScheduler:
         temp_remaining_times[seq.request_id] = self.dit_times[seq.resolution][max_gpus_num]
         '''
         window_seqs: List[Tuple[str, SequenceGroup]] = list(self.waiting.items())[: self.window_size]
-        for _, w_seq in window_seqs:
+        for w_request_id, w_seq in window_seqs:
             temp_requests_list.append(w_seq)
             max_gpus_num = cur_free_gpus.qsize()
             temp_opt_gpus_num = self.opt_gpus_num[w_seq.resolution]
             while temp_opt_gpus_num > 0:
                 if max_gpus_num >= temp_opt_gpus_num:
                     max_gpus_num = temp_opt_gpus_num
-                    temp_requests_max_gpus_num[w_seq.request_id] = max_gpus_num
+                    temp_requests_max_gpus_num[w_request_id] = max_gpus_num
                     break
                 temp_opt_gpus_num //= 2
-            temp_remaining_times[w_seq.request_id] = self.dit_times[w_seq.resolution][max_gpus_num]
+            temp_remaining_times[w_request_id] = self.dit_times[w_seq.resolution][max_gpus_num]
         
         
         temp_requests_list.sort(key = lambda x: temp_remaining_times[x.request_id])
+        
+        print("Current Scheduling Status:")
+        for seq in temp_requests_list:
+            if seq.request_id in self.hungry_requests:
+                print(f"Hungry Request: {seq.request_id}, Remaining Time: {temp_remaining_times[seq.request_id]:.2f}s, Current Steps: {self.requests_cur_steps[seq.request_id]}")
+            else:
+                print(f"Waiting Request: {seq.request_id}, Remaining Time: {temp_remaining_times[seq.request_id]:.2f}s")
+        print("--------------------------------------------------")
 
         cur_seq_group = temp_requests_list[0]
         if cur_seq_group.request_id in self.hungry_requests:
