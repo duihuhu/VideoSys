@@ -148,18 +148,23 @@ def main(dop: int):
     
     print(f"----------Processes----------")
     for key in starts.keys():
-        print(processes[key])
+        if key in processes:
+            print(processes[key])
     print(f"----------Ends----------")
     for key in starts.keys():
-        print(ends[key])
+        if key in ends:
+            print(ends[key])
     print(f"----------Resolutions----------")
     for key in starts.keys():
-        print(reslo[key])
+        if key in reslo:
+            print(reslo[key])
         
     outputs = []
     slo5 = 0
     slo10 = 0
     for key, value in starts.items():
+        if key not in ends:
+            continue
         outputs.append(ends[key] - value)
         cur_res = reslo[key]
         if cur_res == "720p":
