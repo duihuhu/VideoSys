@@ -426,10 +426,11 @@ class VideoScheduler:
         '''
 
         window_seqs: List[SequenceGroup] = []
-        while self.waiting:
-            w_seq = self.waiting.popleft()
-            window_seqs.append(w_seq)
-        for w_seq in window_seqs[: self.window_size]:
+        for _ in range(self.window_size):
+            if self.waiting:
+                w_seq = self.waiting.popleft()
+                window_seqs.append(w_seq)
+        for w_seq in window_seqs:
             temp_requests_list.append(w_seq)
             max_gpus_num = cur_free_gpus.qsize()
             temp_opt_gpus_num = self.opt_gpus_num[w_seq.resolution]
@@ -468,9 +469,9 @@ class VideoScheduler:
                 self.requests_cur_steps[cur_seq_group.request_id] = 0
             cur_seq_group.worker_ids = copy.deepcopy(self.requests_workers_ids[cur_seq_group.request_id])
             #self.waiting.popleft()
-            for w_seq in window_seqs:
+            for w_seq in reversed(window_seqs):
                 if w_seq.request_id != cur_seq_group.request_id:
-                    self.waiting.append(w_seq)
+                    self.waiting.appendleft(w_seq)
             return cur_seq_group
         return None
         
