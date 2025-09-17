@@ -14,8 +14,8 @@ class VideoScheduler:
         window_size: Optional[int] = 10
         ) -> None:
         # Sequence groups in the WAITING state.
-        #self.waiting: Deque[SequenceGroup] = deque()
-        self.waiting: Dict[str, SequenceGroup] = {}
+        self.waiting: Deque[SequenceGroup] = deque()
+        #self.waiting: Dict[str, SequenceGroup] = {}
         self.num_gpus = 2
         self.num = 0
         
@@ -413,7 +413,7 @@ class VideoScheduler:
                 cur_opt_gpus_num //= 2
             temp_remaining_times[request_id] = self.dit_times[seq_group.resolution][cur_gpus_num] * (1 - (self.requests_cur_steps[request_id] / self.denoising_steps))
         
-        '''seq = self.waiting[0]
+        seq = self.waiting[0]
         temp_requests_list.append(seq)
         max_gpus_num = cur_free_gpus.qsize()
         temp_opt_gpus_num = self.opt_gpus_num[seq.resolution]
@@ -424,8 +424,9 @@ class VideoScheduler:
                 break
             temp_opt_gpus_num //= 2
         temp_remaining_times[seq.request_id] = self.dit_times[seq.resolution][max_gpus_num]
-        '''
-        window_seqs: List[Tuple[str, SequenceGroup]] = list(self.waiting.items())[: self.window_size]
+
+        
+        '''window_seqs: List[Tuple[str, SequenceGroup]] = list(self.waiting.items())[: self.window_size]
         for w_request_id, w_seq in window_seqs:
             temp_requests_list.append(w_seq)
             max_gpus_num = cur_free_gpus.qsize()
@@ -437,18 +438,9 @@ class VideoScheduler:
                     break
                 temp_opt_gpus_num //= 2
             temp_remaining_times[w_request_id] = self.dit_times[w_seq.resolution][max_gpus_num]
-        
+        '''
         
         temp_requests_list.sort(key = lambda x: temp_remaining_times[x.request_id])
-
-        '''print("Current Scheduling Status:")
-        for seq in temp_requests_list:
-            if seq.request_id in self.hungry_requests:
-                print(f"Hungry Request: {seq.request_id}, Remaining Time: {temp_remaining_times[seq.request_id]:.2f}s, Current Steps: {self.requests_cur_steps[seq.request_id]}")
-            else:
-                print(f"Waiting Request: {seq.request_id}, Remaining Time: {temp_remaining_times[seq.request_id]:.2f}s")
-        print("--------------------------------------------------")
-        '''
 
         cur_seq_group = temp_requests_list[0]
         if cur_seq_group.request_id in self.hungry_requests:
@@ -461,7 +453,6 @@ class VideoScheduler:
                 self.hungry_requests.pop(cur_seq_group.request_id, None)
                 self.requests_cur_steps.pop(cur_seq_group.request_id, None)
             self.update_tasks.put((cur_seq_group.request_id, self.requests_workers_ids[cur_seq_group.request_id]))
-            print(f"SJF Schedule Hungry Request: {cur_seq_group.request_id}, Allocated GPUs: {self.requests_workers_ids[cur_seq_group.request_id]}")
         else:
             for _ in range(temp_requests_max_gpus_num[cur_seq_group.request_id]):
                 gpu_id = cur_free_gpus.get()
@@ -474,9 +465,8 @@ class VideoScheduler:
                 self.hungry_requests[cur_seq_group.request_id] = cur_seq_group
                 self.requests_cur_steps[cur_seq_group.request_id] = 0
             cur_seq_group.worker_ids = copy.deepcopy(self.requests_workers_ids[cur_seq_group.request_id])
-            #self.waiting.popleft()
-            self.waiting.pop(cur_seq_group.request_id, None)
-            print(f"SJF Schedule Hungry Request: {cur_seq_group.request_id}, Allocated GPUs: {self.requests_workers_ids[cur_seq_group.request_id]}")
+            self.waiting.popleft()
+            #self.waiting.pop(cur_seq_group.request_id, None)
             return cur_seq_group
         return None
         
@@ -557,8 +547,8 @@ class VideoScheduler:
             
     def add_seq_group(self, seq_group: SequenceGroup) -> None:
         # Add sequence groups to the waiting queue.
-        #self.waiting.append(seq_group)
-        self.waiting[seq_group.request_id] = seq_group
+        self.waiting.append(seq_group)
+        #self.waiting[seq_group.request_id] = seq_group
     
 class Scheduler:
     def __init__(
