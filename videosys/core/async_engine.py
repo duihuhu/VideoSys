@@ -831,8 +831,8 @@ class AsyncEngine:
             # else:
             #     print("new gpus ", request_id, self.request_workers[request_id])
             if request_id in self.request_workers:
-                if len(self.request_workers[request_id]) % 2 != 0:
-                    self.request_workers[request_id].pop()
+                #if len(self.request_workers[request_id]) % 2 != 0:
+                #    self.request_workers[request_id].pop()
                 pre_worker_ids = list(set(self.request_workers[request_id]) - set(worker_ids))
             else:
                 pre_worker_ids = []
@@ -849,6 +849,8 @@ class AsyncEngine:
                     )
                 print(f"request {request_id} resolution {resolution} new worker ids {self.request_workers[request_id]} old worker ids {worker_ids}")
                 worker_ids = copy.deepcopy(self.request_workers[request_id])
+                if len(worker_ids) % 2 != 0:
+                    worker_ids.pop()
                 await self.build_worker_comm(worker_ids)
             '''if request_id in self.request_workers:
                 #     print("no new gpus ", request_id)
