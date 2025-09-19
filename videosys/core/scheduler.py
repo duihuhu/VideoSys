@@ -404,14 +404,17 @@ class VideoScheduler:
         temp_requests_max_gpus_num: Dict[str, int] = {}
         for request_id, seq_group in self.hungry_requests.items():
             temp_requests_list.append(seq_group)
-            max_possible_gpus_num = len(self.requests_workers_ids[request_id]) + availible_gpus_num
-            cur_opt_gpus_num = self.opt_gpus_num[seq_group.resolution]
-            while cur_opt_gpus_num > 0:
+            #max_possible_gpus_num = len(self.requests_workers_ids[request_id]) + availible_gpus_num
+            #cur_opt_gpus_num = self.opt_gpus_num[seq_group.resolution]
+            max_possible_gpus_num = 1 << (min(len(self.requests_workers_ids[request_id]) + availible_gpus_num, self.opt_gpus_num[seq_group.resolution]).bit_length() - 1)
+            '''while cur_opt_gpus_num > 0:
                 if max_possible_gpus_num >= cur_opt_gpus_num:
                     max_possible_gpus_num = cur_opt_gpus_num
                     temp_requests_max_gpus_num[request_id] = max_possible_gpus_num
                     break
                 cur_opt_gpus_num //= 2
+            '''
+            temp_requests_max_gpus_num[request_id] = max_possible_gpus_num
             temp_remaining_times[request_id] = self.dit_times[seq_group.resolution][max_possible_gpus_num] * (1 - (self.requests_cur_steps[request_id] / self.denoising_steps))
 
         '''seq = self.waiting[0]
@@ -431,14 +434,17 @@ class VideoScheduler:
         window_seqs: List[Tuple[str, SequenceGroup]] = list(self.waiting.items())[: self.window_size]
         for w_request_id, w_seq in window_seqs:
             temp_requests_list.append(w_seq)
-            temp_max_gpus_num = availible_gpus_num
-            temp_opt_gpus_num = self.opt_gpus_num[w_seq.resolution]
-            while temp_opt_gpus_num > 0:
+            #temp_max_gpus_num = availible_gpus_num
+            #temp_opt_gpus_num = self.opt_gpus_num[w_seq.resolution]
+            temp_max_gpus_num = 1 << (min(availible_gpus_num, self.opt_gpus_num[w_seq.resolution]).bit_length() - 1)
+            '''while temp_opt_gpus_num > 0:
                 if temp_max_gpus_num >= temp_opt_gpus_num:
                     temp_max_gpus_num = temp_opt_gpus_num
                     temp_requests_max_gpus_num[w_request_id] = temp_max_gpus_num
                     break
                 temp_opt_gpus_num //= 2
+            '''
+            temp_requests_max_gpus_num[w_request_id] = temp_max_gpus_num
             temp_remaining_times[w_request_id] = self.dit_times[w_seq.resolution][temp_max_gpus_num]
 
         temp_requests_list.sort(key = lambda x: temp_remaining_times[x.request_id])
