@@ -67,7 +67,7 @@ def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, bat
     if not batch:
         #choices = ['360p', '720p']
         #weights = [12113, 4308]
-        random.seed(42)
+        #random.seed(42)
         #start_time = time.time()
         send = 0
         while send < 60:

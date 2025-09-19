@@ -115,10 +115,13 @@ class VideoScheduler:
     
     def hungry_first_priority_schedule(self) -> SequenceGroup:
         cur_free_gpus: Queue[int] = Queue()
-        for gpu_id, status in enumerate(self.gpu_status):
+        [cur_free_gpus.put(gpu_id) for gpu_id, status in enumerate(self.gpu_status) if status == 0]
+        '''for gpu_id, status in enumerate(self.gpu_status):
             if status == 0:
                 cur_free_gpus.put(gpu_id)
-        if cur_free_gpus.qsize() < 1:
+        '''
+        availible_gpus_num = cur_free_gpus.qsize()
+        if availible_gpus_num < 1:
             return None
         #----------process hungry queue in starvation descending order while num = N#
         temp_hungry_requests = list(self.hungry_requests.values())
@@ -155,7 +158,7 @@ class VideoScheduler:
         if self.waiting:
             if cur_free_gpus.qsize() < 1:
                 return None
-            cur_waiting_request = self.waiting[0]
+            cur_request_id, cur_waiting_request = list(self.waiting.items())[0]
             cur_demand_gpus_num = []
             cur_max_gpus_num = self.opt_gpus_num[cur_waiting_request.resolution]
             while cur_max_gpus_num > 0:
@@ -167,16 +170,17 @@ class VideoScheduler:
                 for _ in range(demand_gpus_num):
                     gpu_id = cur_free_gpus.get()
                     self.gpu_status[gpu_id] = 1
-                    if cur_waiting_request.request_id not in self.requests_workers_ids:
-                        self.requests_workers_ids[cur_waiting_request.request_id] = [gpu_id]
+                    if cur_request_id not in self.requests_workers_ids:
+                        self.requests_workers_ids[cur_request_id] = [gpu_id]
                     else:
-                        self.requests_workers_ids[cur_waiting_request.request_id].append(gpu_id)
+                        self.requests_workers_ids[cur_request_id].append(gpu_id)
                 if j > 0:
-                    self.hungry_requests[cur_waiting_request.request_id] = cur_waiting_request
-                    self.requests_cur_steps[cur_waiting_request.request_id] = 0
-                    self.requests_last_steps[cur_waiting_request.request_id] = 0
-                cur_waiting_request.worker_ids = copy.deepcopy(self.requests_workers_ids[cur_waiting_request.request_id])
-                self.waiting.popleft()
+                    self.hungry_requests[cur_request_id] = cur_waiting_request
+                    self.requests_cur_steps[cur_request_id] = 0
+                    self.requests_last_steps[cur_request_id] = 0
+                cur_waiting_request.worker_ids = copy.deepcopy(self.requests_workers_ids[cur_request_id])
+                #self.waiting.popleft()
+                self.waiting.pop(cur_request_id, None)
                 return cur_waiting_request
         return None
     
