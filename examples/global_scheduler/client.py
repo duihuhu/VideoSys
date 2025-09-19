@@ -65,17 +65,17 @@ def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, bat
     #sleep_times = np.load(sleep_path)
 
     if not batch:
-        choices = ['360p', '720p']
-        weights = [12113, 4308]
+        #choices = ['360p', '720p']
+        #weights = [12113, 4308]
         random.seed(42)
         #start_time = time.time()
         send = 0
         while send < 60:
             #if time.time() - start_time > 151:  # 30 seconds
             #    break
-            resolution = random.choices(choices, weights = weights, k = 1)[0]
+            #resolution = random.choices(choices, weights = weights, k = 1)[0]
             send += 1
-            post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
+            post_request_and_get_response(prompt, '360p', aspect_ratio, num_frames)
             time.sleep(1 / recv_ratio)
         #sleep_times = np.random.exponential(scale = 1 / recv_ratio, size = len(add_resolutions))
         #for j, resolution in enumerate(add_resolutions):
