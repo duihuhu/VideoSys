@@ -278,8 +278,8 @@ class AsyncSched:
             #if self.task_queue.empty():
             #    continue
             task = self.task_queue.get()  # 阻塞，直到有任务
-            if task is None:
-                break  # 如果任务是 None，表示结束
+            #if task is None:
+            #    break  # 如果任务是 None，表示结束
             #with open("/data/home/scyb091/VideoSys/examples/global_scheduler/gen.txt", "a") as file:
             #        file.write(f"{task.request_id} {time.time()}\n")
             print(f"request {task.request_id} resolution {task.resolution} dit's worker ids {task.worker_ids}")
@@ -309,8 +309,8 @@ class AsyncSched:
             }
             _ = self.post_http_request(pload=pload, api_url=api_url)
                     #self.video_sched.scheduler.update_gpu_status(last = False, group_id = task.request_id, sjf = True)
-            #self.video_sched.scheduler.update_gpu_status(last = False, group_id = task.request_id, sjf = False)
-            self.video_sched.scheduler.update_gpu_status(last = False, group_id = task.request_id, sjf = True)
+            self.video_sched.scheduler.update_gpu_status(last = False, group_id = task.request_id, sjf = False)
+            #self.video_sched.scheduler.update_gpu_status(last = False, group_id = task.request_id, sjf = True)
                 #self.video_sched.scheduler.breakdown_update_gpu_status(group_id = task.request_id, last = False)
             print(f"request {task.request_id} resolution {task.resolution} vae's worker ids {task.worker_ids[0]}")
             api_url = "http://127.0.0.1:8000/async_generate_vae"
@@ -320,15 +320,15 @@ class AsyncSched:
             }
             _ = self.post_http_request(pload=pload, api_url=api_url)
                     #self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id, sjf = True)
-            #self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id, sjf = False)
-            self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id, sjf = True)
+            self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id, sjf = False)
+            #self.video_sched.scheduler.update_gpu_status(last = True, group_id = task.request_id, sjf = True)
                 #self.video_sched.scheduler.breakdown_update_gpu_status(group_id = task.request_id, last = True)
         return 
     
     def create_consumer(self, instances_num: int):
         for _ in range(instances_num):
-            #consumer = threading.Thread(target=self.process)
-            consumer = threading.Thread(target=self.process2)
+            consumer = threading.Thread(target=self.process)
+            #consumer = threading.Thread(target=self.process2)
             consumer.daemon = True
             consumer.start()
             self.consumers.append(consumer)
@@ -370,12 +370,12 @@ class AsyncSched:
         
     async def step_async(self):
         #t1 = time.time()
-        #seq_group = self.video_sched.scheduler.hungry_first_priority_schedule()
+        seq_group = self.video_sched.scheduler.hungry_first_priority_schedule()
         #t2 = time.time()
         #with open("costs.txt", "a") as file:    
         #    file.write(f"{t2-t1}\n") 
         #seq_group = self.video_sched.scheduler.least_remaining_time_schedule()
-        seq_group = self.video_sched.scheduler.naive_baseline_schedule()
+        #seq_group = self.video_sched.scheduler.naive_baseline_schedule()
         #seq_group = self.video_sched.scheduler.naive_partition_schedule()
         #seq_group = self.video_sched.scheduler.smart_static_partition_schedule()
         #seq_group = self.video_sched.scheduler.smart_dynamic_partition_schedule()
