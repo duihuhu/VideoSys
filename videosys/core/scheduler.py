@@ -14,8 +14,8 @@ class VideoScheduler:
         window_size: Optional[int] = 10
         ) -> None:
         # Sequence groups in the WAITING state.
-        self.waiting: Deque[SequenceGroup] = deque()
-        #self.waiting: Dict[str, SequenceGroup] = {}
+        #self.waiting: Deque[SequenceGroup] = deque()
+        self.waiting: Dict[str, SequenceGroup] = {}
         self.num_gpus = 2
         self.num = 0
         
@@ -78,8 +78,8 @@ class VideoScheduler:
     
     def update_dit_workers_ids_for_request(self) -> None:
         while True:
-            if self.update_tasks.empty():
-                continue
+            #if self.update_tasks.empty():
+            #    continue
             group_id, worker_ids = self.update_tasks.get()
             #add for debug
             '''if len(worker_ids) % 2 != 0:
@@ -105,8 +105,10 @@ class VideoScheduler:
             self.requests_workers_ids.pop(group_id, None)
         else:
             self.hungry_requests.pop(group_id, None)
-            for i in range(1, len(self.requests_workers_ids[group_id])):
-                self.gpu_status[self.requests_workers_ids[group_id][i]] = 0
+            #for i in range(1, len(self.requests_workers_ids[group_id])):
+            #    self.gpu_status[self.requests_workers_ids[group_id][i]] = 0
+            for gpu_id in self.requests_workers_ids[group_id][1: ]:
+                self.gpu_status[gpu_id] = 0
             self.requests_cur_steps.pop(group_id, None)
             if not sjf:
                 self.requests_last_steps.pop(group_id, None)
@@ -392,9 +394,7 @@ class VideoScheduler:
     
     def sjf_priority_schedule(self) -> SequenceGroup:
         cur_free_gpus: Queue[int] = Queue()
-        for gpu_id, status in enumerate(self.gpu_status):
-            if status == 0:
-                cur_free_gpus.put(gpu_id)
+        [cur_free_gpus.put(gpu_id) for gpu_id, status in enumerate(self.gpu_status) if status == 0]
         availible_gpus_num = cur_free_gpus.qsize()
         if availible_gpus_num < 1:
             return None
@@ -548,8 +548,8 @@ class VideoScheduler:
             
     def add_seq_group(self, seq_group: SequenceGroup) -> None:
         # Add sequence groups to the waiting queue.
-        self.waiting.append(seq_group)
-        #self.waiting[seq_group.request_id] = seq_group
+        #self.waiting.append(seq_group)
+        self.waiting[seq_group.request_id] = seq_group
     
 class Scheduler:
     def __init__(
