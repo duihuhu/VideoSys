@@ -1,6 +1,6 @@
 import argparse
 import json
-from typing import Iterable, List
+from typing import Iterable, List, Optional
 import requests
 import uuid
 import time
@@ -56,7 +56,8 @@ def post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames):
     #     print("res", time.time(), h)
     #print("rsp ", rsp)
             
-def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, batch: bool, sleep_path: str, tres: str):
+def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, batch: bool, sleep_path: str, tres: str,
+         non_sleep: int):
     #t1 = time.time()
     #add_resolutions = []
     #with open(res_path, 'rb') as file:
@@ -83,7 +84,8 @@ def main(prompt, aspect_ratio, num_frames, res_path: str, recv_ratio: float, bat
             #resolution = random.choices(choices, weights = weights, k = 1)[0]
             #send += 1
             post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
-            time.sleep(1 / recv_ratio)
+            if not non_sleep:
+                time.sleep(1 / recv_ratio)
         #sleep_times = np.random.exponential(scale = 1 / recv_ratio, size = len(add_resolutions))
         #for j, resolution in enumerate(add_resolutions):
         #    post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
@@ -153,6 +155,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch", type = int, default = 1)
     parser.add_argument("--sleep", type = str, default = "")
     parser.add_argument("--tres", type = str, default = "144p")
+    parser.add_argument("--non-sleep", type = int, default = 0)
     args = parser.parse_args()
     
     np.random.seed(42)
@@ -163,4 +166,5 @@ if __name__ == "__main__":
     
     temp_path = "resolution_" + str(args.ratio1) + "_" + str(args.ratio2) + "_" + str(args.ratio3) + ".pkl"
     file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), temp_path)
-    main(prompt, aspect_ratio, num_frames, file_path, args.recv_ratio, args.batch, args.sleep, args.tres)
+    main(prompt, aspect_ratio, num_frames, file_path, args.recv_ratio, args.batch, args.sleep, args.tres,
+         args.non_sleep)
