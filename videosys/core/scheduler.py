@@ -255,6 +255,27 @@ class VideoScheduler:
             return cur_waiting_request
         return None
     
+    def naive_baseline_greedy_schedule(self) -> SequenceGroup:
+        cur_free_gpus: Queue[int] = Queue()
+        [cur_free_gpus.put(gpu_id) for gpu_id, status in enumerate(self.gpu_status) if status == 0]
+        availible_gpus_num = cur_free_gpus.qsize()
+        if availible_gpus_num < 1:
+            return None
+        if self.waiting:
+            cur_request_id, cur_waiting_request = list(self.waiting.items())[0]
+            possible_gpus_num = 1 << (min(availible_gpus_num, self.opt_gpus_num[cur_waiting_request.resolution]).bit_length() - 1)
+            for _ in range(possible_gpus_num):
+                gpu_id = cur_free_gpus.get()
+                self.gpu_status[gpu_id] = 1
+                if cur_request_id not in self.requests_workers_ids:
+                    self.requests_workers_ids[cur_request_id] = [gpu_id]
+                else:
+                    self.requests_workers_ids[cur_request_id].append(gpu_id)
+            cur_waiting_request.worker_ids = copy.deepcopy(self.requests_workers_ids[cur_request_id])
+            self.waiting.pop(cur_request_id, None)
+            return cur_waiting_request
+        return None
+    
     def naive_baseline_update_gpu_status(self, resolution: str, worker_ids: List[int]) -> None:
         if resolution == '144p':
             #self.w1_num.append((worker_ids[0], worker_ids[1]))
