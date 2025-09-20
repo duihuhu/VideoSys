@@ -236,11 +236,13 @@ class VideoScheduler:
             if status == 0:
                 cur_free_gpus.put(gpu_id)
         '''
-        if availible_gpus_num < self.static_dop:
-            return None
+        #if availible_gpus_num < self.static_dop:
+        #    return None
         if self.waiting:
             cur_request_id, cur_waiting_request = list(self.waiting.items())[0]
-            for _ in range(self.static_dop):
+            if availible_gpus_num < self.opt_gpus_num[cur_waiting_request.resolution]:
+                return None
+            for _ in range(self.opt_gpus_num[cur_waiting_request.resolution]):
                 gpu_id = cur_free_gpus.get()
                 self.gpu_status[gpu_id] = 1
                 if cur_request_id not in self.requests_workers_ids:
