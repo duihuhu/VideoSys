@@ -92,8 +92,8 @@ class VideoSysEngine:
 
     # TODO: add more options here for pipeline, or wrap all options into config
     def _create_pipeline(self, pipeline_cls, rank=0, local_rank=0, distributed_init_method=None):
-        # self.config.local_rank =  self.get_physical_device_id(self.config.rank)
-        # print("worker ", os.getpid(), self.config.rank , self.config.local_rank)
+        self.config.local_rank =  self.get_physical_device_id(self.config.rank)
+        print("worker ", os.getpid(), self.config.rank , self.config.local_rank)
         # device_rank = "cuda:%s" % self.config.rank
         # pipeline = pipeline_cls(config=self.config, device=torch.device(device_rank))
         
