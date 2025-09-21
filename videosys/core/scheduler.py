@@ -116,12 +116,7 @@ class VideoScheduler:
     def hungry_first_priority_schedule(self) -> SequenceGroup:
         cur_free_gpus: Queue[int] = Queue()
         [cur_free_gpus.put(gpu_id) for gpu_id, status in enumerate(self.gpu_status) if status == 0]
-        '''for gpu_id, status in enumerate(self.gpu_status):
-            if status == 0:
-                cur_free_gpus.put(gpu_id)
-        '''
-        availible_gpus_num = cur_free_gpus.qsize()
-        if availible_gpus_num < 1:
+        if cur_free_gpus.qsize() < 1:
             return None
         #----------process hungry queue in starvation descending order while num = N#
         temp_hungry_requests = list(self.hungry_requests.values())
@@ -133,55 +128,40 @@ class VideoScheduler:
         for cur_hungry_request in temp_hungry_requests:
             if cur_free_gpus.qsize() < 1:
                 break
-            cur_wanted_gpus_num = []
-            cur_opt_gpus_num = self.opt_gpus_num[cur_hungry_request.resolution]
-            while cur_opt_gpus_num > 0:
-                if cur_opt_gpus_num - len(self.requests_workers_ids[cur_hungry_request.request_id]) > 0:
-                    cur_wanted_gpus_num.append(cur_opt_gpus_num - len(self.requests_workers_ids[cur_hungry_request.request_id]))
-                cur_opt_gpus_num //= 2
-            for i, wanted_gpus_num in enumerate(cur_wanted_gpus_num):
-                if cur_free_gpus.qsize() < wanted_gpus_num:
-                    continue
-                for _ in range(wanted_gpus_num):
-                    gpu_id = cur_free_gpus.get()
-                    self.gpu_status[gpu_id] = 1
-                    self.requests_workers_ids[cur_hungry_request.request_id].append(gpu_id)
-                self.update_tasks.put((cur_hungry_request.request_id, self.requests_workers_ids[cur_hungry_request.request_id]))
-                if i == 0:
-                    self.hungry_requests.pop(cur_hungry_request.request_id, None)
-                    self.requests_cur_steps.pop(cur_hungry_request.request_id, None)
-                    self.requests_last_steps.pop(cur_hungry_request.request_id, None)
-                else:
-                    if cur_hungry_request.request_id in self.requests_last_steps:
-                        self.requests_last_steps[cur_hungry_request.request_id] = self.requests_cur_steps[cur_hungry_request.request_id]    
+            cur_wanted_gpus_num = 1 << (min(cur_free_gpus.qsize() + len(self.requests_workers_ids[cur_hungry_request.request_id]), self.opt_gpus_num[cur_hungry_request.resolution]).bit_length() - 1)
+            cur_demand_gpus_num = cur_wanted_gpus_num - len(self.requests_workers_ids[cur_hungry_request.request_id])
+            for _ in range(cur_demand_gpus_num):
+                gpu_id = cur_free_gpus.get()
+                self.gpu_status[gpu_id] = 1
+                self.requests_workers_ids[cur_hungry_request.request_id].append(gpu_id)
+            self.update_tasks.put((cur_hungry_request.request_id, self.requests_workers_ids[cur_hungry_request.request_id]))
+            if cur_wanted_gpus_num == self.opt_gpus_num[cur_hungry_request.resolution]:
+                self.hungry_requests.pop(cur_hungry_request.request_id, None)
+                self.requests_cur_steps.pop(cur_hungry_request.request_id, None)
+                self.requests_last_steps.pop(cur_hungry_request.request_id, None)
+            else:
+                #if cur_hungry_request.request_id in self.requests_last_steps:
+                self.requests_last_steps[cur_hungry_request.request_id] = self.requests_cur_steps[cur_hungry_request.request_id]
         #----------process waiting queue in FCFS while num = 1----------#
         if self.waiting:
             if cur_free_gpus.qsize() < 1:
                 return None
             cur_request_id, cur_waiting_request = list(self.waiting.items())[0]
-            cur_demand_gpus_num = []
-            cur_max_gpus_num = self.opt_gpus_num[cur_waiting_request.resolution]
-            while cur_max_gpus_num > 0:
-                cur_demand_gpus_num.append(cur_max_gpus_num)
-                cur_max_gpus_num //= 2
-            for j, demand_gpus_num in enumerate(cur_demand_gpus_num):
-                if cur_free_gpus.qsize() < demand_gpus_num:
-                    continue
-                for _ in range(demand_gpus_num):
-                    gpu_id = cur_free_gpus.get()
-                    self.gpu_status[gpu_id] = 1
-                    if cur_request_id not in self.requests_workers_ids:
-                        self.requests_workers_ids[cur_request_id] = [gpu_id]
-                    else:
-                        self.requests_workers_ids[cur_request_id].append(gpu_id)
-                if j > 0:
-                    self.hungry_requests[cur_request_id] = cur_waiting_request
-                    self.requests_cur_steps[cur_request_id] = 0
-                    self.requests_last_steps[cur_request_id] = 0
-                cur_waiting_request.worker_ids = copy.deepcopy(self.requests_workers_ids[cur_request_id])
-                #self.waiting.popleft()
-                self.waiting.pop(cur_request_id, None)
-                return cur_waiting_request
+            cur_wanted_gpus_num = 1 << (min(cur_free_gpus.qsize(), self.opt_gpus_num[cur_waiting_request.resolution]).bit_length() - 1)
+            for _ in range(cur_wanted_gpus_num):
+                gpu_id = cur_free_gpus.get()
+                self.gpu_status[gpu_id] = 1
+                if cur_request_id not in self.requests_workers_ids:
+                    self.requests_workers_ids[cur_request_id] = [gpu_id]
+                else:
+                    self.requests_workers_ids[cur_request_id].append(gpu_id)
+            if cur_wanted_gpus_num < self.opt_gpus_num[cur_waiting_request.resolution]:
+                self.hungry_requests[cur_request_id] = cur_waiting_request
+                self.requests_cur_steps[cur_request_id] = 0
+                self.requests_last_steps[cur_request_id] = 0
+            cur_waiting_request.worker_ids = copy.deepcopy(self.requests_workers_ids[cur_request_id])
+            self.waiting.pop(cur_request_id, None)
+            return cur_waiting_request
         return None
     
     def continuous_batching_schedule(self) -> SequenceGroup:
