@@ -208,6 +208,14 @@ class VideoScheduler:
             self.gpu_status[gpu_id] = 0
         self.requests_workers_ids.pop(group_id, None)
     
+    def window_update_gpu_status(self, group_id: str) -> None:
+        self.hungry_requests.pop(group_id, None)
+        self.requests_cur_steps.pop(group_id, None)
+        self.requests_last_steps.pop(group_id, None)
+        for gpu_id in self.requests_workers_ids[group_id]:
+            self.gpu_status[gpu_id] = 0
+        self.requests_workers_ids.pop(group_id, None)
+        
     def naive_baseline_schedule(self) -> SequenceGroup:
         cur_free_gpus: Queue[int] = Queue()
         [cur_free_gpus.put(gpu_id) for gpu_id, status in enumerate(self.gpu_status) if status == 0]
@@ -641,6 +649,10 @@ class VideoScheduler:
                     self.requests_workers_ids[cur_request_id] = [gpu_id]
                 else:
                     self.requests_workers_ids[cur_request_id].append(gpu_id)
+            if temp_cur_gpus_num < self.opt_gpus_num[cur_seq_group.resolution]:
+                self.hungry_requests[cur_request_id] = cur_seq_group
+                self.requests_cur_steps[cur_request_id] = 0
+                self.requests_last_steps[cur_request_id] = 0
             cur_seq_group.worker_ids = copy.deepcopy(self.requests_workers_ids[cur_request_id])
             self.waiting.pop(cur_request_id, None)
             return cur_seq_group
