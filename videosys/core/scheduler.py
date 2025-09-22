@@ -203,7 +203,7 @@ class VideoScheduler:
             for i in range(1, len(self.requests_workers_ids[group_id])):
                 self.gpu_status[self.requests_workers_ids[group_id][i]] = 0
         
-    def navie_update_gpu_status(self, group_id: str) -> None:
+    def naive_update_gpu_status(self, group_id: str) -> None:
         for gpu_id in self.requests_workers_ids[group_id]:
             self.gpu_status[gpu_id] = 0
         self.requests_workers_ids.pop(group_id, None)
