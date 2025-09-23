@@ -437,32 +437,40 @@ class VideoScheduler:
         
         if temp_requests_list:
             temp_requests_list.sort(key = lambda x: temp_remaining_times[x.request_id])
-
-            this_seq_group = temp_requests_list[0]
-            if this_seq_group.request_id in self.hungry_requests:
-                temp_allocated_gpus_num = temp_requests_max_gpus_num[this_seq_group.request_id] - len(self.requests_workers_ids[this_seq_group.request_id])
-                for _ in range(temp_allocated_gpus_num):
-                    gpu_id = cur_free_gpus.get()
-                    self.gpu_status[gpu_id] = 1
-                    self.requests_workers_ids[this_seq_group.request_id].append(gpu_id)
-                self.update_tasks.put((this_seq_group.request_id, self.requests_workers_ids[this_seq_group.request_id]))
-                if temp_requests_max_gpus_num[this_seq_group.request_id] == self.opt_gpus_num[this_seq_group.resolution]:
-                    self.hungry_requests.pop(this_seq_group.request_id, None)
-                    self.requests_cur_steps.pop(this_seq_group.request_id, None)
-            else:
-                for _ in range(temp_requests_max_gpus_num[this_seq_group.request_id]):
-                    gpu_id = cur_free_gpus.get()
-                    self.gpu_status[gpu_id] = 1
-                    if this_seq_group.request_id not in self.requests_workers_ids:
-                        self.requests_workers_ids[this_seq_group.request_id] = [gpu_id]
-                    else:
+            
+            ans = -1
+            for i, this_seq_group in enumerate(temp_requests_list): 
+                if cur_free_gpus.qsize() < 1:
+                    break
+                if this_seq_group.request_id in self.waiting:
+                    if cur_free_gpus.qsize() < temp_requests_max_gpus_num[this_seq_group.request_id]:
+                        continue
+                    for _ in range(temp_requests_max_gpus_num[this_seq_group.request_id]):
+                        gpu_id = cur_free_gpus.get()
+                        self.gpu_status[gpu_id] = 1
+                        if this_seq_group.request_id not in self.requests_workers_ids:
+                            self.requests_workers_ids[this_seq_group.request_id] = [gpu_id]
+                        else:
+                            self.requests_workers_ids[this_seq_group.request_id].append(gpu_id)
+                    if len(self.requests_workers_ids[this_seq_group.request_id]) < self.opt_gpus_num[this_seq_group.resolution]:
+                        self.hungry_requests[this_seq_group.request_id] = this_seq_group
+                        self.requests_cur_steps[this_seq_group.request_id] = 0
+                    this_seq_group.worker_ids = copy.deepcopy(self.requests_workers_ids[this_seq_group.request_id])
+                    self.waiting.pop(this_seq_group.request_id, None)
+                    ans = i
+                else:
+                    temp_allocated_gpus_num = temp_requests_max_gpus_num[this_seq_group.request_id] - len(self.requests_workers_ids[this_seq_group.request_id])
+                    if cur_free_gpus.qsize() < temp_allocated_gpus_num:
+                        continue
+                    for _ in range(temp_allocated_gpus_num):
+                        gpu_id = cur_free_gpus.get()
+                        self.gpu_status[gpu_id] = 1
                         self.requests_workers_ids[this_seq_group.request_id].append(gpu_id)
-                if len(self.requests_workers_ids[this_seq_group.request_id]) < self.opt_gpus_num[this_seq_group.resolution]:
-                    self.hungry_requests[this_seq_group.request_id] = this_seq_group
-                    self.requests_cur_steps[this_seq_group.request_id] = 0
-                this_seq_group.worker_ids = copy.deepcopy(self.requests_workers_ids[this_seq_group.request_id])
-                self.waiting.pop(this_seq_group.request_id, None)
-                return this_seq_group
+                    self.update_tasks.put((this_seq_group.request_id, self.requests_workers_ids[this_seq_group.request_id]))
+                    if temp_requests_max_gpus_num[this_seq_group.request_id] == self.opt_gpus_num[this_seq_group.resolution]:
+                        self.hungry_requests.pop(this_seq_group.request_id, None)
+                        self.requests_cur_steps.pop(this_seq_group.request_id, None)
+            return temp_requests_list[ans] if ans != -1 else None
         return None
     
     def window_based_sjf_schedule(self) -> SequenceGroup:
