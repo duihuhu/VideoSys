@@ -589,8 +589,9 @@ class VideoScheduler:
         if temp_requests_list:
             temp_requests_list.sort(key = lambda x: temp_remaining_times[x.request_id])
             
-            ans: List[SequenceGroup] = []
-            for this_seq_group in temp_requests_list: 
+            ans = -1
+            only_one = True
+            for i, this_seq_group in enumerate(temp_requests_list): 
                 if cur_free_gpus.qsize() < 1:
                     break
                 if this_seq_group.request_id in self.waiting:
@@ -608,7 +609,9 @@ class VideoScheduler:
                         self.requests_cur_steps[this_seq_group.request_id] = 0
                     this_seq_group.worker_ids = copy.deepcopy(self.requests_workers_ids[this_seq_group.request_id])
                     self.waiting.pop(this_seq_group.request_id, None)
-                    ans.append(this_seq_group)
+                    if only_one:
+                        ans = i
+                        only_one = False
                 else:
                     temp_allocated_gpus_num = temp_requests_max_gpus_num[this_seq_group.request_id] - len(self.requests_workers_ids[this_seq_group.request_id])
                     if cur_free_gpus.qsize() < temp_allocated_gpus_num:
@@ -621,7 +624,7 @@ class VideoScheduler:
                     if temp_requests_max_gpus_num[this_seq_group.request_id] == self.opt_gpus_num[this_seq_group.resolution]:
                         self.hungry_requests.pop(this_seq_group.request_id, None)
                         self.requests_cur_steps.pop(this_seq_group.request_id, None)
-            return ans if ans else None
+            return temp_requests_list[ans] if ans != -1 else None
         return None
             
     def add_seq_group(self, seq_group: SequenceGroup) -> None:
