@@ -94,7 +94,7 @@ async def generate_vae(request: Request) -> Response:
     prompt = request_dict.pop("prompt")
     shape = request_dict.pop("shape")
     global_ranks = request_dict.pop("global_ranks")
-    print("generate_vae ", shape, global_ranks)
+    #print("generate_vae ", shape, global_ranks)
     results_generator = engine.generate(request_id=request_id, prompt=prompt, shape=shape,\
         global_ranks=global_ranks)
     async def stream_results() -> AsyncGenerator[bytes, None]:
