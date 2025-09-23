@@ -929,12 +929,12 @@ class OpenSoraPipeline(VideoSysPipeline):
         for request_id in send_finished_reqs:
             del self.dit_video_data[request_id]
             
-    def allocate_kv(self, request_id, prompt, shape):
+    def allocate_kv(self, request_id, prompt, shape, rank):
         free_mem = torch.cuda.mem_get_info()[0] 
         #print("free mem, ", free_mem, shape)
         required_mem = torch.tensor(shape, dtype=torch.float32).numel() * 4
         if free_mem >= required_mem:
-            allocated_video = torch.empty(shape, device=self._device, dtype=torch.float32)
+            allocated_video = torch.empty(shape, device=torch.device(f"cuda:{rank}"), dtype=torch.float32)
             self.vae_record_data[request_id] = allocated_video
             #print("allocated_video addr ",shape, allocated_video.dtype, allocated_video.data_ptr(), allocated_video.device)
             return True, allocated_video.data_ptr(), allocated_video.numel() * allocated_video.element_size()

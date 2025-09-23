@@ -19,7 +19,7 @@ class VideoSysEngine:
     this is partly inspired by vllm
     """
 
-    def __init__(self, config, deploy_config = None):
+    def __init__(self, config, deploy_config = None, vae_rank: int = 0):
         self.config = config
         self.deploy_config = deploy_config
         self.parallel_worker_tasks = None
@@ -30,6 +30,7 @@ class VideoSysEngine:
         self.recv_kv_trans_scheduler = RecvKvTransScheduler(1, config.worker_type)
 
         self._init_worker(config.pipeline_cls)
+        self.vae_rank = vae_rank
 
     def _init_worker(self, pipeline_cls):
         world_size = self.config.num_gpus
@@ -232,7 +233,8 @@ class VideoSysEngine:
             seq_group = self.scheduler.vae_waiting[0][0]
             global_ranks = self.scheduler.vae_waiting[0][1]
             
-            can_allocate, video_addr, video_size = self.allocate_kv(request_id=seq_group.request_id, prompt=seq_group.prompt, shape=seq_group.shape)
+            can_allocate, video_addr, video_size = self.allocate_kv(request_id=seq_group.request_id, prompt=seq_group.prompt, shape=seq_group.shape,
+                                                                    rank = self.vae_rank)
             if can_allocate:
                 self.scheduler.add_recv_transfering(seq_group)
                 transfer_tag = self.recv_kv_trans_scheduler.add_kv_request(seq_group.request_id, global_ranks, video_addr, video_size)
