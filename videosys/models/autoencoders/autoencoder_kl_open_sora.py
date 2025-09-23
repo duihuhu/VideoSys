@@ -625,7 +625,7 @@ class VideoAutoencoderPipeline(PreTrainedModel):
     def __init__(self, config: VideoAutoencoderPipelineConfig):
         super().__init__(config=config)
         self.spatial_vae = VideoAutoencoderKL(
-            from_pretrained="/workspace/SoraModel/pixart_vae/vae",
+            from_pretrained="/workspace/OpenSora/pixart_vae",
             local_files_only=False,
             micro_batch_size=4,
             subfolder="vae",
@@ -733,7 +733,7 @@ def OpenSoraVAE_V1_2(
 ):
     vae_2d = dict(
         type="VideoAutoencoderKL",
-        from_pretrained="/workspace/SoraModel/pixart_vae/vae",
+        from_pretrained="/workspace/OpenSora/pixart_vae",
         subfolder="vae",
         micro_batch_size=micro_batch_size,
         local_files_only=local_files_only,

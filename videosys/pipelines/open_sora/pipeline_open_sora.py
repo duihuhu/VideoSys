@@ -126,9 +126,9 @@ class OpenSoraConfig:
 
     def __init__(
         self,
-        transformer: str = "/workspace/SoraModel/OpenSora-STDiT-v3",
-        vae: str = "/workspace/SoraModel/OpenSora-VAE-v1.2",
-        text_encoder: str = "/workspace/SoraModel/t5-small",
+        transformer: str = "/workspace/OpenSora/OpenSora-STDiT-v3",
+        vae: str = "/workspace/OpenSora/OpenSora-VAE-v1.2",
+        text_encoder: str = "/workspace/OpenSora/t5-small",
         # ======== distributed ========
         num_gpus: int = 1,
         # ======== scheduler ========
