@@ -269,8 +269,8 @@ class AsyncSched:
             _ = self.post_http_request(pload=pload, api_url=api_url2)
 
             #self.video_sched.scheduler.breakdown_update_gpu_status(group_id = task.request_id, last = True)
-            self.video_sched.scheduler.naive_update_gpu_status(group_id=task.request_id)
-            #self.video_sched.scheduler.window_update_gpu_status(group_id=task.request_id)
+            #self.video_sched.scheduler.naive_update_gpu_status(group_id=task.request_id)
+            self.video_sched.scheduler.window_update_gpu_status(group_id=task.request_id)
             #self.video_sched.scheduler.naive_baseline_update_gpu_status(resolution = task.resolution, worker_ids = task.worker_ids)
             #self.video_sched.scheduler.smart_baseline_update_gpu_status(worker_ids = task.worker_ids, res = task.resolution) #req_id = task.request_id)
     
@@ -328,8 +328,8 @@ class AsyncSched:
     
     def create_consumer(self, instances_num: int):
         for _ in range(instances_num):
-            consumer = threading.Thread(target=self.process)
-            #consumer = threading.Thread(target=self.process2)
+            #consumer = threading.Thread(target=self.process)
+            consumer = threading.Thread(target=self.process2)
             consumer.daemon = True
             consumer.start()
             self.consumers.append(consumer)
@@ -385,9 +385,11 @@ class AsyncSched:
         #seq_group = self.video_sched.scheduler.continuous_batching_schedule()
         #seq_group = self.video_sched.scheduler.window_based_sjf_schedule()
         #seq_group = self.video_sched.scheduler.window_based_sjf_with_hungry_update_schedule()
-        seq_group = self.video_sched.scheduler.fcfs_decouple_sjf_schedule()
-        if seq_group:
-            self.task_queue.put(seq_group)
+        #seq_group = self.video_sched.scheduler.fcfs_decouple_sjf_schedule()
+        seq_groups = self.video_sched.scheduler.window_based_sjf_with_sjf_update_schedule()
+        if seq_groups:
+            for seq_group in seq_groups:
+                self.task_queue.put(seq_group)
             #return True
         return None
      
