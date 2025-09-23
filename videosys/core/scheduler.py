@@ -445,10 +445,10 @@ class VideoScheduler:
                     gpu_id = cur_free_gpus.get()
                     self.gpu_status[gpu_id] = 1
                     self.requests_workers_ids[this_seq_group.request_id].append(gpu_id)
+                self.update_tasks.put((this_seq_group.request_id, self.requests_workers_ids[this_seq_group.request_id]))
                 if temp_requests_max_gpus_num[this_seq_group.request_id] == self.opt_gpus_num[this_seq_group.resolution]:
                     self.hungry_requests.pop(this_seq_group.request_id, None)
                     self.requests_cur_steps.pop(this_seq_group.request_id, None)
-                self.update_tasks.put((this_seq_group.request_id, self.requests_workers_ids[this_seq_group.request_id]))
             else:
                 for _ in range(temp_requests_max_gpus_num[this_seq_group.request_id]):
                     gpu_id = cur_free_gpus.get()
