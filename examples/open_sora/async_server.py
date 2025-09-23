@@ -15,12 +15,14 @@ from comm import CommData, CommEngine, CommonHeader, ReqMeta
 from videosys.utils.config import DeployConfig
 import videosys.entrypoints.server_config as cfg
 from videosys.core.outputs import KvPreparedResponse
+import os
 
 AIOHTTP_TIMEOUT = aiohttp.ClientTimeout(total=6 * 60 * 60)
 TIMEOUT_KEEP_ALIVE = 5  # seconds.
 app = FastAPI()
 engine = None
 
+log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "start_log.txt")
 
 async def asyc_forward_request(request_dict, api_url):
     headers = {"User-Agent": "Test Client"}
@@ -114,6 +116,11 @@ async def generate_dit(request: Request) -> Response:
     # num_frames = "2s"
     results_generator = engine.generate(request_id=request_id, prompt=prompt, resolution=resolution, \
         aspect_ratio=aspect_ratio, num_frames=num_frames)
+    
+    start_time = time.time()
+    with open(log_path, 'a') as file:
+        file.write(f"request {request_id} starts at {start_time}\n")
+    
     async def stream_results() -> AsyncGenerator[bytes, None]:
         async for request_output in results_generator:
             print("request_output ", request_output)

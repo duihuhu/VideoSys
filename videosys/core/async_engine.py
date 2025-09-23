@@ -216,6 +216,9 @@ class AsyncEngine:
         self.background_loop = None
         self._errored_with: Optional[BaseException] = None
 
+        self.dit_log_path = "/workspace/VideoSys/examples/open_sora/dit_log.txt"
+        self.vae_log_path = "/workspace/VideoSys/examples/open_sora/vae_log.txt"
+
     async def run_engine_loop(self):
         has_requests_in_progress = False
         print("run_engine_loop ")
@@ -249,33 +252,48 @@ class AsyncEngine:
                     aspect_ratio=seq_group.aspect_ratio,
                     num_frames=seq_group.num_frames,
                 ).video[0]
-                print("video info ", type(video), video.shape)
+                #print("video info ", type(video), video.shape)
                 shape = None
-                self.video_engine.save_video(video, f"./outputs/{seq_group.prompt}.mp4")
+                self.video_engine.save_video(video, f"/workspace/VideoSys/outputs/{seq_group.request_id}.mp4")
             else:
                 if self.config.worker_type == "dit":
-                    t1 = time.time()
-                    request_id, shape = self.video_engine.generate_dit(request_id=seq_group.request_id, 
+                    #t1 = time.time()
+                    start_time = time.time()
+                    print(f"request {seq_group.request_id} dit starts")
+                    
+                    _, shape = self.video_engine.generate_dit(request_id=seq_group.request_id, 
                                                         prompt=seq_group.prompt,
                                                         resolution=seq_group.resolution,
                                                         aspect_ratio=seq_group.aspect_ratio,
                                                         num_frames=seq_group.num_frames,
                                                         )
-                    print("dit request_id, shape ", request_id, shape)
+                    #print("dit request_id, shape ", request_id, shape)
                     seq_group.shape = shape
                     self.video_engine.scheduler.add_send_transfering(seq_group)
                     
-                    t2 = time.time()
+                    #t2 = time.time()
                     self.video_engine.transfer_dit(request_id=seq_group.request_id)
-                    t3 = time.time()
-                    print("step async ", t3-t2, t2-t1)
+                    
+                    end_time = time.time()
+                    print(f"request {seq_group.request_id} dit & transfer ends")
+                    with open(self.dit_log_path, 'a') as file:
+                        file.write(f"request {seq_group.request_id} resolution {seq_group.resolution} process starts at {start_time} dit ends at {end_time}\n")
+                    #t3 = time.time()
+                    #print("step async ", t3-t2, t2-t1)
                 else:
-                    print("vae request_id ", time.time(), seq_group.request_id)
-                    t1 = time.time()
+                    #print("vae request_id ", time.time(), seq_group.request_id)
+                    #t1 = time.time()
+                    print(f"request {seq_group.request_id} vae starts")
+
                     video = self.video_engine.generate_vae(request_id=seq_group.request_id).video[0]
-                    t2 = time.time()
-                    print("video step async ", time.time(), t2-t1, type(video), video.shape)
-                    self.video_engine.save_video(video, f"./outputs/{seq_group.prompt}.mp4")
+                    #t2 = time.time()
+                    #print("video step async ", time.time(), t2-t1, type(video), video.shape)
+                    self.video_engine.save_video(video, f"/workspace/VideoSys/outputs/{seq_group.request_id}.mp4")
+                    
+                    end_time = time.time()
+                    print(f"request {seq_group.request_id} vae ends")
+                    with open(self.vae_log_path, 'a') as file:
+                        file.write(f"request {seq_group.request_id} vae ends at {end_time}\n")
             return RequestOutput(seq_group.request_id, seq_group.prompt, seq_group.shape, True)
         return None
 
@@ -317,7 +335,7 @@ class AsyncEngine:
         # print("engine_step ")
         
         for new_request in new_requests:
-            print("new_request ", new_request)
+            #print("new_request ", new_request)
             self.video_engine.add_request(**new_request)
         
         if self.config.enable_separate:

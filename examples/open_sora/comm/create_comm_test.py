@@ -26,3 +26,4 @@ def create_comm(dit_port, dit_rank, vae_port, vae_rank, worker_type):
     return resp
 
 resp = create_comm(8000,[0],8001,[1], "dit")
+resp2 = create_comm(8002,[0],8003,[1], "dit")

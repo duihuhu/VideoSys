@@ -4,8 +4,10 @@ from typing import Iterable, List
 import requests
 import uuid
 import time
-G_URL = "http://127.0.0.1:8000/generate_dit"  #GS服务器的地址 P
-
+import random
+G_URL1 = "http://127.0.0.1:8000/generate_dit"  #GS服务器的地址 P
+G_URL2 = "http://127.0.0.1:8002/generate_dit"  #GS2服务器的地址 P2
+ANS = 0
 
 def random_uuid() -> str:
     return str(uuid.uuid4().hex)
@@ -46,16 +48,35 @@ def get_response(response: requests.Response) -> List[str]:
     return output
 
 def post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames):
-    rsp = post_http_request(prompt, resolution, aspect_ratio, num_frames, G_URL)
-    for h in get_streaming_response(rsp):
-        print("res", time.time(), h)
+    global ANS
+    if ANS % 2 == 0:
+        G_URL = G_URL1
+    else:
+        G_URL = G_URL2
+    ANS += 1
+    print("post to ", G_URL)
+    _ = post_http_request(prompt, resolution, aspect_ratio, num_frames, G_URL)
+    #for h in get_streaming_response(rsp):
+    #    print("res", time.time(), h)
             
-def main(prompt, resolution, aspect_ratio, num_frames):
-    t1 = time.time()
-    for i in range(10):
-        post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
-    t2 = time.time()
-    print(t2-t1)
+def main(prompt, aspect_ratio, num_frames, batch, recv_ratio):
+    if not batch:
+        random.seed(42)
+        resolutions: List[str] = []
+        for _ in range(47):
+            resolutions.append('360p')
+        for _ in range(17):
+            resolutions.append('720p')
+        random.shuffle(resolutions)
+
+        for resolution in resolutions:
+            post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
+            time.sleep(1 / recv_ratio)
+    else:
+        add_resolutions = ['144p', '144p', '144p']
+        for resolution in add_resolutions:
+            post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
+
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -63,12 +84,15 @@ if __name__ == "__main__":
     parser.add_argument("--resolution", type=str, default="480p")
     parser.add_argument("--aspect-ratio", type=str, default="9:16")
     parser.add_argument("--num-frames", type=str, default="2s")
+    parser.add_argument("--batch", type=int, default=1)
+    parser.add_argument("--recv-ratio", type=float, default=1.0)
     args = parser.parse_args()
     
     prompt = args.prompt
     resolution = args.resolution
     aspect_ratio = args.aspect_ratio
     num_frames = args.num_frames
-    
-    main(prompt, resolution, aspect_ratio, num_frames)
-    
+    batch = args.batch
+    recv_ratio = args.recv_ratio
+
+    main(prompt, aspect_ratio, num_frames, batch, recv_ratio)
