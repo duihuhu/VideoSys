@@ -19,7 +19,7 @@ def clear_line(n: int = 1) -> None:
         print(LINE_UP, end=LINE_CLEAR, flush=True)
 
 
-def post_http_request(prompt, resolution, aspect_ratio, num_frames, api_url: str) -> requests.Response:
+def post_http_request(prompt, resolution, aspect_ratio, num_frames, role, api_url: str) -> requests.Response:
     headers = {"User-Agent": "Test Client"}
     pload = {
         "request_id": random_uuid(),
@@ -27,6 +27,7 @@ def post_http_request(prompt, resolution, aspect_ratio, num_frames, api_url: str
         "resolution": resolution, 
         "aspect_ratio": aspect_ratio,
         "num_frames": num_frames,
+        "role": role,
     }
     response = requests.post(api_url, headers=headers, json=pload, stream=True)
     return response
@@ -51,11 +52,13 @@ def post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames):
     global ANS
     if ANS % 2 == 0:
         G_URL = G_URL1
+        role = 0
     else:
         G_URL = G_URL2
+        role = 1
     ANS += 1
     print("post to ", G_URL)
-    _ = post_http_request(prompt, resolution, aspect_ratio, num_frames, G_URL)
+    _ = post_http_request(prompt, resolution, aspect_ratio, num_frames, role, G_URL)
     #for h in get_streaming_response(rsp):
     #    print("res", time.time(), h)
             

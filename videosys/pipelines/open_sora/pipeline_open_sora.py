@@ -923,7 +923,7 @@ class OpenSoraPipeline(VideoSysPipeline):
 
     def transfer_dit(self, request_id):
         samples = self.dit_video_data[request_id]
-        print("transfer_dit ", type(samples), samples.shape, samples.device)
+        #print("transfer_dit ", type(samples), samples.shape, samples.device)
     
     def remove_dit(self, send_finished_reqs):
         for request_id in send_finished_reqs:
@@ -931,12 +931,12 @@ class OpenSoraPipeline(VideoSysPipeline):
             
     def allocate_kv(self, request_id, prompt, shape):
         free_mem = torch.cuda.mem_get_info()[0] 
-        print("free mem, ", free_mem, shape)
+        #print("free mem, ", free_mem, shape)
         required_mem = torch.tensor(shape, dtype=torch.float32).numel() * 4
         if free_mem >= required_mem:
             allocated_video = torch.empty(shape, device=self._device, dtype=torch.float32)
             self.vae_record_data[request_id] = allocated_video
-            print("allocated_video addr ",shape, allocated_video.dtype, allocated_video.data_ptr(), allocated_video.device)
+            #print("allocated_video addr ",shape, allocated_video.dtype, allocated_video.data_ptr(), allocated_video.device)
             return True, allocated_video.data_ptr(), allocated_video.numel() * allocated_video.element_size()
         return False, None, None
     
@@ -946,7 +946,7 @@ class OpenSoraPipeline(VideoSysPipeline):
 
     def fetch_video_addr(self, request_id):
         if request_id in self.dit_video_data:
-            print("fetch_video_addr ", self.dit_video_data[request_id].device, self.dit_video_data[request_id].dtype)
+            #print("fetch_video_addr ", self.dit_video_data[request_id].device, self.dit_video_data[request_id].dtype)
             return self.dit_video_data[request_id].data_ptr(), \
                 self.dit_video_data[request_id].numel() * self.dit_video_data[request_id].element_size()
         

@@ -14,6 +14,7 @@ import torch
 from comm import CommData, CommEngine, CommonHeader, ReqMeta
 from videosys.utils.config import DeployConfig
 import videosys.entrypoints.server_config as cfg
+import videosys.entrypoints.server_config2 as cfg2
 from videosys.core.outputs import KvPreparedResponse
 import os
 
@@ -109,6 +110,7 @@ async def generate_dit(request: Request) -> Response:
     resolution = request_dict.pop("resolution")
     aspect_ratio = request_dict.pop("aspect_ratio")
     num_frames = request_dict.pop("num_frames")
+    role = request_dict.pop("role")
     # request_id = "111"
     # prompt = "Sunset over the sea."
     # resolution = "480p"
@@ -123,14 +125,18 @@ async def generate_dit(request: Request) -> Response:
     
     async def stream_results() -> AsyncGenerator[bytes, None]:
         async for request_output in results_generator:
-            print("request_output ", request_output)
+            #print("request_output ", request_output)
             ret = {"text": "sucess "}
             if args.enable_separate:
-                dit_kv_resp = asyc_forward_request(request_output.__json__(), cfg.forward_vae_url % 
+                if role == 0:
+                    dit_kv_resp = asyc_forward_request(request_output.__json__(), cfg.forward_vae_url % 
                                                         (cfg.vae_host, cfg.vae_port))
+                else:
+                    dit_kv_resp = asyc_forward_request(request_output.__json__(), cfg2.forward_vae_url % 
+                                                        (cfg2.vae_host, cfg2.vae_port))
                 async for resp in dit_kv_resp:
                     resp = resp.decode('utf-8')
-                    print("generate_dit resp ", resp)
+                    #print("generate_dit resp ", resp)
                     payload = json.loads(resp)
                     global_ranks = payload.pop("global_ranks")
                     kv_response = KvPreparedResponse(**payload)
