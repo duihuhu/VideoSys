@@ -411,164 +411,54 @@ class VideoScheduler:
                     return cur_req
         return None
     
-    def sjf_priority_schedule(self) -> SequenceGroup:
+    def fcfs_decouple_sjf_schedule(self) -> SequenceGroup:
         cur_free_gpus: Queue[int] = Queue()
         [cur_free_gpus.put(gpu_id) for gpu_id, status in enumerate(self.gpu_status) if status == 0]
-        availible_gpus_num = cur_free_gpus.qsize()
-        if availible_gpus_num < 1:
-            return None
-        
-        temp_requests_list: List[SequenceGroup] = []
-        temp_remaining_times: Dict[str, float] = {}
-        temp_requests_max_gpus_num: Dict[str, int] = {}
-        for request_id, seq_group in self.hungry_requests.items():
-            temp_requests_list.append(seq_group)
-            #max_possible_gpus_num = len(self.requests_workers_ids[request_id]) + availible_gpus_num
-            #cur_opt_gpus_num = self.opt_gpus_num[seq_group.resolution]
-            max_possible_gpus_num = 1 << (min(len(self.requests_workers_ids[request_id]) + availible_gpus_num, self.opt_gpus_num[seq_group.resolution]).bit_length() - 1)
-            '''while cur_opt_gpus_num > 0:
-                if max_possible_gpus_num >= cur_opt_gpus_num:
-                    max_possible_gpus_num = cur_opt_gpus_num
-                    temp_requests_max_gpus_num[request_id] = max_possible_gpus_num
-                    break
-                cur_opt_gpus_num //= 2
-            '''
-            temp_requests_max_gpus_num[request_id] = max_possible_gpus_num
-            temp_remaining_times[request_id] = self.dit_times[seq_group.resolution][max_possible_gpus_num] * (1 - (self.requests_cur_steps[request_id] / self.denoising_steps))
-
-        '''seq = self.waiting[0]
-        temp_requests_list.append(seq)
-        max_gpus_num = cur_free_gpus.qsize()
-        temp_opt_gpus_num = self.opt_gpus_num[seq.resolution]
-        while temp_opt_gpus_num > 0:
-            if max_gpus_num >= temp_opt_gpus_num:
-                max_gpus_num = temp_opt_gpus_num
-                temp_requests_max_gpus_num[seq.request_id] = max_gpus_num
-                break
-            temp_opt_gpus_num //= 2
-        temp_remaining_times[seq.request_id] = self.dit_times[seq.resolution][max_gpus_num]
-        '''
-
-        
-        window_seqs: List[Tuple[str, SequenceGroup]] = list(self.waiting.items())[: self.window_size]
-        for w_request_id, w_seq in window_seqs:
-            temp_requests_list.append(w_seq)
-            #temp_max_gpus_num = availible_gpus_num
-            #temp_opt_gpus_num = self.opt_gpus_num[w_seq.resolution]
-            temp_max_gpus_num = 1 << (min(availible_gpus_num, self.opt_gpus_num[w_seq.resolution]).bit_length() - 1)
-            '''while temp_opt_gpus_num > 0:
-                if temp_max_gpus_num >= temp_opt_gpus_num:
-                    temp_max_gpus_num = temp_opt_gpus_num
-                    temp_requests_max_gpus_num[w_request_id] = temp_max_gpus_num
-                    break
-                temp_opt_gpus_num //= 2
-            '''
-            temp_requests_max_gpus_num[w_request_id] = temp_max_gpus_num
-            temp_remaining_times[w_request_id] = self.dit_times[w_seq.resolution][temp_max_gpus_num]
-
-        temp_requests_list.sort(key = lambda x: temp_remaining_times[x.request_id])
-
-        cur_seq_group = temp_requests_list[0]
-        if cur_seq_group.request_id in self.hungry_requests:
-            temp_allocated_gpus_num = temp_requests_max_gpus_num[cur_seq_group.request_id] - len(self.requests_workers_ids[cur_seq_group.request_id])
-            for _ in range(temp_allocated_gpus_num):
-                gpu_id = cur_free_gpus.get()
-                self.gpu_status[gpu_id] = 1
-                self.requests_workers_ids[cur_seq_group.request_id].append(gpu_id)
-            if temp_requests_max_gpus_num[cur_seq_group.request_id] == self.opt_gpus_num[cur_seq_group.resolution]:
-                self.hungry_requests.pop(cur_seq_group.request_id, None)
-                self.requests_cur_steps.pop(cur_seq_group.request_id, None)
-            self.update_tasks.put((cur_seq_group.request_id, self.requests_workers_ids[cur_seq_group.request_id]))
-        else:
-            for _ in range(temp_requests_max_gpus_num[cur_seq_group.request_id]):
-                gpu_id = cur_free_gpus.get()
-                self.gpu_status[gpu_id] = 1
-                if cur_seq_group.request_id not in self.requests_workers_ids:
-                    self.requests_workers_ids[cur_seq_group.request_id] = [gpu_id]
-                else:
-                    self.requests_workers_ids[cur_seq_group.request_id].append(gpu_id)
-            if len(self.requests_workers_ids[cur_seq_group.request_id]) < self.opt_gpus_num[cur_seq_group.resolution]:
-                self.hungry_requests[cur_seq_group.request_id] = cur_seq_group
-                self.requests_cur_steps[cur_seq_group.request_id] = 0
-            cur_seq_group.worker_ids = copy.deepcopy(self.requests_workers_ids[cur_seq_group.request_id])
-            #self.waiting.popleft()
-            self.waiting.pop(cur_seq_group.request_id, None)
-            return cur_seq_group
-        return None
-        
-    
-    def least_remaining_time_schedule(self) -> SequenceGroup:
-        cur_free_gpus: Queue[int] = Queue()
-        for gpu_id, status in enumerate(self.gpu_status):
-            if status == 0:
-                cur_free_gpus.put(gpu_id)
         if cur_free_gpus.qsize() < 1:
             return None
         
         temp_requests_list: List[SequenceGroup] = []
         temp_remaining_times: Dict[str, float] = {}
         temp_requests_max_gpus_num: Dict[str, int] = {}
-        for request_id, seq_group in self.hungry_requests.items():
-            temp_requests_list.append(seq_group)
-            cur_gpus_num = len(self.requests_workers_ids[request_id]) + cur_free_gpus.qsize()
-            cur_opt_gpus_num = self.opt_gpus_num[seq_group.resolution]
-            while cur_opt_gpus_num > 0:
-                if cur_gpus_num >= cur_opt_gpus_num:
-                    cur_gpus_num = cur_opt_gpus_num
-                    temp_requests_max_gpus_num[request_id] = cur_gpus_num
-                    break
-                cur_opt_gpus_num //= 2
-            temp_remaining_times[request_id] = self.dit_times[seq_group.resolution][cur_gpus_num] * (1 - (self.requests_cur_steps[request_id] / self.denoising_steps)) + self.vae_times[seq_group.resolution]
-        
-        seqs_in_window: List[SequenceGroup] = []
-        for _ in range(self.window_size):
-            if not self.waiting:
-                break
-            cur_seq = self.waiting[0]
-            seqs_in_window.append(cur_seq)
-            self.waiting.popleft()
-        for seq in seqs_in_window:
-            temp_requests_list.append(seq)
-            max_gpus_num = cur_free_gpus.qsize()
-            temp_opt_gpus_num = self.opt_gpus_num[seq.resolution]
-            while temp_opt_gpus_num > 0:
-                if max_gpus_num >= temp_opt_gpus_num:
-                    max_gpus_num = temp_opt_gpus_num
-                    temp_requests_max_gpus_num[seq.request_id] = max_gpus_num
-                    break
-                temp_opt_gpus_num //= 2
-            temp_remaining_times[seq.request_id] = self.dit_times[seq.resolution][max_gpus_num] + self.vae_times[seq.resolution]
+        for request_id, cur_seq_group in self.hungry_requests.items():
+            temp_requests_list.append(cur_seq_group)
+            cur_max_gpus_num = 1 << (min(cur_free_gpus.qsize() + len(self.requests_workers_ids[request_id]), self.opt_gpus_num[cur_seq_group.resolution]).bit_length() - 1)
+            temp_requests_max_gpus_num[request_id] = cur_max_gpus_num
+            temp_remaining_times[request_id] = self.dit_times[cur_seq_group.resolution][cur_max_gpus_num] * (1 - (self.requests_cur_steps[request_id] / self.denoising_steps))
+
+        id, seq = list(self.waiting.items())[0]
+        temp_requests_list.append(seq)
+        temp_max_gpus_num = 1 << (min(cur_free_gpus.qsize(), self.opt_gpus_num[seq.resolution]).bit_length() - 1)
+        temp_requests_max_gpus_num[id] = temp_max_gpus_num
+        temp_remaining_times[id] = self.dit_times[seq.resolution][temp_max_gpus_num]
         
         temp_requests_list.sort(key = lambda x: temp_remaining_times[x.request_id])
 
-        cur_seq_group = temp_requests_list[0]
-        remove_id = cur_seq_group.request_id
-        for seq in reversed(seqs_in_window):
-            if seq.request_id != remove_id:
-                self.waiting.appendleft(seq)
-        if cur_seq_group.request_id in self.hungry_requests:
-            temp_allocated_gpus_num = temp_requests_max_gpus_num[cur_seq_group.request_id] - len(self.requests_workers_ids[cur_seq_group.request_id])
+        this_seq_group = temp_requests_list[0]
+        if this_seq_group.request_id in self.hungry_requests:
+            temp_allocated_gpus_num = temp_requests_max_gpus_num[this_seq_group.request_id] - len(self.requests_workers_ids[this_seq_group.request_id])
             for _ in range(temp_allocated_gpus_num):
                 gpu_id = cur_free_gpus.get()
                 self.gpu_status[gpu_id] = 1
-                self.requests_workers_ids[cur_seq_group.request_id].append(gpu_id)
-            if temp_requests_max_gpus_num[cur_seq_group.request_id] == self.opt_gpus_num[cur_seq_group.resolution]:
-                self.hungry_requests.pop(cur_seq_group.request_id, None)
-                self.requests_cur_steps.pop(cur_seq_group.request_id, None)
-            self.update_tasks.put((cur_seq_group.request_id, self.requests_workers_ids[cur_seq_group.request_id]))
+                self.requests_workers_ids[this_seq_group.request_id].append(gpu_id)
+            if temp_requests_max_gpus_num[this_seq_group.request_id] == self.opt_gpus_num[this_seq_group.resolution]:
+                self.hungry_requests.pop(this_seq_group.request_id, None)
+                self.requests_cur_steps.pop(this_seq_group.request_id, None)
+            self.update_tasks.put((this_seq_group.request_id, self.requests_workers_ids[this_seq_group.request_id]))
         else:
-            for _ in range(temp_requests_max_gpus_num[cur_seq_group.request_id]):
+            for _ in range(temp_requests_max_gpus_num[this_seq_group.request_id]):
                 gpu_id = cur_free_gpus.get()
                 self.gpu_status[gpu_id] = 1
-                if cur_seq_group.request_id not in self.requests_workers_ids:
-                    self.requests_workers_ids[cur_seq_group.request_id] = [gpu_id]
+                if this_seq_group.request_id not in self.requests_workers_ids:
+                    self.requests_workers_ids[this_seq_group.request_id] = [gpu_id]
                 else:
-                    self.requests_workers_ids[cur_seq_group.request_id].append(gpu_id)
-            if len(self.requests_workers_ids[cur_seq_group.request_id]) < self.opt_gpus_num[cur_seq_group.resolution]:
-                self.hungry_requests[cur_seq_group.request_id] = cur_seq_group
-                self.requests_cur_steps[cur_seq_group.request_id] = 0
-            cur_seq_group.worker_ids = copy.deepcopy(self.requests_workers_ids[cur_seq_group.request_id])
-            return cur_seq_group
+                    self.requests_workers_ids[this_seq_group.request_id].append(gpu_id)
+            if len(self.requests_workers_ids[this_seq_group.request_id]) < self.opt_gpus_num[this_seq_group.resolution]:
+                self.hungry_requests[this_seq_group.request_id] = this_seq_group
+                self.requests_cur_steps[this_seq_group.request_id] = 0
+            this_seq_group.worker_ids = copy.deepcopy(self.requests_workers_ids[this_seq_group.request_id])
+            self.waiting.pop(this_seq_group.request_id, None)
+            return this_seq_group
         return None
     
     def window_based_sjf_schedule(self) -> SequenceGroup:
