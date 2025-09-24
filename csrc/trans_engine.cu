@@ -73,11 +73,11 @@ std::vector<std::string> TransEngine::check_recv_finished_events() {
             const std::string& request_id = it->first;
             at::cuda::CUDAEvent *event = it->second;
             if (event->query()) {
-                // std::cout<<"check_recv_finished_events " << request_id<< std::endl;
+                std::cout<<"check_recv_finished_events " << request_id<< std::endl;
                 recv_blocks_finished.emplace_back(TransferTaskMeta(channel, request_id).serialize());
                 ++num_finished_events;
             } else {
-                // std::cout<<"request_id not finished " << " " << request_id << std::endl;
+                std::cout<<"request_id not finished " << " " << request_id << std::endl;
                 break;
             }
         }

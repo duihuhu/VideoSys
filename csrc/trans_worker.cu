@@ -83,7 +83,7 @@ std::vector<std::pair<std::vector<std::string>, std::vector<std::string>>>TransW
     std::vector<std::pair<std::vector<std::string>, std::vector<std::string>>> finished_tasks;
     while (!transfer_result_queue.empty())
     {
-        // std::cout<<"transfer_result_queue is not empty ";
+        std::cout<<"transfer_result_queue is not empty ";
         auto finished_task = transfer_result_queue.pop_front();
         finished_tasks.push_back(finished_task);
     }
