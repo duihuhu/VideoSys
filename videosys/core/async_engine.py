@@ -206,12 +206,11 @@ class AsyncEngine:
     def __init__(self, 
                  config: OpenSoraConfig,
                  deploy_config: DeployConfig,
-                 start_engine_loop: bool = True,
-                 vae_rank: int = 0) -> None:
+                 start_engine_loop: bool = True) -> None:
         self.config = config
         self.deploy_config = deploy_config
         self.parallel_worker_tasks = None
-        self.video_engine = VideoSysEngine(config=self.config, deploy_config=self.deploy_config, vae_rank=vae_rank)
+        self.video_engine = VideoSysEngine(config=self.config, deploy_config=self.deploy_config)
         self.start_engine_loop = start_engine_loop
         
         self.background_loop = None
