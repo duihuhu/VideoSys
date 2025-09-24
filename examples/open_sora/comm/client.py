@@ -84,8 +84,8 @@ def main(prompt, aspect_ratio, num_frames, batch, recv_ratio):
         tasks = list(zip(resolutions, GURs, roles))
 
         # 最大并发线程数 = recv_ratio
-        max_workers = int(recv_ratio) if recv_ratio > 0 else 1
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        #max_workers = int(recv_ratio) if recv_ratio > 0 else 1
+        with ThreadPoolExecutor(max_workers=64) as executor:
             futures = []
             for resolution, GUR, role in tasks:
                 futures.append(
