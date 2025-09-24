@@ -12,6 +12,8 @@ def main():
     slo_360p_10 = 62.49167601
     slo_480p_5 = 51.75390204
     slo_480p_10 = 103.5078041
+    video_360p = 2.089775626
+    video_720p = 10.40768774
     with open(start_log_path, 'r') as file:
         lines = file.readlines()
         starts = {}
@@ -28,7 +30,8 @@ def main():
     with open(dit_log_path, 'r') as file:
         lines = file.readlines()
         processes = {}
-        reslo = {}  
+        reslo = {}
+        ends = {}  
         for line in lines:
             datas = line.strip().split(' ')
             req_id = str(datas[1])
@@ -39,8 +42,10 @@ def main():
                 processes[req_id] = process_time
             if req_id not in reslo:
                 reslo[req_id] = resolution
+            if req_id not in ends:
+                ends[req_id] = end_time
 
-    with open(vae_log_path, 'r') as file:
+    '''with open(vae_log_path, 'r') as file:
         lines = file.readlines()
         ends = {}
         for line in lines:
@@ -49,6 +54,7 @@ def main():
             end_time = float(datas[-1])
             if req_id not in ends:
                 ends[req_id] = end_time
+    '''
     
     print(f"----------Processes----------")
     for key in starts.keys():
@@ -69,8 +75,13 @@ def main():
     for key, value in starts.items():
         if key not in ends or key not in reslo:
             continue
-        outputs.append(ends[key] - value)
         cur_res = reslo[key]
+        if cur_res == "360p":
+            ends[key] = ends[key] + video_360p
+        if cur_res == "720p":
+            ends[key] = ends[key] + video_720p
+        outputs.append(ends[key] - value)
+        
         if cur_res == "720p":
             if outputs[-1] <= slo_720p_5:
                 slo5 += 1
