@@ -887,15 +887,15 @@ class OpenSoraPipeline(VideoSysPipeline):
                      condition_frame_length: int = 5,
                      return_dict: bool = True):
 
-        print("generate_vae start ")
+        #print("generate_vae start ")
         video_clips = []
         samples = self.vae_record_data[request_id]
         
-        t1 = time.time()
+        #t1 = time.time()
         samples = self.vae.decode(samples.to(self._dtype), num_frames=num_frames)
         torch.cuda.synchronize() 
-        t2 = time.time()
-        print("vae t2 - t1", t2-t1)
+        #t2 = time.time()
+        #print("vae t2 - t1", t2-t1)
         video_clips.append(samples)
         for i in range(1, loop):
             video_clips[i] = video_clips[i][:, dframe_to_frame(condition_frame_length) :]
@@ -911,7 +911,7 @@ class OpenSoraPipeline(VideoSysPipeline):
 
         if not return_dict:
             return (video,)
-        print("video info ", type(video), video.shape)
+       # print("video info ", type(video), video.shape)
         return VideoSysPipelineOutput(video=video)
     
     def get_nccl_id(self, dst_channel, worker_type):
