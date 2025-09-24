@@ -19,10 +19,11 @@ def clear_line(n: int = 1) -> None:
         print(LINE_UP, end=LINE_CLEAR, flush=True)
 
 
-def post_http_request(prompt, resolution, aspect_ratio, num_frames, role, api_url: str) -> requests.Response:
+def post_http_request(prompt, resolution, aspect_ratio, num_frames, role, request_id, api_url: str) -> requests.Response:
+    print(f"send request {request_id} resolution {resolution} to {api_url}")
     headers = {"User-Agent": "Test Client"}
     pload = {
-        "request_id": random_uuid(),
+        "request_id": request_id,
         "prompt": prompt,
         "resolution": resolution, 
         "aspect_ratio": aspect_ratio,
@@ -48,17 +49,8 @@ def get_response(response: requests.Response) -> List[str]:
     output = data["text"]
     return output
 
-def post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames):
-    global ANS
-    if ANS % 2 == 0:
-        G_URL = G_URL1
-        role = 0
-    else:
-        G_URL = G_URL2
-        role = 1
-    ANS += 1
-    print("post to ", G_URL)
-    _ = post_http_request(prompt, resolution, aspect_ratio, num_frames, role, G_URL)
+def post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames, role, GUR):
+    _ = post_http_request(prompt, resolution, aspect_ratio, num_frames, role, random_uuid(), GUR)
     #for h in get_streaming_response(rsp):
     #    print("res", time.time(), h)
             
@@ -66,19 +58,28 @@ def main(prompt, aspect_ratio, num_frames, batch, recv_ratio):
     if not batch:
         random.seed(42)
         resolutions: List[str] = []
+        GURs: List[str] = []
+        roles: List[int] = []
         for _ in range(47):
             resolutions.append('360p')
         for _ in range(17):
             resolutions.append('720p')
         random.shuffle(resolutions)
+        for i in range(64):
+            if i % 2 == 0:
+                GURs.append(G_URL1) 
+                roles.append(0)
+            else:
+                GURs.append(G_URL2)
+                roles.append(1)
 
-        for resolution in resolutions:
-            post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
+        for resolution, GUR, role in zip(resolutions, GURs, roles):
+            post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames, role, GUR)
             time.sleep(1 / recv_ratio)
     else:
         add_resolutions = ['144p', '144p', '144p']
         for resolution in add_resolutions:
-            post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames)
+            post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames, 0, G_URL1)
 
     
 if __name__ == "__main__":
