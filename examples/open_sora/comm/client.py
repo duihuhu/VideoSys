@@ -5,6 +5,8 @@ import requests
 import uuid
 import time
 import random
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 G_URL1 = "http://127.0.0.1:8000/generate_dit"  #GS服务器的地址 P
 G_URL2 = "http://127.0.0.1:8002/generate_dit"  #GS2服务器的地址 P2
 ANS = 0
@@ -73,9 +75,36 @@ def main(prompt, aspect_ratio, num_frames, batch, recv_ratio):
                 GURs.append(G_URL2)
                 roles.append(1)
 
-        for resolution, GUR, role in zip(resolutions, GURs, roles):
+        '''for resolution, GUR, role in zip(resolutions, GURs, roles):
             post_request_and_get_response(prompt, resolution, aspect_ratio, num_frames, role, GUR)
             time.sleep(1 / recv_ratio)
+        '''
+
+        # 构造任务
+        tasks = list(zip(resolutions, GURs, roles))
+
+        # 最大并发线程数 = recv_ratio
+        max_workers = int(recv_ratio) if recv_ratio > 0 else 1
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = []
+            for resolution, GUR, role in tasks:
+                futures.append(
+                    executor.submit(
+                        post_request_and_get_response,
+                        prompt, resolution, aspect_ratio, num_frames, role, GUR
+                    )
+                )
+                # 这里可以选择加上速率限制
+                time.sleep(1.0 / recv_ratio)
+
+            # 等待所有任务完成
+            for future in as_completed(futures):
+                try:
+                    result = future.result()
+                    # 如果需要处理返回结果，可以在这里加逻辑
+                    # print(result)
+                except Exception as e:
+                    print(f"Task failed: {e}")
     else:
         add_resolutions = ['144p', '144p', '144p']
         for resolution in add_resolutions:
