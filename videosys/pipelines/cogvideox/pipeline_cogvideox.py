@@ -100,6 +100,8 @@ class CogVideoXConfig:
         # ======= pab ========
         enable_pab: bool = False,
         pab_config=CogVideoXPABConfig(),
+
+        worker_type: str="dit",
     ):
         self.model_path = model_path
         self.pipeline_cls = CogVideoXPipeline
@@ -111,6 +113,8 @@ class CogVideoXConfig:
         # ======= pab ========
         self.enable_pab = enable_pab
         self.pab_config = pab_config
+
+        self.worker_type = worker_type 
 
 
 class CogVideoXPipeline(VideoSysPipeline):
