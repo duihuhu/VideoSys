@@ -11,12 +11,14 @@
 import inspect
 import math
 from typing import Callable, Dict, List, Optional, Tuple, Union
+import itertools
 
 import torch
 from diffusers.callbacks import MultiPipelineCallbacks, PipelineCallback
 from diffusers.utils.torch_utils import randn_tensor
 from diffusers.video_processor import VideoProcessor
 from transformers import T5EncoderModel, T5Tokenizer
+import torch.distributed as dist
 
 from videosys.core.pab_mgr import PABConfig, set_pab_manager, update_steps
 from videosys.core.pipeline import VideoSysPipeline, VideoSysPipelineOutput
@@ -27,7 +29,6 @@ from videosys.schedulers.scheduling_ddim_cogvideox import CogVideoXDDIMScheduler
 from videosys.schedulers.scheduling_dpm_cogvideox import CogVideoXDPMScheduler
 from videosys.utils.logging import logger
 from videosys.utils.utils import save_video
-
 
 class CogVideoXPABConfig(PABConfig):
     def __init__(
@@ -190,6 +191,29 @@ class CogVideoXPipeline(VideoSysPipeline):
             self.vae.config.temporal_compression_ratio if hasattr(self, "vae") and self.vae is not None else 4
         )
         self.video_processor = VideoProcessor(vae_scale_factor=self.vae_scale_factor_spatial)
+
+        # ===【新增】初始化分布式变量 ===
+        self._ranks_to_pg = {}
+        self._pg_to_ranks = {}
+    
+    def init_all_process_group(self):
+        assert dist.is_initialized(), "the default process group should be initialized"
+        assert len(self._ranks_to_pg) == 0, "ranks_to_pg should be empty" 
+        assert len(self._pg_to_ranks) == 0, "pg_to_ranks should be empty"
+        world_size = dist.get_world_size()
+        global_rank = dist.get_rank()
+        #print(f"[rank {global_rank}] before init_all_process_group")
+        # generate permutation of all process groups
+        parallel_sizes = [2 ** i for i in range(int.bit_length(world_size)) if 2 ** i <= world_size]
+        for parallel_size in parallel_sizes:
+            for pg_ranks in itertools.combinations(list(range(world_size)), parallel_size):
+                self._ranks_to_pg[pg_ranks] = None 
+        for ranks in self._ranks_to_pg.keys():
+            pg = dist.new_group(ranks, use_local_synchronization=True)
+            self._ranks_to_pg[ranks] = pg
+            self._pg_to_ranks[pg] = ranks
+        # print(self._ranks_to_pg)
+        #print(f"[rank {global_rank}] after init_all_process_group") 
 
     def _get_t5_prompt_embeds(
         self,
