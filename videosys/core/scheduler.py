@@ -44,7 +44,7 @@ class VideoScheduler:
         self.vae_times: Dict[str, float] = {"144p": 0.34, "240p": 0.78, "360p": 1.81, "480p": 3.54, "720p": 8.70, "1080p": 22.04, "2k": 45.36}
         
         #self.opt_gpus_num: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 2, "480p": 4}
-        self.opt_gpus_num: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 4, "480p": 8, "720p": 8, "1080p": 8, "2k": 8}
+        self.opt_gpus_num: Dict[str, int] = {"144p": 1, "240p": 2, "360p": 8, "480p": 8, "720p": 8, "1080p": 8, "2k": 8}
 
         self.denoising_steps = 30
 
@@ -101,14 +101,14 @@ class VideoScheduler:
         #for gpu_id in self.requests_workers_ids[group_id]:
         #    self.gpu_status[gpu_id] = 0
         if last:
-            for gpu_id in self.requests_workers_ids[group_id]:
-                self.gpu_status[gpu_id] = 0
-            #self.gpu_status[self.requests_workers_ids[group_id][0]] = 0
+            #for gpu_id in self.requests_workers_ids[group_id]:
+            #    self.gpu_status[gpu_id] = 0
+            self.gpu_status[self.requests_workers_ids[group_id][0]] = 0
             self.requests_workers_ids.pop(group_id, None)
         else:
             self.hungry_requests.pop(group_id, None)
-            #for i in range(1, len(self.requests_workers_ids[group_id])):
-            #    self.gpu_status[self.requests_workers_ids[group_id][i]] = 0
+            for i in range(1, len(self.requests_workers_ids[group_id])):
+                self.gpu_status[self.requests_workers_ids[group_id][i]] = 0
             #for gpu_id in self.requests_workers_ids[group_id][1: ]:
             #    self.gpu_status[gpu_id] = 0
             self.requests_cur_steps.pop(group_id, None)
