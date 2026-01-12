@@ -239,6 +239,27 @@ class ProcessWorkerWrapper:
         )
 
         self.process.start()
+    
+    # ===【新增】关键修改开始===
+    def __getattr__(self, name: str):
+        """
+        这个魔法方法是 Python 的“拦截器”。
+        当代码调用了 wrapper.generate() 时，因为 Wrapper 类本身没有 generate 方法，
+        Python 会自动调用这个 __getattr__("generate")。
+        
+        我们在这里返回一个 lambda 函数，这个函数被执行时，
+        实际上是调用了 self.execute_method("generate", ...)，
+        从而把任务发给了子进程。
+        """
+        # 防止无限递归访问私有属性
+        if name.startswith("_"):
+            raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+
+        def wrapper(*args, **kwargs):
+            return self.execute_method(name, *args, **kwargs)
+        
+        return wrapper
+    # ===【新增】关键修改结束===
 
     def _enqueue_task(self, future: Union[ResultFuture, asyncio.Future], method: str, args, kwargs):
         task_id = uuid.uuid4()
