@@ -376,8 +376,8 @@ class AsyncSched:
         #with open("costs.txt", "a") as file:    
         #    file.write(f"{t2-t1}\n") 
         #seq_group = self.video_sched.scheduler.least_remaining_time_schedule()
-        seq_group = self.video_sched.scheduler.naive_baseline_schedule()
-        #seq_group = self.video_sched.scheduler.naive_baseline_greedy_schedule()
+        #seq_group = self.video_sched.scheduler.naive_baseline_schedule()
+        seq_group = self.video_sched.scheduler.naive_baseline_greedy_schedule()
         #seq_group = self.video_sched.scheduler.naive_partition_schedule()
         #seq_group = self.video_sched.scheduler.smart_static_partition_schedule()
         #seq_group = self.video_sched.scheduler.smart_dynamic_partition_schedule()
