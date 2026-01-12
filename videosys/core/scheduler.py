@@ -213,7 +213,7 @@ class VideoScheduler:
     def window_update_gpu_status(self, group_id: str) -> None:
         self.hungry_requests.pop(group_id, None)
         self.requests_cur_steps.pop(group_id, None)
-        #self.requests_last_steps.pop(group_id, None) 
+        self.requests_last_steps.pop(group_id, None) 
         #no for sjf
         for gpu_id in self.requests_workers_ids[group_id]:
             self.gpu_status[gpu_id] = 0
