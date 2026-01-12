@@ -259,17 +259,17 @@ class AsyncSched:
                 "worker_ids": task.worker_ids,
             }
             _ = self.post_http_request(pload = pload, api_url = api_url)
-            #self.video_sched.scheduler.breakdown_update_gpu_status(group_id = task.request_id, last = False)
+            self.video_sched.scheduler.breakdown_update_gpu_status(group_id = task.request_id, last = False)
 
             api_url2 = "http://127.0.0.1:8000/async_generate_vae"
             pload = {
                 "request_id": task.request_id,
-                "worker_ids": task.worker_ids, #[task.worker_ids[0]]
+                "worker_ids": [task.worker_ids[0]], #task.worker_ids
             }
             _ = self.post_http_request(pload=pload, api_url=api_url2)
 
-            #self.video_sched.scheduler.breakdown_update_gpu_status(group_id = task.request_id, last = True)
-            self.video_sched.scheduler.naive_update_gpu_status(group_id=task.request_id)
+            self.video_sched.scheduler.breakdown_update_gpu_status(group_id = task.request_id, last = True)
+            #self.video_sched.scheduler.naive_update_gpu_status(group_id=task.request_id)
             #self.video_sched.scheduler.window_update_gpu_status(group_id=task.request_id)
             #self.video_sched.scheduler.naive_baseline_update_gpu_status(resolution = task.resolution, worker_ids = task.worker_ids)
             #self.video_sched.scheduler.smart_baseline_update_gpu_status(worker_ids = task.worker_ids, res = task.resolution) #req_id = task.request_id)
@@ -376,8 +376,8 @@ class AsyncSched:
         #with open("costs.txt", "a") as file:    
         #    file.write(f"{t2-t1}\n") 
         #seq_group = self.video_sched.scheduler.least_remaining_time_schedule()
-        seq_group = self.video_sched.scheduler.naive_baseline_schedule()
-        #seq_group = self.video_sched.scheduler.naive_baseline_greedy_schedule()
+        #seq_group = self.video_sched.scheduler.naive_baseline_schedule()
+        seq_group = self.video_sched.scheduler.naive_baseline_greedy_schedule()
         #seq_group = self.video_sched.scheduler.naive_partition_schedule()
         #seq_group = self.video_sched.scheduler.smart_static_partition_schedule()
         #seq_group = self.video_sched.scheduler.smart_dynamic_partition_schedule()

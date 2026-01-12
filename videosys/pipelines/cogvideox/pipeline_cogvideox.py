@@ -650,6 +650,11 @@ class CogVideoXPipeline(VideoSysPipeline):
         )
 
         # 8. Denoising loop
+        dit_start_event = torch.cuda.Event(enable_timing=True)
+        dit_end_event = torch.cuda.Event(enable_timing=True)
+
+        dit_start_event.record()
+        
         num_warmup_steps = max(len(timesteps) - num_inference_steps * self.scheduler.order, 0)
 
         with self.progress_bar(total=num_inference_steps) as progress_bar:
@@ -712,12 +717,25 @@ class CogVideoXPipeline(VideoSysPipeline):
 
                 if i == len(timesteps) - 1 or ((i + 1) > num_warmup_steps and (i + 1) % self.scheduler.order == 0):
                     progress_bar.update()
+        
+        dit_end_event.record()            
+        torch.cuda.synchronize()
+        elapsed_time_ms = dit_start_event.elapsed_time(dit_end_event)
+        print(f"----------DiT Time: {elapsed_time_ms:.3f} MS----------")
 
+        vae_start_event = torch.cuda.Event(enable_timing=True)
+        vae_end_event = torch.cuda.Event(enable_timing=True)
+
+        vae_start_event.record()
         if not output_type == "latent":
             video = self.decode_latents(latents)
             video = self.video_processor.postprocess_video(video=video, output_type=output_type)
         else:
             video = latents
+        vae_end_event.record()            
+        torch.cuda.synchronize()
+        elapsed_time_ms = vae_start_event.elapsed_time(vae_end_event)
+        print(f"----------VAE Time: {elapsed_time_ms:.3f} MS----------")
 
         # Offload all models
         self.maybe_free_model_hooks()
