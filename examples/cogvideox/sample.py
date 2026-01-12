@@ -2,6 +2,7 @@ from videosys import CogVideoXConfig, VideoSysEngine
 import uuid
 import argparse
 from videosys.utils.config import DeployConfig
+from typing import Dict, List
 
 def random_uuid() -> str:
     return str(uuid.uuid4().hex)
@@ -19,6 +20,9 @@ def run_base(num_gpus: int = 1, height: int = 480):
     # num frames should be <= 49. resolution is fixed to 720p.
     width = height * 4 // 3
 
+    worker_ids: Dict[int, List[int]] = {1: [0], 2: [0, 1], 4: [0, 1, 2, 3], 8: [0, 1, 2, 3, 4, 5, 6, 7]}
+
+    engine.build_worker_comm(worker_ids=worker_ids.get(num_gpus, [0]))
     for _ in range(5):
         video = engine.generate(
             prompt=prompt,

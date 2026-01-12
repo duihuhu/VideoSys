@@ -29,6 +29,7 @@ from videosys.schedulers.scheduling_ddim_cogvideox import CogVideoXDDIMScheduler
 from videosys.schedulers.scheduling_dpm_cogvideox import CogVideoXDPMScheduler
 from videosys.utils.logging import logger
 from videosys.utils.utils import save_video
+import videosys
 
 class CogVideoXPABConfig(PABConfig):
     def __init__(
@@ -197,23 +198,41 @@ class CogVideoXPipeline(VideoSysPipeline):
         self._pg_to_ranks = {}
     
     def init_all_process_group(self):
+        # 1. 基础检查
         assert dist.is_initialized(), "the default process group should be initialized"
         assert len(self._ranks_to_pg) == 0, "ranks_to_pg should be empty" 
         assert len(self._pg_to_ranks) == 0, "pg_to_ranks should be empty"
+        
         world_size = dist.get_world_size()
         global_rank = dist.get_rank()
-        #print(f"[rank {global_rank}] before init_all_process_group")
-        # generate permutation of all process groups
+
+        # 2. 创建所有可能的通信组 (这一步你原本就有)
         parallel_sizes = [2 ** i for i in range(int.bit_length(world_size)) if 2 ** i <= world_size]
         for parallel_size in parallel_sizes:
             for pg_ranks in itertools.combinations(list(range(world_size)), parallel_size):
                 self._ranks_to_pg[pg_ranks] = None 
+        
         for ranks in self._ranks_to_pg.keys():
             pg = dist.new_group(ranks, use_local_synchronization=True)
             self._ranks_to_pg[ranks] = pg
             self._pg_to_ranks[pg] = ranks
-        # print(self._ranks_to_pg)
-        #print(f"[rank {global_rank}] after init_all_process_group") 
+
+    def set_curr_parallel_mgr(self, worker_ids: List[int]):
+        worker_ids = tuple(sorted(worker_ids))
+        global_rank = dist.get_rank()
+        #print(f"[rank {global_rank}] before set_curr_parallel_mgr")
+
+        assert (
+            global_rank in worker_ids
+        ), f"rank {global_rank} should in worker_ids {worker_ids}"
+
+        sp_size = len(worker_ids)
+        cp_size = 1
+        dp_size = 1
+        videosys.set_parallel_manager(
+            dp_size, cp_size, sp_size, worker_ids, self._ranks_to_pg
+        )
+        #print(f"[rank {global_rank}] after set_curr_parallel_mgr")
 
     def _get_t5_prompt_embeds(
         self,
