@@ -1,6 +1,7 @@
 from videosys import CogVideoXConfig, VideoSysEngine
 import uuid
 import argparse
+from videosys.utils.config import DeployConfig
 
 def random_uuid() -> str:
     return str(uuid.uuid4().hex)
@@ -9,7 +10,10 @@ def run_base(num_gpus: int = 1, height: int = 480):
     # models: "THUDM/CogVideoX-2b" or "THUDM/CogVideoX-5b"
     # change num_gpus for multi-gpu inference
     config = CogVideoXConfig("/workspace/THUDM", num_gpus=num_gpus)
-    engine = VideoSysEngine(config)
+
+    deploy_config = DeployConfig()
+
+    engine = VideoSysEngine(config, deploy_config=deploy_config)
 
     prompt = "Sunset over the sea."
     # num frames should be <= 49. resolution is fixed to 720p.

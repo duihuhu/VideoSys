@@ -81,6 +81,7 @@ class VideoSysEngine:
             distributed_init_method = get_distributed_init_method("127.0.0.1", get_open_port())
             self.driver_worker = ProcessWorkerWrapper(
                         driver_result_handler,
+                        0,  # <---【新增】补上 rank 参数，单卡固定为 0
                         partial(
                             self._create_pipeline,
                             pipeline_cls=pipeline_cls,
