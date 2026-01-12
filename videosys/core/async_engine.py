@@ -313,7 +313,7 @@ class AsyncSched:
             self.video_sched.scheduler.update_gpu_status(last = False, group_id = task.request_id, sjf = False)
             #self.video_sched.scheduler.update_gpu_status(last = False, group_id = task.request_id, sjf = True)
                 #self.video_sched.scheduler.breakdown_update_gpu_status(group_id = task.request_id, last = False)
-            print(f"request {task.request_id} resolution {task.resolution} vae's worker ids {task.task.worker_ids[0]}") #task.worker_ids
+            print(f"request {task.request_id} resolution {task.resolution} vae's worker ids {task.worker_ids[0]}") #task.worker_ids
             api_url = "http://127.0.0.1:8000/async_generate_vae"
             pload = {
                 "request_id": task.request_id,
