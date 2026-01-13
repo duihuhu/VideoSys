@@ -59,11 +59,12 @@ def run_low_mem():
 
 
 if __name__ == "__main__":
-    #parser = argparse.ArgumentParser()
-    #parser.add_argument("--gpu", type=int, default=1, help="number of gpus to use for inference")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--gpu", type=int, default=1, help="number of gpus to use for inference")
     #parser.add_argument("--height", type=int, default=720, help="height of the generated video")
-    #args = parser.parse_args()
-    for i in [2,4,8]:
-        run_base(num_gpus=i)
+    args = parser.parse_args()
+    #for i in [2,4,8]:
+    #    run_base(num_gpus=i)
+    run_base(num_gpus=args.gpu)
     # run_pab()
     # run_low_mem()
