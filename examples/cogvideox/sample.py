@@ -26,7 +26,7 @@ def run_base(num_gpus: int = 1):#, height: int = 480):
     #worker_ids: Dict[int, List[int]] = {1: [0], 2: [0, 1], 4: [0, 1, 2, 3], 8: [0, 1, 2, 3, 4, 5, 6, 7]}
     #await engine.build_worker_comm(worker_ids=worker_ids.get(num_gpus, [0]))
     
-    for _ in range(3):
+    for _ in range(1):
         video = engine.generate(
             prompt=prompt,
             guidance_scale=6,
