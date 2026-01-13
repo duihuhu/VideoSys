@@ -12,7 +12,7 @@ def random_uuid() -> str:
 def run_base(num_gpus: int = 1):#, height: int = 480):
     # models: "THUDM/CogVideoX-2b" or "THUDM/CogVideoX-5b"
     # change num_gpus for multi-gpu inference
-    config = CogVideoXConfig("/workspace/THUDM", num_gpus=num_gpus)
+    config = CogVideoXConfig("/workspace/THUDM5B", num_gpus=num_gpus)
 
     #deploy_config = DeployConfig()
     #engine = VideoSysEngine(config, deploy_config=deploy_config)
