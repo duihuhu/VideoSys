@@ -26,7 +26,7 @@ def run_base(num_gpus: int = 1):#, height: int = 480):
     #worker_ids: Dict[int, List[int]] = {1: [0], 2: [0, 1], 4: [0, 1, 2, 3], 8: [0, 1, 2, 3, 4, 5, 6, 7]}
     #await engine.build_worker_comm(worker_ids=worker_ids.get(num_gpus, [0]))
     
-    for _ in range(5):
+    for _ in range(3):
         video = engine.generate(
             prompt=prompt,
             guidance_scale=6,
@@ -59,10 +59,11 @@ def run_low_mem():
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--gpu", type=int, default=1, help="number of gpus to use for inference")
+    #parser = argparse.ArgumentParser()
+    #parser.add_argument("--gpu", type=int, default=1, help="number of gpus to use for inference")
     #parser.add_argument("--height", type=int, default=720, help="height of the generated video")
-    args = parser.parse_args()
-    run_base(num_gpus=args.gpu)#, height=args.height)
+    #args = parser.parse_args()
+    for i in [2,4,8]:
+        run_base(num_gpus=i)
     # run_pab()
     # run_low_mem()
