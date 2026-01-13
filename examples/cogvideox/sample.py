@@ -9,7 +9,7 @@ def random_uuid() -> str:
     return str(uuid.uuid4().hex)
 
 
-def run_base(num_gpus: int = 1, height: int = 480):
+def run_base(num_gpus: int = 1):#, height: int = 480):
     # models: "THUDM/CogVideoX-2b" or "THUDM/CogVideoX-5b"
     # change num_gpus for multi-gpu inference
     config = CogVideoXConfig("/workspace/THUDM", num_gpus=num_gpus)
@@ -21,7 +21,7 @@ def run_base(num_gpus: int = 1, height: int = 480):
 
     prompt = "Sunset over the sea."
     # num frames should be <= 49. resolution is fixed to 720p.
-    width = height * 4 // 3
+    #width = height * 4 // 3
 
     #worker_ids: Dict[int, List[int]] = {1: [0], 2: [0, 1], 4: [0, 1, 2, 3], 8: [0, 1, 2, 3, 4, 5, 6, 7]}
     #await engine.build_worker_comm(worker_ids=worker_ids.get(num_gpus, [0]))
@@ -32,8 +32,8 @@ def run_base(num_gpus: int = 1, height: int = 480):
             guidance_scale=6,
             num_inference_steps=50,
             num_frames=49,
-            height=height,
-            width=width,
+            #height=height,
+            #width=width,
         ).video[0]
     
     request_id = random_uuid()
@@ -61,8 +61,8 @@ def run_low_mem():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--gpu", type=int, default=1, help="number of gpus to use for inference")
-    parser.add_argument("--height", type=int, default=720, help="height of the generated video")
+    #parser.add_argument("--height", type=int, default=720, help="height of the generated video")
     args = parser.parse_args()
-    run_base(num_gpus=args.gpu, height=args.height)
+    run_base(num_gpus=args.gpu)#, height=args.height)
     # run_pab()
     # run_low_mem()
